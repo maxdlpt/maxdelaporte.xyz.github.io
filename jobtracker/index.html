@@ -28,15 +28,20 @@
       --sh-lg: 0 8px 20px rgba(0,0,0,0.35);
       --r: 8px;
       --r-pill: 20px;
+      --col-neutral: #6b7280;
+      --col-amber: #f59e0b;
+      --col-red: #ef4444;
+      --col-green: #10b981;
+      --col-lgreen: #6ee7b7;
     }
 
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.6; }
 
-    /* ── Animations ── */
     @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
     @keyframes popIn { from { opacity:0; transform:scale(.95); } to { opacity:1; transform:scale(1); } }
     @keyframes toastIn { from { opacity:0; transform:translateX(100%); } to { opacity:1; transform:translateX(0); } }
     @keyframes toastOut { to { opacity:0; transform:translateX(100%); } }
+    @keyframes slideIn { from { opacity:0; transform:translateX(-6px); } to { opacity:1; transform:translateX(0); } }
 
     /* ── Auth ── */
     .auth-wrap { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
@@ -53,6 +58,16 @@
     .field select { cursor:pointer; }
     .field select option { background:var(--card); }
 
+    /* ── Combobox ── */
+    .combo-wrap { position:relative; }
+    .combo-input { width:100%; background:var(--bg); border:1px solid var(--bdr2); border-radius:var(--r); color:var(--text); padding:10px 12px; font-size:14px; outline:none; transition:border-color .15s; font-family:inherit; }
+    .combo-input:focus { border-color:var(--accent); }
+    .combo-list { position:absolute; top:calc(100% + 2px); left:0; right:0; background:var(--card); border:1px solid var(--bdr2); border-radius:var(--r); max-height:180px; overflow-y:auto; z-index:50; box-shadow:var(--sh-md); }
+    .combo-opt { padding:9px 12px; cursor:pointer; font-size:13px; transition:background .1s; border-bottom:1px solid var(--bdr); }
+    .combo-opt:last-child { border-bottom:none; }
+    .combo-opt:hover { background:var(--bg2); }
+    .combo-opt.create { color:var(--accent); font-weight:600; }
+
     /* ── Buttons ── */
     .btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:var(--r); border:none; cursor:pointer; font-size:13px; font-weight:600; transition:all .15s; font-family:inherit; }
     .btn-p { background:var(--accent); color:#111; }
@@ -66,19 +81,32 @@
     .btn-icon { padding:6px; background:transparent; border:none; cursor:pointer; color:var(--muted); border-radius:var(--r); transition:all .15s; font-size:16px; line-height:1; }
     .btn-icon:hover { color:var(--accent); background:rgba(129,211,26,.08); }
 
-    /* ── Layout ── */
-    .app { display:flex; flex-direction:column; height:100vh; }
+    /* ── Layout: Sidebar ── */
+    .app { display:flex; height:100vh; }
+    .sidebar { width:60px; background:var(--card); border-right:1px solid var(--bdr); display:flex; flex-direction:column; flex-shrink:0; overflow:hidden; transition:width .25s ease; z-index:10; }
+    .sidebar:hover { width:180px; }
+    .sidebar-top { padding:14px 0 10px; border-bottom:1px solid var(--bdr); display:flex; align-items:center; justify-content:center; }
+    .sidebar-top svg { width:28px; height:28px; fill:var(--accent); flex-shrink:0; }
+    .sidebar-nav { flex:1; display:flex; flex-direction:column; padding:8px 0; }
+    .sidebar-item { display:flex; align-items:center; gap:12px; padding:12px 18px; cursor:pointer; color:var(--muted); transition:all .15s; white-space:nowrap; border-left:3px solid transparent; }
+    .sidebar-item:hover { color:var(--text); background:rgba(255,255,255,.04); }
+    .sidebar-item.active { color:var(--accent); background:rgba(129,211,26,.08); border-left-color:var(--accent); }
+    .sidebar-item svg { width:22px; height:22px; flex-shrink:0; }
+    .sidebar-item svg path, .sidebar-item svg rect, .sidebar-item svg circle { transition:fill .15s, stroke .15s; }
+    .sidebar-item.active svg path { fill:var(--accent); }
+    .sidebar-item.active svg path[stroke] { stroke:var(--accent); fill:none; }
+    .sidebar-item:not(.active) svg path { fill:var(--muted); }
+    .sidebar-item:not(.active) svg path[stroke] { stroke:var(--muted); fill:none; }
+    .sidebar-item:not(.active) svg circle { fill:var(--muted); }
+    .sidebar-item:not(.active) svg rect { fill:none; }
+    .sidebar-label { font-size:13px; font-weight:600; opacity:0; transition:opacity .2s; }
+    .sidebar:hover .sidebar-label { opacity:1; }
+    .sidebar-bottom { border-top:1px solid var(--bdr); padding:8px 0; }
+
+    .main-area { flex:1; display:flex; flex-direction:column; min-width:0; }
     .topbar { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; background:var(--card); border-bottom:1px solid var(--bdr); flex-shrink:0; }
     .topbar h1 { font-size:18px; font-weight:700; letter-spacing:-.02em; }
     .topbar-r { display:flex; align-items:center; gap:10px; }
-
-    /* ── Tabs ── */
-    .tabs { display:flex; gap:0; background:var(--bg2); border-bottom:1px solid var(--bdr); flex-shrink:0; padding:0 20px; }
-    .tab { padding:12px 20px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; user-select:none; white-space:nowrap; }
-    .tab:hover { color:var(--text); }
-    .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
-
-    /* ── Tab Content ── */
     .tab-content { flex:1; overflow:auto; }
 
     /* ── Overview ── */
@@ -87,10 +115,10 @@
     .overview::-webkit-scrollbar-track { background:var(--bg); }
     .overview::-webkit-scrollbar-thumb { background:var(--bdr2); border-radius:4px; }
 
-    .firm-col { min-width:300px; max-width:300px; background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); flex-shrink:0; cursor:grab; transition:all .2s; animation:fadeIn .4s ease-out; }
+    .firm-col { min-width:300px; max-width:300px; background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); flex-shrink:0; cursor:grab; transition:transform .25s, opacity .25s, border-color .2s, box-shadow .2s; animation:fadeIn .4s ease-out; }
     .firm-col:hover { border-color:rgba(129,211,26,.4); box-shadow:var(--sh-sm); }
-    .firm-col.dragging { opacity:.5; cursor:grabbing; }
-    .firm-col.drag-over { border-color:var(--accent); border-style:dashed; box-shadow:0 0 20px rgba(129,211,26,.15); }
+    .firm-col.dragging { opacity:.4; cursor:grabbing; transform:scale(.97); }
+    .firm-col.drag-over { border-color:var(--accent); box-shadow:0 0 16px rgba(129,211,26,.2); }
 
     .fc-head { padding:14px 16px 10px; }
     .fc-name { font-size:15px; font-weight:700; margin-bottom:2px; display:flex; align-items:center; gap:8px; }
@@ -114,20 +142,34 @@
     .pipeline::-webkit-scrollbar-track { background:var(--bg); }
     .pipeline::-webkit-scrollbar-thumb { background:var(--bdr2); border-radius:4px; }
 
-    .pl-col { min-width:240px; max-width:240px; background:var(--bg2); border:1px solid var(--bdr); border-radius:var(--r); flex-shrink:0; display:flex; flex-direction:column; }
-    .pl-col.drag-over { border-color:var(--accent); border-style:dashed; background:rgba(129,211,26,.03); }
-    .pl-col-head { padding:12px 14px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--bdr); }
+    .pl-col { min-width:220px; max-width:220px; background:var(--bg2); border:1px solid var(--bdr); border-radius:var(--r); flex-shrink:0; display:flex; flex-direction:column; transition:border-color .2s, box-shadow .2s; }
+    .pl-col.drag-over { border-color:var(--accent); box-shadow:0 0 12px rgba(129,211,26,.15); }
+    .pl-col-head { padding:10px 12px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid var(--col-neutral); }
+    .pl-col-head.c-neutral { border-bottom-color:var(--col-neutral); }
+    .pl-col-head.c-amber { border-bottom-color:var(--col-amber); }
+    .pl-col-head.c-red { border-bottom-color:var(--col-red); }
+    .pl-col-head.c-green { border-bottom-color:var(--col-green); }
+    .pl-col-head.c-lgreen { border-bottom-color:var(--col-lgreen); }
     .pl-count { background:var(--card); padding:2px 8px; border-radius:var(--r-pill); font-size:11px; }
-    .pl-drop { min-height:100px; padding:8px; flex:1; }
-    .pl-card { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); padding:10px 12px; margin-bottom:8px; cursor:grab; transition:all .15s; }
+    .pl-drop { min-height:80px; padding:8px; flex:1; display:flex; flex-direction:column; gap:6px; }
+    .pl-card { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); padding:10px 12px; cursor:grab; transition:transform .2s, opacity .2s, border-color .15s, box-shadow .15s; animation:slideIn .25s ease-out; }
     .pl-card:hover { border-color:rgba(129,211,26,.4); transform:translateY(-1px); box-shadow:var(--sh-sm); }
-    .pl-card.dragging { opacity:.5; cursor:grabbing; }
+    .pl-card.dragging { opacity:.4; cursor:grabbing; transform:scale(.95); }
+    .pl-card.drag-over-card { border-color:var(--accent); box-shadow:0 0 10px rgba(129,211,26,.2); }
     .pl-card-firm { font-size:12px; font-weight:700; color:var(--accent); margin-bottom:2px; }
     .pl-card-role { font-size:13px; font-weight:500; margin-bottom:2px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
     .pl-card-ref { font-size:11px; color:var(--muted); }
     .pl-card-actions { display:flex; gap:4px; margin-top:6px; opacity:0; transition:opacity .15s; }
     .pl-card:hover .pl-card-actions { opacity:1; }
     .pl-empty { text-align:center; padding:20px 10px; font-size:12px; color:var(--muted); font-style:italic; }
+
+    /* ── Interview Rounds group ── */
+    .itv-group { flex-shrink:0; border:1px dashed var(--col-neutral); border-radius:var(--r); padding:10px; background:rgba(107,114,128,.04); }
+    .itv-group-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:8px; text-align:center; }
+    .itv-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+    .itv-grid .pl-col { min-width:0; max-width:none; }
+    .itv-grid .pl-col:nth-child(4),
+    .itv-grid .pl-col:nth-child(5) { }
 
     /* ── Contacts ── */
     .contacts-page { padding:20px; max-width:900px; margin:0 auto; width:100%; }
@@ -164,15 +206,6 @@
 
     /* ── Opportunities ── */
     .opps-page { padding:20px; max-width:900px; margin:0 auto; width:100%; }
-    .opp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
-    .opp-card { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); padding:14px; cursor:pointer; transition:all .15s; animation:fadeIn .3s ease-out; }
-    .opp-card:hover { border-color:rgba(129,211,26,.4); transform:translateY(-2px); box-shadow:var(--sh-md); }
-    .opp-card-firm { font-size:12px; font-weight:700; color:var(--accent); margin-bottom:4px; }
-    .opp-card-role { font-size:14px; font-weight:600; margin-bottom:4px; }
-    .opp-card-loc { font-size:12px; color:var(--muted); margin-bottom:8px; }
-    .opp-card-foot { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-    .opp-card-actions { display:flex; gap:4px; margin-left:auto; opacity:0; transition:opacity .15s; }
-    .opp-card:hover .opp-card-actions { opacity:1; }
 
     /* ── Badges ── */
     .badge { padding:3px 10px; border-radius:var(--r-pill); font-size:11px; font-weight:600; white-space:nowrap; flex-shrink:0; }
@@ -216,11 +249,12 @@
     .empty-state { text-align:center; padding:40px 20px; color:var(--muted); font-size:14px; }
 
     @media (max-width:768px) {
-      .topbar { flex-wrap:wrap; gap:8px; }
-      .tabs { overflow-x:auto; }
+      .sidebar { width:50px; }
+      .sidebar:hover { width:160px; }
       .overview, .pipeline { padding:12px; gap:12px; }
       .firm-col, .add-firm-col { min-width:260px; max-width:260px; }
-      .pl-col { min-width:200px; max-width:200px; }
+      .pl-col { min-width:180px; max-width:180px; }
+      .itv-grid { grid-template-columns:1fr 1fr; }
       .filter-bar { flex-direction:column; }
     }
   </style>
@@ -241,18 +275,26 @@ const C_ST = [
   {v:"willing_to_refer",label:"Willing to refer",cls:"b-green"},
 ];
 const STAGES = [
-  {v:"not_applied",label:"Not Applied",cls:"b-grey"},
-  {v:"waiting",label:"Waiting",cls:"b-blue"},
-  {v:"hirevue",label:"HireVue",cls:"b-indigo"},
-  {v:"phone_itv",label:"Phone Itv",cls:"b-purple"},
-  {v:"interview",label:"Interview",cls:"b-teal"},
-  {v:"test",label:"Test",cls:"b-amber"},
-  {v:"case_study",label:"Case Study",cls:"b-amber"},
-  {v:"rejected",label:"Rejected",cls:"b-red"},
-  {v:"offer",label:"Offer",cls:"b-green"},
+  {v:"not_applied",label:"Not Applied",cls:"b-grey",color:"c-neutral",group:"main"},
+  {v:"waiting",label:"Waiting",cls:"b-amber",color:"c-amber",group:"main"},
+  {v:"hirevue",label:"HireVue",cls:"b-indigo",color:"c-lgreen",group:"interview"},
+  {v:"phone_itv",label:"Phone Itv",cls:"b-purple",color:"c-lgreen",group:"interview"},
+  {v:"interview",label:"Interview",cls:"b-teal",color:"c-lgreen",group:"interview"},
+  {v:"test",label:"Test",cls:"b-amber",color:"c-lgreen",group:"interview"},
+  {v:"case_study",label:"Case Study",cls:"b-amber",color:"c-lgreen",group:"interview"},
+  {v:"rejected",label:"Rejected",cls:"b-red",color:"c-red",group:"main"},
+  {v:"offer",label:"Offer",cls:"b-green",color:"c-green",group:"main"},
 ];
+const ITV_STAGES = STAGES.filter(s=>s.group==='interview');
 const F_TYPES = ["Quant HF","Multi-strat HF","Macro HF","L/S Equity HF","Credit HF","PE","IB","Asset Manager","Other"];
 const si = (v,a) => a.find(s=>s.v===v)||a[0];
+
+/* ══════════════════ SVG ICONS ══════════════════ */
+const IconOverview = () => <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M352.329143 79.286857c35.474286 0 64.146286 28.525714 64.146286 63.853714v190.902858a64 64 0 0 1-64.146286 63.853714H180.955429a63.926857 63.926857 0 0 1-64.073143-63.853714v-190.902858c0-35.254857 28.672-63.853714 64.073143-63.853714h171.373714z m0 510.244572c35.474286 0 64.146286 28.525714 64.146286 63.853714v190.902857a64 64 0 0 1-64.146286 63.853714H180.955429a63.926857 63.926857 0 0 1-64.073143-63.853714v-190.902857c0-35.328 28.672-63.853714 64.073143-63.853714h171.373714z m490.715428-510.244572c35.401143 0 64.073143 28.525714 64.073143 63.853714v190.902858a64 64 0 0 1-64.073143 63.853714H671.670857a63.926857 63.926857 0 0 1-64.146286-63.853714v-190.902858c0-35.254857 28.745143-63.853714 64.146286-63.853714h171.373714z m-669.988571 379.611429h187.172571c64.512 0 116.736-51.931429 116.736-116.077715v-208.457142A116.297143 116.297143 0 0 0 360.228571 18.285714H173.129143C108.617143 18.285714 56.32 70.217143 56.32 134.436571v208.384a116.297143 116.297143 0 0 0 116.736 116.077715z m0 510.244571h187.172571c64.512 0 116.736-51.931429 116.736-116.150857V644.608a116.297143 116.297143 0 0 0-116.736-116.077714H173.129143c-64.512 0-116.736 51.931429-116.736 116.077714v208.457143a116.297143 116.297143 0 0 0 116.736 116.077714z m490.788571-510.244571h187.026286c64.512 0 116.736-51.931429 116.736-116.077715v-208.457142A116.297143 116.297143 0 0 0 850.870857 18.285714H663.771429C599.259429 18.285714 547.108571 70.217143 547.108571 134.436571v208.384a116.297143 116.297143 0 0 0 116.736 116.077715z m178.980572 448.877714H663.698286c-38.619429 0-55.296-16.091429-55.296-54.784V644.608c0-38.546286 16.749714-55.369143 55.369143-55.369143h187.099428c38.765714 0 56.173714 16.749714 56.173714 55.296V853.138286c0 12.8 13.677714 27.501714 31.524572 27.501714s29.037714-14.701714 29.037714-27.501714V644.534857a116.297143 116.297143 0 0 0-116.736-116.004571H663.771429c-64.512 0-116.736 51.931429-116.736 116.077714v208.457143a116.297143 116.297143 0 0 0 116.662857 116.077714H850.285714c13.458286 0 30.72-10.971429 30.72-30.793143a30.72 30.72 0 0 0-30.134857-30.573714h-7.972571z"/></svg>;
+const IconPipeline = () => <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none"><path fill="#000000" fillRule="evenodd" d="M2.75 2.5A1.75 1.75 0 001 4.25v1C1 6.216 1.784 7 2.75 7h1a1.75 1.75 0 001.732-1.5H6.5a.75.75 0 01.75.75v3.5A2.25 2.25 0 009.5 12h1.018c.121.848.85 1.5 1.732 1.5h1A1.75 1.75 0 0015 11.75v-1A1.75 1.75 0 0013.25 9h-1a1.75 1.75 0 00-1.732 1.5H9.5a.75.75 0 01-.75-.75v-3.5A2.25 2.25 0 006.5 4H5.482A1.75 1.75 0 003.75 2.5h-1zM2.5 4.25A.25.25 0 012.75 4h1a.25.25 0 01.25.25v1a.25.25 0 01-.25.25h-1a.25.25 0 01-.25-.25v-1zm9.75 6.25a.25.25 0 00-.25.25v1c0 .138.112.25.25.25h1a.25.25 0 00.25-.25v-1a.25.25 0 00-.25-.25h-1z" clipRule="evenodd"/></svg>;
+const IconContacts = () => <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M14,31.7V34H28V31.7a15.3,15.3,0,0,0-14,0Z"/><circle cx="21" cy="17" r="3"/><path d="M36,3H6A2,2,0,0,0,4,5V43a2,2,0,0,0,2,2H36a2,2,0,0,0,2-2V5A2,2,0,0,0,36,3ZM21,10a7,7,0,1,1-7,7A7,7,0,0,1,21,10ZM32,36a2,2,0,0,1-2,2H12a2,2,0,0,1-2-2V29.4l.9-.6a19.6,19.6,0,0,1,20.2,0l.9.6Z"/><path d="M42,19H40V29h2a2,2,0,0,0,2-2V21A2,2,0,0,0,42,19Z"/><path d="M42,31H40V41h2a2,2,0,0,0,2-2V33A2,2,0,0,0,42,31Z"/><path d="M42,7H40V17h2a2,2,0,0,0,2-2V9A2,2,0,0,0,42,7Z"/></svg>;
+const IconOpps = () => <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 7H5C3.89543 7 3 7.89543 3 9V18C3 19.1046 3.89543 20 5 20H19C20.1046 20 21 19.1046 21 18V9C21 7.89543 20.1046 7 19 7H15M9 7V5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V7M9 7H15" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+const IconLogout = () => <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 
 /* ══════════════════ DB CLASS ══════════════════ */
 class DB {
@@ -294,6 +336,43 @@ function Modal({title,onClose,onSave,saveLabel='Save',children,saving,danger}){
   );
 }
 
+/* ══════════════════ COMPANY COMBOBOX ══════════════════ */
+function CompanyCombo({value,onChange,firms,onCreateNew}){
+  const [q,setQ]=useState('');
+  const [open,setOpen]=useState(false);
+  const selFirm=firms.find(f=>f.id===value);
+
+  useEffect(()=>{if(selFirm&&!open)setQ(selFirm.name);},[selFirm,open]);
+
+  const matches=useMemo(()=>{
+    if(!q.trim())return firms;
+    return firms.filter(f=>f.name.toLowerCase().includes(q.toLowerCase()));
+  },[firms,q]);
+
+  const exactMatch=matches.find(f=>f.name.toLowerCase()===q.trim().toLowerCase());
+  const showCreate=q.trim()&&!exactMatch;
+
+  function pick(f){onChange(f.id);setQ(f.name);setOpen(false);}
+
+  return(
+    <div className="field">
+      <label>Company</label>
+      <div className="combo-wrap">
+        <input className="combo-input" placeholder="Type company name..." value={q}
+          onChange={e=>{setQ(e.target.value);setOpen(true);if(!e.target.value)onChange('');}}
+          onFocus={()=>setOpen(true)}
+          onBlur={()=>setTimeout(()=>setOpen(false),180)}/>
+        {open&&(matches.length||showCreate)&&(
+          <div className="combo-list">
+            {matches.map(f=><div key={f.id} className="combo-opt" onMouseDown={e=>e.preventDefault()} onClick={()=>pick(f)}>{f.name}</div>)}
+            {showCreate&&<div className="combo-opt create" onMouseDown={e=>e.preventDefault()} onClick={()=>{onCreateNew(q.trim());setOpen(false);}}>+ Create: {q.trim()}</div>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ══════════════════ FORMS ══════════════════ */
 function FirmForm({d,set}){
   const ch=(k,v)=>set({...d,[k]:v});
@@ -306,10 +385,10 @@ function FirmForm({d,set}){
   </>);
 }
 
-function ContactFormFields({d,set,firms}){
+function ContactFormFields({d,set,firms,onCreateFirm}){
   const ch=(k,v)=>set({...d,[k]:v});
   return(<>
-    <div className="field"><label>Company</label><select value={d.firm_id||''} onChange={e=>ch('firm_id',e.target.value)}><option value="">— Select —</option>{firms.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}</select></div>
+    <CompanyCombo value={d.firm_id||''} onChange={v=>ch('firm_id',v)} firms={firms} onCreateNew={onCreateFirm}/>
     <div className="field"><label>Name</label><input value={d.name} onChange={e=>ch('name',e.target.value)} placeholder="Full name"/></div>
     <div className="field"><label>Role / Title</label><input value={d.role} onChange={e=>ch('role',e.target.value)} placeholder="VP, Investor Relations"/></div>
     <div className="field"><label>Email</label><input value={d.email} onChange={e=>ch('email',e.target.value)} placeholder="name@firm.com"/></div>
@@ -321,10 +400,10 @@ function ContactFormFields({d,set,firms}){
   </>);
 }
 
-function OppFormFields({d,set,firms}){
+function OppFormFields({d,set,firms,onCreateFirm}){
   const ch=(k,v)=>set({...d,[k]:v});
   return(<>
-    <div className="field"><label>Company</label><select value={d.firm_id||''} onChange={e=>ch('firm_id',e.target.value)}><option value="">— Select —</option>{firms.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}</select></div>
+    <CompanyCombo value={d.firm_id||''} onChange={v=>ch('firm_id',v)} firms={firms} onCreateNew={onCreateFirm}/>
     <div className="field"><label>Role Title</label><input value={d.role} onChange={e=>ch('role',e.target.value)} placeholder="Quantitative Researcher"/></div>
     <div className="field"><label>Location</label><input value={d.location} onChange={e=>ch('location',e.target.value)} placeholder="New York"/></div>
     <div className="field"><label>Job Link</label><input value={d.link} onChange={e=>ch('link',e.target.value)} placeholder="https://..."/></div>
@@ -338,11 +417,10 @@ function OverviewTab(){
   const {firms,contacts,opps,db,toast,reload,setModal} = useContext(Ctx);
   const sorted = useMemo(()=>[...firms].sort((a,b)=>(a.order_position||0)-(b.order_position||0)),[firms]);
   const dragRef = useRef(null);
-  const overRef = useRef(null);
 
   function onDragStart(e,i){dragRef.current=i;e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
   function onDragEnd(e){e.currentTarget.classList.remove('dragging');dragRef.current=null;}
-  function onDragOver(e,i){e.preventDefault();overRef.current=i;e.currentTarget.classList.add('drag-over');}
+  function onDragOver(e,i){e.preventDefault();e.currentTarget.classList.add('drag-over');}
   function onDragLeave(e){e.currentTarget.classList.remove('drag-over');}
   async function onDrop(e,i){
     e.currentTarget.classList.remove('drag-over');
@@ -397,45 +475,88 @@ function OverviewTab(){
 function PipelineTab(){
   const {firms,opps,contacts,db,toast,reload,setModal} = useContext(Ctx);
   const dragRef = useRef(null);
+  const dragOverIdx = useRef(null);
+  const [localOpps,setLocalOpps] = useState([]);
+
+  useEffect(()=>{setLocalOpps(opps);},[opps]);
 
   function firmName(fid){const f=firms.find(x=>x.id===fid);return f?f.name:'?';}
   function referrer(o){const c=contacts.find(x=>x.firm_id===o.firm_id&&x.status==='willing_to_refer');return c?c.name:o.referral==='Yes'||o.referral==='Pending'?'(referral pending)':null;}
-  function stageOpps(stg){return opps.filter(o=>o.stage===stg);}
+  function stageOpps(stg){return [...localOpps.filter(o=>o.stage===stg)].sort((a,b)=>(a.stage_order||0)-(b.stage_order||0));}
 
   function onDragStart(e,opp){dragRef.current=opp;e.dataTransfer.effectAllowed='move';e.currentTarget.classList.add('dragging');}
-  function onDragEnd(e){e.currentTarget.classList.remove('dragging');dragRef.current=null;}
-  function colDragOver(e){e.preventDefault();e.currentTarget.classList.add('drag-over');}
-  function colDragLeave(e){e.currentTarget.classList.remove('drag-over');}
-  async function colDrop(e,stage){
-    e.currentTarget.classList.remove('drag-over');
-    const opp=dragRef.current;if(!opp||opp.stage===stage)return;
-    try{await db.upd('opportunities',opp.id,{stage});reload();toast(`Moved to ${si(stage,STAGES).label}`,'s');}
-    catch(err){toast('Failed to update stage','e');reload();}
+  function onDragEnd(e){e.currentTarget.classList.remove('dragging');dragRef.current=null;dragOverIdx.current=null;}
+
+  function onCardDragOver(e,targetOpp,stage){
+    e.preventDefault();e.stopPropagation();
+    const src=dragRef.current;if(!src)return;
+    if(src.id===targetOpp.id)return;
+    if(src.stage===stage){
+      const items=stageOpps(stage);
+      const srcIdx=items.findIndex(o=>o.id===src.id);
+      const tgtIdx=items.findIndex(o=>o.id===targetOpp.id);
+      if(srcIdx===tgtIdx)return;
+      const reordered=[...items];
+      reordered.splice(srcIdx,1);
+      reordered.splice(tgtIdx,0,src);
+      const updated=localOpps.map(o=>{
+        const ri=reordered.findIndex(r=>r.id===o.id);
+        if(ri>=0)return {...o,stage_order:ri};
+        return o;
+      });
+      setLocalOpps(updated);
+    }
   }
+
+  function colDragOver(e){e.preventDefault();}
+
+  async function colDrop(e,stage){
+    const opp=dragRef.current;if(!opp)return;
+    if(opp.stage!==stage){
+      try{await db.upd('opportunities',opp.id,{stage,stage_order:0});reload();toast(`Moved to ${si(stage,STAGES).label}`,'s');}
+      catch(err){toast('Failed to update stage','e');reload();}
+    } else {
+      const items=stageOpps(stage);
+      try{await Promise.all(items.map((o,idx)=>db.upd('opportunities',o.id,{stage_order:idx})));reload();toast('Order saved','s');}
+      catch(err){toast('Failed to save order','e');reload();}
+    }
+  }
+
+  function renderCol(stg){
+    const items=stageOpps(stg.v);
+    return(
+      <div key={stg.v} className="pl-col" onDragOver={colDragOver} onDrop={e=>colDrop(e,stg.v)}>
+        <div className={`pl-col-head ${stg.color}`}><span>{stg.label}</span><span className="pl-count">{items.length}</span></div>
+        <div className="pl-drop">
+          {items.length?items.map(o=>(
+            <div key={o.id} className="pl-card" draggable onDragStart={e=>onDragStart(e,o)} onDragEnd={onDragEnd} onDragOver={e=>onCardDragOver(e,o,stg.v)}>
+              <div className="pl-card-firm">{firmName(o.firm_id)}</div>
+              <div className="pl-card-role">{o.role}</div>
+              {referrer(o)&&<div className="pl-card-ref">↪ {referrer(o)}</div>}
+              <div className="pl-card-actions">
+                <button className="btn-icon" style={{fontSize:14}} onClick={()=>setModal({type:'edit-opp',data:o})}>✎</button>
+                <button className="btn-icon" style={{fontSize:14,color:'var(--danger)'}} onClick={()=>setModal({type:'del-opp',data:o})}>✕</button>
+              </div>
+            </div>
+          )):<div className="pl-empty">Drop here</div>}
+        </div>
+      </div>
+    );
+  }
+
+  const mainBefore = STAGES.filter(s=>s.group==='main'&&(s.v==='not_applied'||s.v==='waiting'));
+  const mainAfter = STAGES.filter(s=>s.group==='main'&&(s.v==='rejected'||s.v==='offer'));
 
   return(
     <div className="pipeline">
-      {STAGES.map(stg=>{
-        const items=stageOpps(stg.v);
-        return(
-          <div key={stg.v} className="pl-col" onDragOver={colDragOver} onDragLeave={colDragLeave} onDrop={e=>colDrop(e,stg.v)}>
-            <div className="pl-col-head"><span>{stg.label}</span><span className="pl-count">{items.length}</span></div>
-            <div className="pl-drop">
-              {items.length?items.map(o=>(
-                <div key={o.id} className="pl-card" draggable onDragStart={e=>onDragStart(e,o)} onDragEnd={onDragEnd}>
-                  <div className="pl-card-firm">{firmName(o.firm_id)}</div>
-                  <div className="pl-card-role">{o.role}</div>
-                  {referrer(o)&&<div className="pl-card-ref">↪ {referrer(o)}</div>}
-                  <div className="pl-card-actions">
-                    <button className="btn-icon" style={{fontSize:14}} onClick={()=>setModal({type:'edit-opp',data:o})}>✎</button>
-                    <button className="btn-icon" style={{fontSize:14,color:'var(--danger)'}} onClick={()=>setModal({type:'del-opp',data:o})}>✕</button>
-                  </div>
-                </div>
-              )):<div className="pl-empty">Drop here</div>}
-            </div>
-          </div>
-        );
-      })}
+      {mainBefore.map(renderCol)}
+      <div className="itv-group">
+        <div className="itv-group-label">Interview Rounds</div>
+        <div className="itv-grid">
+          {ITV_STAGES.map(renderCol)}
+        </div>
+      </div>
+      {mainAfter.map(renderCol)}
     </div>
   );
 }
@@ -450,6 +571,8 @@ function ContactsTab(){
   const [formOpen,setFormOpen] = useState(false);
   const [form,setForm] = useState({firm_id:'',name:'',role:'',email:'',linkedin:'',phone:'',status:'not_contacted',notes:'',advice:''});
   const [saving,setSaving] = useState(false);
+  const [newFirmModal,setNewFirmModal] = useState(null);
+  const [newFirmForm,setNewFirmForm] = useState({name:'',type:'',next_steps:'',notes:'',priority:false});
 
   const filtered = useMemo(()=>{
     let list = contacts;
@@ -472,6 +595,12 @@ function ContactsTab(){
 
   const toggle = k => setExpanded(p=>({...p,[k]:!p[k]}));
 
+  async function handleCreateFirm(){
+    if(!newFirmForm.name.trim()){toast('Firm name required','e');return;}
+    try{const f=await db.ins('firms',{...newFirmForm,order_position:firms.length});reload();setForm(prev=>({...prev,firm_id:f.id}));setNewFirmModal(null);toast('Firm created','s');}
+    catch(e){toast('Error: '+e.message,'e');}
+  }
+
   async function createContact(){
     if(!form.name.trim()||!form.firm_id){toast('Name and company required','e');return;}
     setSaving(true);
@@ -487,10 +616,12 @@ function ContactsTab(){
           <span style={{fontSize:18}}>{formOpen?'−':'+'}</span> New Contact
         </div>
         {formOpen&&<div className="create-card-body">
-          <ContactFormFields d={form} set={setForm} firms={firms}/>
+          <ContactFormFields d={form} set={setForm} firms={firms} onCreateFirm={(name)=>{setNewFirmForm({name,type:'',next_steps:'',notes:'',priority:false});setNewFirmModal(true);}}/>
           <button className="btn btn-p" onClick={createContact} disabled={saving} style={{marginTop:8}}>{saving?'Saving…':'Create Contact'}</button>
         </div>}
       </div>
+
+      {newFirmModal&&<Modal title="Create Firm" onClose={()=>setNewFirmModal(null)} onSave={handleCreateFirm} saveLabel="Create"><FirmForm d={newFirmForm} set={setNewFirmForm}/></Modal>}
 
       <div className="filter-bar">
         <select value={sortBy} onChange={e=>setSortBy(e.target.value)}>
@@ -502,7 +633,7 @@ function ContactsTab(){
       </div>
 
       {Object.keys(groups).length?Object.entries(groups).map(([key,list])=>{
-        const isOpen = expanded[key] !== false;
+        const isOpen = expanded[key] === true;
         return(
           <div key={key} className="section-group">
             <div className="section-head" onClick={()=>toggle(key)}>
@@ -545,16 +676,47 @@ function ContactsTab(){
 /* ══════════════════ TAB 4: OPPORTUNITIES ══════════════════ */
 function OppsTab(){
   const {firms,opps,db,toast,reload,setModal} = useContext(Ctx);
+  const [sortBy,setSortBy] = useState('company');
+  const [search,setSearch] = useState('');
+  const [expanded,setExpanded] = useState({});
   const [formOpen,setFormOpen] = useState(false);
   const [form,setForm] = useState({firm_id:'',role:'',location:'',link:'',referral:'',notes:''});
   const [saving,setSaving] = useState(false);
+  const [newFirmModal,setNewFirmModal] = useState(null);
+  const [newFirmForm,setNewFirmForm] = useState({name:'',type:'',next_steps:'',notes:'',priority:false});
 
+  const filtered = useMemo(()=>{
+    let list = opps;
+    if(search){const q=search.toLowerCase();list=list.filter(o=>o.role.toLowerCase().includes(q)||firms.find(f=>f.id===o.firm_id)?.name.toLowerCase().includes(q));}
+    return list;
+  },[opps,search,firms]);
+
+  const groups = useMemo(()=>{
+    const map={};
+    if(sortBy==='company'){
+      firms.forEach(f=>{const fo=filtered.filter(o=>o.firm_id===f.id);if(fo.length)map[f.name]=fo;});
+    } else if(sortBy==='stage'){
+      STAGES.forEach(s=>{const fo=filtered.filter(o=>o.stage===s.v);if(fo.length)map[s.label]=fo;});
+    } else {
+      const sorted=[...filtered].sort((a,b)=>a.role.localeCompare(b.role));
+      if(sorted.length)map['All Opportunities']=sorted;
+    }
+    return map;
+  },[sortBy,filtered,firms]);
+
+  const toggle = k => setExpanded(p=>({...p,[k]:!p[k]}));
   function firmName(fid){const f=firms.find(x=>x.id===fid);return f?f.name:'?';}
+
+  async function handleCreateFirm(){
+    if(!newFirmForm.name.trim()){toast('Firm name required','e');return;}
+    try{const f=await db.ins('firms',{...newFirmForm,order_position:firms.length});reload();setForm(prev=>({...prev,firm_id:f.id}));setNewFirmModal(null);toast('Firm created','s');}
+    catch(e){toast('Error: '+e.message,'e');}
+  }
 
   async function createOpp(){
     if(!form.firm_id||!form.role.trim()){toast('Company and role required','e');return;}
     setSaving(true);
-    try{await db.ins('opportunities',{...form,stage:'not_applied'});reload();toast('Opportunity created — check Pipeline','s');setForm({firm_id:'',role:'',location:'',link:'',referral:'',notes:''});}
+    try{await db.ins('opportunities',{...form,stage:'not_applied',stage_order:0});reload();toast('Opportunity created — check Pipeline','s');setForm({firm_id:'',role:'',location:'',link:'',referral:'',notes:''});setFormOpen(false);}
     catch(e){toast('Error: '+e.message,'e');}
     setSaving(false);
   }
@@ -566,31 +728,46 @@ function OppsTab(){
           <span style={{fontSize:18}}>{formOpen?'−':'+'}</span> New Opportunity
         </div>
         {formOpen&&<div className="create-card-body">
-          <OppFormFields d={form} set={setForm} firms={firms}/>
+          <OppFormFields d={form} set={setForm} firms={firms} onCreateFirm={(name)=>{setNewFirmForm({name,type:'',next_steps:'',notes:'',priority:false});setNewFirmModal(true);}}/>
           <button className="btn btn-p" onClick={createOpp} disabled={saving} style={{marginTop:8}}>{saving?'Saving…':'Create Opportunity'}</button>
         </div>}
       </div>
+
+      {newFirmModal&&<Modal title="Create Firm" onClose={()=>setNewFirmModal(null)} onSave={handleCreateFirm} saveLabel="Create"><FirmForm d={newFirmForm} set={setNewFirmForm}/></Modal>}
+
       <div className="note-box">New opportunities automatically appear in the Pipeline tab under "Not Applied".</div>
 
-      {opps.length?(
-        <div className="opp-grid">
-          {opps.map(o=>(
-            <div key={o.id} className="opp-card" onClick={()=>setModal({type:'edit-opp',data:o})}>
-              <div className="opp-card-firm">{firmName(o.firm_id)}</div>
-              <div className="opp-card-role">{o.role}</div>
-              {o.location&&<div className="opp-card-loc">{o.location}</div>}
-              <div className="opp-card-foot">
+      <div className="filter-bar">
+        <select value={sortBy} onChange={e=>setSortBy(e.target.value)}>
+          <option value="company">Sort by Company</option>
+          <option value="stage">Sort by Stage</option>
+          <option value="role">Sort by Role</option>
+        </select>
+        <input placeholder="Search opportunities..." value={search} onChange={e=>setSearch(e.target.value)}/>
+      </div>
+
+      {Object.keys(groups).length?Object.entries(groups).map(([key,list])=>{
+        const isOpen = expanded[key] === true;
+        return(
+          <div key={key} className="section-group">
+            <div className="section-head" onClick={()=>toggle(key)}>
+              <div style={{display:'flex',alignItems:'center'}}><span className={`chevron ${isOpen?'open':''}`}>▶</span><span style={{marginLeft:8}}>{key}</span><span className="section-count">({list.length})</span></div>
+            </div>
+            {isOpen&&list.map(o=>(
+              <div key={o.id} className="c-row" onClick={()=>setModal({type:'edit-opp',data:o})}>
+                <div className="c-row-name">{o.role}</div>
+                <div className="c-row-role">{firmName(o.firm_id)}{o.location?' · '+o.location:''}</div>
                 <Badge v={o.stage} arr={STAGES}/>
-                {o.referral&&o.referral!=='No'&&<span className="tag" style={{fontSize:11}}>{o.referral==='Yes'?'✓ Referral':'⏳ Referral'}</span>}
-                <div className="opp-card-actions">
+                {o.referral&&o.referral!=='No'&&<span className="tag" style={{fontSize:11}}>{o.referral==='Yes'?'✓ Ref':'⏳ Ref'}</span>}
+                <div className="c-row-actions">
                   <button className="btn-icon" style={{fontSize:14}} onClick={e=>{e.stopPropagation();setModal({type:'edit-opp',data:o})}}>✎</button>
                   <button className="btn-icon" style={{fontSize:14,color:'var(--danger)'}} onClick={e=>{e.stopPropagation();setModal({type:'del-opp',data:o})}}>✕</button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      ):<div className="empty-state">No opportunities yet. Create one above.</div>}
+            ))}
+          </div>
+        );
+      }):<div className="empty-state">No opportunities yet. Create one above.</div>}
     </div>
   );
 }
@@ -600,6 +777,9 @@ function GlobalModals(){
   const {modal,setModal,db,toast,reload,firms} = useContext(Ctx);
   const [form,setForm] = useState({});
   const [saving,setSaving] = useState(false);
+  const [newFirmModal,setNewFirmModal] = useState(null);
+  const [newFirmForm,setNewFirmForm] = useState({name:'',type:'',next_steps:'',notes:'',priority:false});
+
   useEffect(()=>{
     if(!modal)return;
     if(modal.type==='add-firm')setForm({name:'',type:'',next_steps:'',notes:'',priority:false});
@@ -613,6 +793,12 @@ function GlobalModals(){
   if(!modal)return null;
   const close=()=>setModal(null);
 
+  async function handleCreateFirm(){
+    if(!newFirmForm.name.trim()){toast('Firm name required','e');return;}
+    try{const f=await db.ins('firms',{...newFirmForm,order_position:firms.length});reload();setForm(prev=>({...prev,firm_id:f.id}));setNewFirmModal(null);toast('Firm created','s');}
+    catch(e){toast('Error: '+e.message,'e');}
+  }
+
   async function save(){
     setSaving(true);
     try{
@@ -620,7 +806,7 @@ function GlobalModals(){
       if(modal.type==='edit-firm'){await db.upd('firms',modal.data.id,form);reload();toast('Firm updated','s');close();}
       if(modal.type==='add-contact'){if(!form.name.trim()||!form.firm_id){toast('Name and company required','e');setSaving(false);return;}await db.ins('contacts',form);reload();toast('Contact added','s');close();}
       if(modal.type==='edit-contact'){await db.upd('contacts',modal.data.id,form);reload();toast('Contact updated','s');close();}
-      if(modal.type==='add-opp'){if(!form.role.trim()||!form.firm_id){toast('Role and company required','e');setSaving(false);return;}await db.ins('opportunities',{...form,stage:'not_applied'});reload();toast('Opportunity created','s');close();}
+      if(modal.type==='add-opp'){if(!form.role.trim()||!form.firm_id){toast('Role and company required','e');setSaving(false);return;}await db.ins('opportunities',{...form,stage:'not_applied',stage_order:0});reload();toast('Opportunity created','s');close();}
       if(modal.type==='edit-opp'){await db.upd('opportunities',modal.data.id,form);reload();toast('Opportunity updated','s');close();}
       if(modal.type==='del-firm'){await db.del('firms',modal.data.id);reload();toast('Firm deleted','s');close();}
       if(modal.type==='del-contact'){await db.del('contacts',modal.data.id);reload();toast('Contact deleted','s');close();}
@@ -633,14 +819,22 @@ function GlobalModals(){
   if(modal.type==='del-contact')return <Modal title="Delete Contact" onClose={close} onSave={save} saveLabel="Delete" saving={saving} danger><p>Delete <strong>{modal.data.name}</strong>? This cannot be undone.</p></Modal>;
   if(modal.type==='del-opp')return <Modal title="Delete Opportunity" onClose={close} onSave={save} saveLabel="Delete" saving={saving} danger><p>Delete <strong>{modal.data.role}</strong>? This cannot be undone.</p></Modal>;
 
+  const createFirmCb=(name)=>{setNewFirmForm({name,type:'',next_steps:'',notes:'',priority:false});setNewFirmModal(true);};
+
   if(modal.type==='add-firm'||modal.type==='edit-firm')return <Modal title={modal.type==='add-firm'?'Add Firm':'Edit Firm'} onClose={close} onSave={save} saveLabel={modal.type==='add-firm'?'Create':'Update'} saving={saving}><FirmForm d={form} set={setForm}/></Modal>;
-  if(modal.type==='add-contact'||modal.type==='edit-contact')return <Modal title={modal.type==='add-contact'?'Add Contact':'Edit Contact'} onClose={close} onSave={save} saveLabel={modal.type==='add-contact'?'Create':'Update'} saving={saving}><ContactFormFields d={form} set={setForm} firms={firms}/></Modal>;
+  if(modal.type==='add-contact'||modal.type==='edit-contact')return(<>
+    <Modal title={modal.type==='add-contact'?'Add Contact':'Edit Contact'} onClose={close} onSave={save} saveLabel={modal.type==='add-contact'?'Create':'Update'} saving={saving}><ContactFormFields d={form} set={setForm} firms={firms} onCreateFirm={createFirmCb}/></Modal>
+    {newFirmModal&&<Modal title="Create Firm" onClose={()=>setNewFirmModal(null)} onSave={handleCreateFirm} saveLabel="Create"><FirmForm d={newFirmForm} set={setNewFirmForm}/></Modal>}
+  </>);
   if(modal.type==='add-opp'||modal.type==='edit-opp'){
     const isEdit=modal.type==='edit-opp';
-    return <Modal title={isEdit?'Edit Opportunity':'Add Opportunity'} onClose={close} onSave={save} saveLabel={isEdit?'Update':'Create'} saving={saving}>
-      <OppFormFields d={form} set={setForm} firms={firms}/>
-      {isEdit&&<div className="field"><label>Stage</label><select value={form.stage||'not_applied'} onChange={e=>setForm({...form,stage:e.target.value})}>{STAGES.map(s=><option key={s.v} value={s.v}>{s.label}</option>)}</select></div>}
-    </Modal>;
+    return(<>
+      <Modal title={isEdit?'Edit Opportunity':'Add Opportunity'} onClose={close} onSave={save} saveLabel={isEdit?'Update':'Create'} saving={saving}>
+        <OppFormFields d={form} set={setForm} firms={firms} onCreateFirm={createFirmCb}/>
+        {isEdit&&<div className="field"><label>Stage</label><select value={form.stage||'not_applied'} onChange={e=>setForm({...form,stage:e.target.value})}>{STAGES.map(s=><option key={s.v} value={s.v}>{s.label}</option>)}</select></div>}
+      </Modal>
+      {newFirmModal&&<Modal title="Create Firm" onClose={()=>setNewFirmModal(null)} onSave={handleCreateFirm} saveLabel="Create"><FirmForm d={newFirmForm} set={setNewFirmForm}/></Modal>}
+    </>);
   }
   return null;
 }
@@ -678,25 +872,37 @@ function Dashboard({db:dbInstance}){
 
   if(loading)return <div className="empty-state" style={{paddingTop:100}}>Loading...</div>;
 
+  const tabs=[
+    {k:'overview',label:'Overview',Icon:IconOverview},
+    {k:'pipeline',label:'Pipeline',Icon:IconPipeline},
+    {k:'contacts',label:'Contacts',Icon:IconContacts},
+    {k:'opportunities',label:'Opportunities',Icon:IconOpps},
+  ];
+
   return(
     <Ctx.Provider value={ctx}>
       <div className="app">
-        <div className="topbar">
-          <h1>HF Job Tracker</h1>
-          <div className="topbar-r">
-            <button className="btn btn-s btn-sm" onClick={logout}>Logout</button>
+        <div className="sidebar">
+          <div className="sidebar-top"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="var(--accent)"/></svg></div>
+          <div className="sidebar-nav">
+            {tabs.map(({k,label,Icon})=>(
+              <div key={k} className={`sidebar-item ${tab===k?'active':''}`} onClick={()=>setTab(k)}>
+                <Icon/><span className="sidebar-label">{label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="sidebar-bottom">
+            <div className="sidebar-item" onClick={logout}><IconLogout/><span className="sidebar-label">Logout</span></div>
           </div>
         </div>
-        <div className="tabs">
-          {[['overview','Overview'],['pipeline','Pipeline'],['contacts','Contacts'],['opportunities','Opportunities']].map(([k,l])=>(
-            <div key={k} className={`tab ${tab===k?'active':''}`} onClick={()=>setTab(k)}>{l}</div>
-          ))}
-        </div>
-        <div className="tab-content">
-          {tab==='overview'&&<OverviewTab/>}
-          {tab==='pipeline'&&<PipelineTab/>}
-          {tab==='contacts'&&<ContactsTab/>}
-          {tab==='opportunities'&&<OppsTab/>}
+        <div className="main-area">
+          <div className="topbar"><h1>HF Job Tracker</h1><div className="topbar-r"></div></div>
+          <div className="tab-content">
+            {tab==='overview'&&<OverviewTab/>}
+            {tab==='pipeline'&&<PipelineTab/>}
+            {tab==='contacts'&&<ContactsTab/>}
+            {tab==='opportunities'&&<OppsTab/>}
+          </div>
         </div>
         <GlobalModals/>
         <ToastContainer/>
@@ -737,9 +943,12 @@ CREATE TABLE opportunities (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   firm_id UUID NOT NULL REFERENCES firms(id) ON DELETE CASCADE,
   role TEXT NOT NULL, location TEXT, link TEXT, referral TEXT,
-  stage TEXT DEFAULT 'not_applied', notes TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);`}</div>
+  stage TEXT DEFAULT 'not_applied', stage_order INTEGER DEFAULT 0,
+  notes TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- If upgrading, run:
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS stage_order INTEGER DEFAULT 0;`}</div>
       </details>
       <div className="field"><label>Project URL</label><input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://xxxx.supabase.co"/></div>
       <div className="field"><label>Anon / Legacy Key</label><input type="password" value={key} onChange={e=>setKey(e.target.value)} placeholder="eyJhbGci..."/></div>

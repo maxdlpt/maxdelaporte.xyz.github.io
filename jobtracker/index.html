@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HF Job Tracker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #222638;
+      --border: #2e3347;
+      --text: #e8eaf0;
+      --muted: #7b8099;
+      --accent: #4f6ef7;
+      --accent-hover: #6b85ff;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --purple: #a78bfa;
+      --blue: #60a5fa;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .app-shell { max-width: 900px; margin: 0 auto; padding: 32px 20px 80px; }
+
+    .auth-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .auth-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 40px; width: 100%; max-width: 420px;
+    }
+    .auth-card h1 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+    .auth-card p { color: var(--muted); margin-bottom: 28px; font-size: 13px; }
+
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
+    .field input, .field select, .field textarea {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text); padding: 9px 12px;
+      font-size: 14px; outline: none; transition: border-color .15s; font-family: inherit;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .field select option { background: var(--surface2); }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: var(--radius-sm); border: none;
+      cursor: pointer; font-size: 13px; font-weight: 500; transition: all .15s; font-family: inherit;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-icon { padding: 5px; background: transparent; border: none; cursor: pointer; color: var(--muted); border-radius: var(--radius-sm); transition: all .15s; }
+    .btn-icon:hover { color: var(--text); background: var(--surface2); }
+
+    .error-msg { color: var(--red); font-size: 13px; margin-top: 10px; }
+
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .search-input {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text); padding: 7px 12px;
+      font-size: 13px; outline: none; width: 220px; transition: border-color .15s;
+    }
+    .search-input:focus { border-color: var(--accent); }
+
+    .action-section { margin-bottom: 24px; }
+    .action-section h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 10px; }
+    .action-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .action-chip {
+      background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.25);
+      border-radius: 20px; padding: 4px 12px; font-size: 12px; color: var(--amber);
+    }
+    .action-chip.urgent { background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.25); color: var(--red); }
+
+    .firm-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); margin-bottom: 12px; overflow: hidden;
+    }
+    .firm-header { display: flex; align-items: center; padding: 14px 18px; cursor: pointer; gap: 12px; user-select: none; }
+    .firm-header:hover { background: rgba(255,255,255,.02); }
+    .firm-chevron { color: var(--muted); font-size: 12px; transition: transform .2s; flex-shrink: 0; }
+    .firm-chevron.open { transform: rotate(90deg); }
+    .firm-name { font-weight: 600; font-size: 15px; flex: 1; }
+    .firm-meta { display: flex; align-items: center; gap: 8px; }
+    .tag { padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+    .tag.priority { background: rgba(79,110,247,.12); color: var(--accent); border-color: rgba(79,110,247,.3); }
+    .firm-header-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+    .firm-card:hover .firm-header-actions { opacity: 1; }
+    .firm-next-steps { padding: 0 18px 10px 44px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 8px; }
+    .firm-next-steps span { color: var(--amber); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; margin-right: 6px; }
+
+    .firm-body { border-top: 1px solid var(--border); }
+    .section-header {
+      padding: 10px 18px; font-size: 11px; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--muted); display: flex;
+      align-items: center; justify-content: space-between; background: rgba(0,0,0,.15);
+    }
+
+    .contact-row { display: flex; align-items: center; padding: 10px 18px; border-top: 1px solid rgba(255,255,255,.04); gap: 12px; }
+    .contact-row:hover { background: rgba(255,255,255,.02); }
+    .contact-name { font-weight: 500; min-width: 160px; }
+    .contact-role { color: var(--muted); font-size: 13px; flex: 1; }
+    .contact-links { display: flex; gap: 6px; }
+    .contact-link { font-size: 11px; color: var(--muted); text-decoration: none; padding: 2px 7px; border: 1px solid var(--border); border-radius: 4px; transition: all .15s; }
+    .contact-link:hover { color: var(--text); border-color: var(--muted); }
+    .contact-row-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+    .contact-row:hover .contact-row-actions { opacity: 1; }
+
+    .opp-row { display: flex; align-items: center; padding: 10px 18px; border-top: 1px solid rgba(255,255,255,.04); gap: 12px; }
+    .opp-row:hover { background: rgba(255,255,255,.02); }
+    .opp-role { font-weight: 500; flex: 1; }
+    .opp-location { color: var(--muted); font-size: 13px; min-width: 100px; }
+    .opp-row-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+    .opp-row:hover .opp-row-actions { opacity: 1; }
+
+    .badge { padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+    .badge-grey   { background: rgba(107,114,128,.15); color: #9ca3af; }
+    .badge-blue   { background: rgba(96,165,250,.12);  color: var(--blue); }
+    .badge-purple { background: rgba(167,139,250,.12); color: var(--purple); }
+    .badge-green  { background: rgba(34,197,94,.12);   color: var(--green); }
+    .badge-amber  { background: rgba(245,158,11,.12);  color: var(--amber); }
+    .badge-red    { background: rgba(239,68,68,.12);   color: var(--red); }
+    .badge-indigo { background: rgba(99,102,241,.12);  color: #818cf8; }
+    .badge-teal   { background: rgba(20,184,166,.12);  color: #2dd4bf; }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.6);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; padding: 20px; backdrop-filter: blur(2px);
+    }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
+    .modal-header h3 { font-size: 16px; font-weight: 600; }
+    .modal-body { padding: 20px 24px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 0 24px 20px; }
+
+    .empty { padding: 14px 18px; color: var(--muted); font-size: 13px; font-style: italic; }
+
+    .setup-code {
+      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 14px; font-family: monospace; font-size: 12px; color: var(--muted);
+      white-space: pre-wrap; margin-bottom: 20px; overflow-x: auto;
+    }
+    .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 8px; }
+
+    .stats-bar { display: flex; gap: 20px; margin-bottom: 24px; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; flex: 1; }
+    .stat-value { font-size: 22px; font-weight: 700; }
+    .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useMemo } = React;
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+const CORRECT_PASSWORD = "Mulasasa1";
+
+const CONTACT_STATUSES = [
+  { value: "not_contacted",       label: "Haven't reached out", cls: "badge-grey"   },
+  { value: "contacted",           label: "Contacted",           cls: "badge-blue"   },
+  { value: "contacted_spoken_to", label: "Spoken to",           cls: "badge-purple" },
+  { value: "contacted_cant_help", label: "Can't help",          cls: "badge-red"    },
+  { value: "cold",                label: "Gone cold",           cls: "badge-amber"  },
+  { value: "willing_to_refer",    label: "Willing to refer",    cls: "badge-green"  },
+];
+
+const APP_STAGES = [
+  { value: "not_applied", label: "Not applied", cls: "badge-grey"   },
+  { value: "waiting",     label: "Waiting",     cls: "badge-blue"   },
+  { value: "hirevue",     label: "HireVue",     cls: "badge-indigo" },
+  { value: "phone_itv",   label: "Phone Itv",   cls: "badge-purple" },
+  { value: "interview",   label: "Interview",   cls: "badge-teal"   },
+  { value: "test",        label: "Test",        cls: "badge-amber"  },
+  { value: "case_study",  label: "Case Study",  cls: "badge-amber"  },
+  { value: "rejected",    label: "Rejected",    cls: "badge-red"    },
+  { value: "offer",       label: "Offer",       cls: "badge-green"  },
+];
+
+const FIRM_TYPES = ["Quant HF", "Multi-strat HF", "Macro HF", "L/S Equity HF", "Credit HF", "PE", "IB", "Asset Manager", "Other"];
+
+const statusInfo = (val, arr) => arr.find(s => s.value === val) || arr[0];
+
+// ─── Seed Data ────────────────────────────────────────────────────────────────
+
+const SEED_FIRMS = [
+  { name: "Voleon",           type: "Quant HF",       next_steps: "Reach out to Jason Bourgea and try to get a referral", priority: true  },
+  { name: "DE Shaw",          type: "Quant HF",       next_steps: "Waiting for Alizeh to refer",                          priority: true  },
+  { name: "AQR",              type: "Quant HF",       next_steps: "Keep checking website for IR/BD roles",                priority: false },
+  { name: "Point72",          type: "Multi-strat HF", next_steps: "Find a suitable role on careers page, send to Giacomo",priority: false },
+  { name: "Balyasny",         type: "Multi-strat HF", next_steps: "Grab drinks with Emre and his contact",               priority: false },
+  { name: "Bridgewater",      type: "Macro HF",       next_steps: "Apply to quant roles; or build systems experience first",priority:false },
+  { name: "Heritage",         type: "Quant HF",       next_steps: "Grab a coffee with Nico",                             priority: false },
+  { name: "Skybridge Capital",type: "Other",           next_steps: "",                                                    priority: false },
+];
+
+const SEED_CONTACTS = [
+  { firm:"Voleon",  name:"Jason Bourgea",    role:"MD, Investor Relations",               email:"jbourgea@voleon.com",       phone:"+1 510 542 1858", linkedin:"", status:"contacted",           notes:"Key contact for referral", advice:"" },
+  { firm:"Voleon",  name:"Vishal Patil",     role:"ML Portfolio Strategist",              email:"vpatil@voleon.com",         phone:"",               linkedin:"", status:"contacted",           notes:"", advice:"" },
+  { firm:"Voleon",  name:"Jessica Wright",   role:"VP, Investor Relations",               email:"jwright@voleon.com",        phone:"",               linkedin:"", status:"not_contacted",       notes:"", advice:"" },
+  { firm:"Voleon",  name:"Erik Clancy",      role:"Senior Associate, Investor Relations", email:"eclancy@voleon.com",        phone:"",               linkedin:"", status:"not_contacted",       notes:"", advice:"" },
+  { firm:"DE Shaw", name:"Alizeh Yahya",     role:"Legal & Compliance Associate",         email:"",                          phone:"",               linkedin:"", status:"willing_to_refer",    notes:"Waiting for her to send application link", advice:"" },
+  { firm:"DE Shaw", name:"Natalie Zhao",     role:"VP, Investor Relations EMEA",          email:"Natalie.Zhao@deshaw.com",   phone:"",               linkedin:"", status:"contacted",           notes:"", advice:"" },
+  { firm:"DE Shaw", name:"Finlay Goodman",   role:"Associate",                            email:"Finlay.Goodman@deshaw.com", phone:"",               linkedin:"", status:"contacted_cant_help", notes:"", advice:"" },
+  { firm:"AQR",     name:"Nicolo Rapisarda", role:"VP, Investor Relations",               email:"nicolo.rapisarda@aqr.com",  phone:"+39 3478079798", linkedin:"", status:"willing_to_refer",    notes:"", advice:"Keep looking on our website, if something in IR comes up I'll refer you." },
+  { firm:"Point72", name:"Giacomo Pietronero",role:"Quant Strategist",                   email:"",                          phone:"",               linkedin:"", status:"contacted_spoken_to",  notes:"BSc Bocconi, PhD UCL CS, started as Quant at UBS", advice:"Consider roles where you'd actually be competitive. Find something specific at Point72 and let me know." },
+  { firm:"Balyasny",name:"Emre's Contact",   role:"Quant",                                email:"",                          phone:"",               linkedin:"", status:"contacted",            notes:"BSc CS Imperial. Met through Emre.", advice:"" },
+  { firm:"Bridgewater",name:"Alessio Spantini",role:"Senior Research Engineer (ex)",     email:"",                          phone:"",               linkedin:"", status:"contacted_spoken_to",  notes:"MIT PhD Astrophysics, ex Bridgewater", advice:"Try quant roles — long shot. If not, build systems experience at a tech firm first." },
+  { firm:"Heritage",name:"Lucio",            role:"",                                     email:"",                          phone:"",               linkedin:"", status:"contacted_spoken_to",  notes:"", advice:"" },
+  { firm:"Heritage",name:"Nico",             role:"",                                     email:"",                          phone:"",               linkedin:"", status:"not_contacted",        notes:"Grab a coffee", advice:"" },
+  { firm:"Skybridge Capital",name:"Anthony Scaramucci",role:"Founder",                   email:"AScaramucci@skybridge.com", phone:"",               linkedin:"", status:"not_contacted",        notes:"", advice:"" },
+];
+
+const SEED_OPPS = [
+  { firm:"Voleon",  role:"Operations Associate — University Hire",        location:"Berkeley, CA", link:"https://jobs.lever.co/voleon/e9b9d747-4f8f-453a-b168-f20ef54f438b", referral:"Pending", stage:"not_applied" },
+  { firm:"Voleon",  role:"Associate Member of Trading Staff",             location:"Berkeley, CA", link:"https://jobs.lever.co/voleon/ce0bda1f-3d5a-44ac-8ab3-8578d49d344c", referral:"Pending", stage:"not_applied" },
+  { firm:"DE Shaw", role:"Sales and Relationship Management Associate",   location:"New York",     link:"https://www.deshaw.com/careers/sales-and-relationship-management-associate-new-york-5736", referral:"Pending", stage:"waiting" },
+];
+
+// ─── DB (plain fetch → Supabase REST) ────────────────────────────────────────
+
+class DB {
+  constructor(url, key) {
+    this.base = `${url}/rest/v1`;
+    this.h = { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' };
+  }
+  async get(table, qs = '') {
+    const r = await fetch(`${this.base}/${table}${qs ? '?' + qs : ''}`, { headers: this.h });
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
+  async insert(table, data) {
+    const r = await fetch(`${this.base}/${table}`, {
+      method: 'POST', headers: { ...this.h, Prefer: 'return=representation' }, body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    const rows = await r.json();
+    return Array.isArray(rows) ? rows[0] : rows;
+  }
+  async update(table, id, data) {
+    const r = await fetch(`${this.base}/${table}?id=eq.${id}`, {
+      method: 'PATCH', headers: { ...this.h, Prefer: 'return=representation' }, body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    const rows = await r.json();
+    return Array.isArray(rows) ? rows[0] : rows;
+  }
+  async del(table, id) {
+    const r = await fetch(`${this.base}/${table}?id=eq.${id}`, {
+      method: 'DELETE', headers: { ...this.h, Prefer: 'return=minimal' }
+    });
+    if (!r.ok) throw new Error(await r.text());
+  }
+}
+
+function getConfig() {
+  try { return JSON.parse(localStorage.getItem('hfcrm_config') || 'null'); } catch { return null; }
+}
+
+// ─── Badge ────────────────────────────────────────────────────────────────────
+
+function Badge({ value, arr }) {
+  const info = statusInfo(value, arr);
+  return <span className={`badge ${info.cls}`}>{info.label}</span>;
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+
+function Modal({ title, onClose, onSave, saveLabel = 'Save', children, saving }) {
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <h3>{title}</h3>
+          <button className="btn-icon" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">{children}</div>
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={onSave} disabled={saving}>{saving ? 'Saving…' : saveLabel}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Forms ────────────────────────────────────────────────────────────────────
+
+function FirmForm({ data, onChange }) {
+  return (<>
+    <div className="field"><label>Firm Name</label><input value={data.name} onChange={e => onChange('name', e.target.value)} placeholder="e.g. Citadel" /></div>
+    <div className="field"><label>Type</label>
+      <select value={data.type} onChange={e => onChange('type', e.target.value)}>
+        <option value="">— select —</option>
+        {FIRM_TYPES.map(t => <option key={t}>{t}</option>)}
+      </select>
+    </div>
+    <div className="field"><label>Next Steps</label><input value={data.next_steps} onChange={e => onChange('next_steps', e.target.value)} placeholder="e.g. Follow up with Sarah by end of month" /></div>
+    <div className="field"><label>Notes</label><textarea value={data.notes} onChange={e => onChange('notes', e.target.value)} placeholder="Any context..." /></div>
+    <div className="field" style={{display:'flex',alignItems:'center',gap:10}}>
+      <input type="checkbox" id="prio" checked={data.priority} onChange={e => onChange('priority', e.target.checked)} style={{width:'auto'}} />
+      <label htmlFor="prio" style={{textTransform:'none',letterSpacing:0,marginBottom:0,cursor:'pointer'}}>Mark as priority</label>
+    </div>
+  </>);
+}
+
+function ContactForm({ data, onChange }) {
+  return (<>
+    <div className="field"><label>Name</label><input value={data.name} onChange={e => onChange('name', e.target.value)} placeholder="Full name" /></div>
+    <div className="field"><label>Role / Title</label><input value={data.role} onChange={e => onChange('role', e.target.value)} placeholder="e.g. VP, Investor Relations" /></div>
+    <div className="field"><label>Email</label><input value={data.email} onChange={e => onChange('email', e.target.value)} placeholder="name@firm.com" /></div>
+    <div className="field"><label>LinkedIn URL</label><input value={data.linkedin} onChange={e => onChange('linkedin', e.target.value)} placeholder="https://linkedin.com/in/..." /></div>
+    <div className="field"><label>Phone</label><input value={data.phone} onChange={e => onChange('phone', e.target.value)} placeholder="+1 ..." /></div>
+    <div className="field"><label>Status</label>
+      <select value={data.status} onChange={e => onChange('status', e.target.value)}>
+        {CONTACT_STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+      </select>
+    </div>
+    <div className="field"><label>Notes</label><textarea value={data.notes} onChange={e => onChange('notes', e.target.value)} placeholder="Context about this person..." /></div>
+    <div className="field"><label>Advice Given</label><textarea value={data.advice} onChange={e => onChange('advice', e.target.value)} placeholder="What did they tell you?" /></div>
+  </>);
+}
+
+function OppForm({ data, onChange }) {
+  return (<>
+    <div className="field"><label>Role Title</label><input value={data.role} onChange={e => onChange('role', e.target.value)} placeholder="e.g. Quantitative Researcher" /></div>
+    <div className="field"><label>Location</label><input value={data.location} onChange={e => onChange('location', e.target.value)} placeholder="e.g. New York" /></div>
+    <div className="field"><label>Job Link</label><input value={data.link} onChange={e => onChange('link', e.target.value)} placeholder="https://..." /></div>
+    <div className="field"><label>Referral Status</label>
+      <select value={data.referral} onChange={e => onChange('referral', e.target.value)}>
+        <option value="">None</option><option>Pending</option><option>Yes</option><option>No</option>
+      </select>
+    </div>
+    <div className="field"><label>Application Stage</label>
+      <select value={data.stage} onChange={e => onChange('stage', e.target.value)}>
+        {APP_STAGES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+      </select>
+    </div>
+    <div className="field"><label>Notes</label><textarea value={data.notes} onChange={e => onChange('notes', e.target.value)} placeholder="Any context..." /></div>
+  </>);
+}
+
+// ─── Contact Row ──────────────────────────────────────────────────────────────
+
+function ContactRow({ contact, onEdit, onDelete }) {
+  return (
+    <div className="contact-row">
+      <div className="contact-name">{contact.name}</div>
+      <div className="contact-role">{contact.role}</div>
+      <Badge value={contact.status} arr={CONTACT_STATUSES} />
+      <div className="contact-links">
+        {contact.email    && <a className="contact-link" href={`mailto:${contact.email}`} title={contact.email}>✉</a>}
+        {contact.linkedin && <a className="contact-link" href={contact.linkedin} target="_blank" rel="noreferrer">in</a>}
+        {contact.phone    && <a className="contact-link" href={`tel:${contact.phone}`} title={contact.phone}>☎</a>}
+      </div>
+      {contact.advice && <span title={contact.advice} style={{fontSize:11,color:'var(--muted)',cursor:'help',flexShrink:0}}>💬</span>}
+      <div className="contact-row-actions">
+        <button className="btn-icon" onClick={() => onEdit(contact)}>✎</button>
+        <button className="btn-icon" style={{color:'var(--red)'}} onClick={() => onDelete(contact.id)}>✕</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Opportunity Row ──────────────────────────────────────────────────────────
+
+function OppRow({ opp, onEdit, onDelete }) {
+  return (
+    <div className="opp-row">
+      <div className="opp-role">
+        {opp.link
+          ? <a href={opp.link} target="_blank" rel="noreferrer" style={{color:'var(--text)',textDecoration:'none'}} onMouseOver={e=>e.target.style.textDecoration='underline'} onMouseOut={e=>e.target.style.textDecoration='none'}>{opp.role}</a>
+          : opp.role}
+      </div>
+      <div className="opp-location">{opp.location}</div>
+      {opp.referral && <span className="tag" style={{fontSize:11}}>{opp.referral==='Yes' ? '✓ Referral' : opp.referral==='Pending' ? '⏳ Referral' : ''}</span>}
+      <Badge value={opp.stage} arr={APP_STAGES} />
+      <div className="opp-row-actions">
+        <button className="btn-icon" onClick={() => onEdit(opp)}>✎</button>
+        <button className="btn-icon" style={{color:'var(--red)'}} onClick={() => onDelete(opp.id)}>✕</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Firm Card ────────────────────────────────────────────────────────────────
+
+function FirmCard({ firm, contacts, opportunities, onUpdate, onDelete, db }) {
+  const [open, setOpen]               = useState(false);
+  const [addContact, setAddContact]   = useState(false);
+  const [addOpp, setAddOpp]           = useState(false);
+  const [editContact, setEditContact] = useState(null);
+  const [editOpp, setEditOpp]         = useState(null);
+  const [editFirm, setEditFirm]       = useState(false);
+  const [saving, setSaving]           = useState(false);
+
+  const emptyContact = { name:'', role:'', email:'', linkedin:'', phone:'', status:'not_contacted', notes:'', advice:'' };
+  const emptyOpp     = { role:'', location:'', link:'', referral:'', stage:'not_applied', notes:'' };
+  const [contactForm, setContactForm] = useState(emptyContact);
+  const [oppForm, setOppForm]         = useState(emptyOpp);
+  const [firmForm, setFirmForm]       = useState({ name:firm.name, type:firm.type||'', next_steps:firm.next_steps||'', notes:firm.notes||'', priority:firm.priority||false });
+
+  const coldContacts = contacts.filter(c => c.status === 'cold');
+
+  async function saveContact() {
+    if (!contactForm.name.trim()) return;
+    setSaving(true);
+    try {
+      if (editContact) {
+        const data = await db.update('contacts', editContact.id, contactForm);
+        onUpdate('contact_update', data); setEditContact(null);
+      } else {
+        const data = await db.insert('contacts', { ...contactForm, firm_id: firm.id });
+        onUpdate('contact_add', data); setAddContact(false);
+      }
+      setContactForm(emptyContact);
+    } catch(e) { alert('Error: ' + e.message); }
+    setSaving(false);
+  }
+
+  async function saveOpp() {
+    if (!oppForm.role.trim()) return;
+    setSaving(true);
+    try {
+      if (editOpp) {
+        const data = await db.update('opportunities', editOpp.id, oppForm);
+        onUpdate('opp_update', data); setEditOpp(null);
+      } else {
+        const data = await db.insert('opportunities', { ...oppForm, firm_id: firm.id });
+        onUpdate('opp_add', data); setAddOpp(false);
+      }
+      setOppForm(emptyOpp);
+    } catch(e) { alert('Error: ' + e.message); }
+    setSaving(false);
+  }
+
+  async function saveFirmEdit() {
+    if (!firmForm.name.trim()) return;
+    setSaving(true);
+    try {
+      const data = await db.update('firms', firm.id, firmForm);
+      onUpdate('firm_update', data); setEditFirm(false);
+    } catch(e) { alert('Error: ' + e.message); }
+    setSaving(false);
+  }
+
+  async function deleteContact(id) {
+    if (!confirm('Delete this contact?')) return;
+    await db.del('contacts', id);
+    onUpdate('contact_delete', { id });
+  }
+
+  async function deleteOpp(id) {
+    if (!confirm('Delete this opportunity?')) return;
+    await db.del('opportunities', id);
+    onUpdate('opp_delete', { id });
+  }
+
+  function startEditContact(c) {
+    setContactForm({ name:c.name, role:c.role||'', email:c.email||'', linkedin:c.linkedin||'', phone:c.phone||'', status:c.status, notes:c.notes||'', advice:c.advice||'' });
+    setEditContact(c);
+  }
+  function startEditOpp(o) {
+    setOppForm({ role:o.role, location:o.location||'', link:o.link||'', referral:o.referral||'', stage:o.stage, notes:o.notes||'' });
+    setEditOpp(o);
+  }
+
+  return (
+    <div className="firm-card">
+      <div className="firm-header" onClick={() => setOpen(p => !p)}>
+        <span className={`firm-chevron ${open ? 'open' : ''}`}>▶</span>
+        <span className="firm-name">{firm.name}</span>
+        <div className="firm-meta">
+          {firm.type && <span className="tag">{firm.type}</span>}
+          {firm.priority && <span className="tag priority">★ Priority</span>}
+          {coldContacts.length > 0 && <span className="tag" style={{background:'rgba(245,158,11,.1)',color:'var(--amber)',borderColor:'rgba(245,158,11,.3)'}}>🌡 {coldContacts.length} cold</span>}
+          <span className="tag">{contacts.length} contact{contacts.length!==1?'s':''}</span>
+          {opportunities.length > 0 && <span className="tag">{opportunities.length} opp{opportunities.length>1?'s':''}</span>}
+        </div>
+        <div className="firm-header-actions" onClick={e => e.stopPropagation()}>
+          <button className="btn-icon" onClick={() => { setFirmForm({ name:firm.name, type:firm.type||'', next_steps:firm.next_steps||'', notes:firm.notes||'', priority:firm.priority||false }); setEditFirm(true); }}>✎</button>
+          <button className="btn-icon" style={{color:'var(--red)'}} onClick={() => onDelete(firm.id)}>✕</button>
+        </div>
+      </div>
+
+      {firm.next_steps && (
+        <div className="firm-next-steps"><span>Next steps</span>{firm.next_steps}</div>
+      )}
+
+      {open && (
+        <div className="firm-body">
+          <div className="section-header">
+            <span>Contacts</span>
+            <button className="btn btn-ghost btn-sm" onClick={() => { setContactForm(emptyContact); setAddContact(true); }}>+ Add</button>
+          </div>
+          {contacts.length === 0
+            ? <div className="empty">No contacts yet.</div>
+            : contacts.map(c => <ContactRow key={c.id} contact={c} onEdit={startEditContact} onDelete={deleteContact} />)
+          }
+
+          <div className="section-header" style={{marginTop:2}}>
+            <span>Opportunities</span>
+            <button className="btn btn-ghost btn-sm" onClick={() => { setOppForm(emptyOpp); setAddOpp(true); }}>+ Add</button>
+          </div>
+          {opportunities.length === 0
+            ? <div className="empty">No opportunities tracked.</div>
+            : opportunities.map(o => <OppRow key={o.id} opp={o} onEdit={startEditOpp} onDelete={deleteOpp} />)
+          }
+
+          {firm.notes && (
+            <div style={{padding:'10px 18px',fontSize:12,color:'var(--muted)',borderTop:'1px solid var(--border)'}}>
+              <span style={{color:'var(--muted)',textTransform:'uppercase',fontSize:11,letterSpacing:'.05em',marginRight:6}}>Notes</span>{firm.notes}
+            </div>
+          )}
+        </div>
+      )}
+
+      {(addContact || editContact) && (
+        <Modal title={editContact ? 'Edit Contact' : 'Add Contact'} onClose={() => { setAddContact(false); setEditContact(null); }} onSave={saveContact} saving={saving}>
+          <ContactForm data={contactForm} onChange={(k,v) => setContactForm(p => ({...p,[k]:v}))} />
+        </Modal>
+      )}
+      {(addOpp || editOpp) && (
+        <Modal title={editOpp ? 'Edit Opportunity' : 'Add Opportunity'} onClose={() => { setAddOpp(false); setEditOpp(null); }} onSave={saveOpp} saving={saving}>
+          <OppForm data={oppForm} onChange={(k,v) => setOppForm(p => ({...p,[k]:v}))} />
+        </Modal>
+      )}
+      {editFirm && (
+        <Modal title="Edit Firm" onClose={() => setEditFirm(false)} onSave={saveFirmEdit} saving={saving}>
+          <FirmForm data={firmForm} onChange={(k,v) => setFirmForm(p => ({...p,[k]:v}))} />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ─── Setup Screen ─────────────────────────────────────────────────────────────
+
+const SQL_SCHEMA = `CREATE TABLE firms (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  type TEXT, next_steps TEXT, notes TEXT,
+  priority BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE contacts (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  firm_id UUID REFERENCES firms(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  role TEXT, email TEXT, linkedin TEXT, phone TEXT,
+  status TEXT DEFAULT 'not_contacted',
+  notes TEXT, advice TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE opportunities (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  firm_id UUID REFERENCES firms(id) ON DELETE CASCADE,
+  role TEXT NOT NULL,
+  location TEXT, link TEXT, referral TEXT,
+  stage TEXT DEFAULT 'not_applied',
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);`;
+
+function SetupScreen({ onSetup }) {
+  const [url, setUrl]         = useState('');
+  const [key, setKey]         = useState('');
+  const [err, setErr]         = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleConnect() {
+    if (!url.trim() || !key.trim()) { setErr('Both fields are required.'); return; }
+    setLoading(true); setErr('');
+    try {
+      const r = await fetch(`${url.trim()}/rest/v1/firms?select=id&limit=1`, {
+        headers: { apikey: key.trim(), Authorization: `Bearer ${key.trim()}` }
+      });
+      if (!r.ok) { setErr('Could not connect: ' + await r.text()); setLoading(false); return; }
+      const cfg = { url: url.trim(), key: key.trim() };
+      localStorage.setItem('hfcrm_config', JSON.stringify(cfg));
+      onSetup(cfg);
+    } catch(e) { setErr('Connection failed: ' + e.message); setLoading(false); }
+  }
+
+  return (
+    <div className="auth-wrap">
+      <div className="auth-card" style={{maxWidth:560}}>
+        <h1>One-time Setup</h1>
+        <p>Connect your Supabase project. Run the SQL below first, then enter your credentials.</p>
+        <div className="section-label">Step 1 — Run this in Supabase → SQL Editor</div>
+        <div className="setup-code">{SQL_SCHEMA}</div>
+        <div className="section-label">Step 2 — Enter your project credentials</div>
+        <p style={{fontSize:12,color:'var(--muted)',marginBottom:14}}>Supabase → your project → Settings → API Keys → Legacy anon key (starts with eyJ...)</p>
+        <div className="field"><label>Project URL</label><input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://xxxx.supabase.co" /></div>
+        <div className="field"><label>Anon / Legacy key</label><input value={key} onChange={e=>setKey(e.target.value)} placeholder="eyJhbGci..." /></div>
+        {err && <div className="error-msg">{err}</div>}
+        <button className="btn btn-primary" onClick={handleConnect} disabled={loading} style={{width:'100%',marginTop:8,justifyContent:'center'}}>
+          {loading ? 'Connecting…' : 'Connect & Continue →'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Login Screen ─────────────────────────────────────────────────────────────
+
+function LoginScreen({ onLogin }) {
+  const [pw, setPw]   = useState('');
+  const [err, setErr] = useState('');
+
+  function handleLogin() {
+    if (pw === CORRECT_PASSWORD) { sessionStorage.setItem('hfcrm_auth', '1'); onLogin(); }
+    else { setErr('Incorrect password.'); setPw(''); }
+  }
+
+  return (
+    <div className="auth-wrap">
+      <div className="auth-card">
+        <h1>HF Job Tracker</h1>
+        <p>Enter your password to continue.</p>
+        <div className="field"><label>Password</label>
+          <input type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleLogin()} autoFocus />
+        </div>
+        {err && <div className="error-msg">{err}</div>}
+        <button className="btn btn-primary" onClick={handleLogin} style={{width:'100%',justifyContent:'center'}}>Unlock →</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+
+function Dashboard({ db }) {
+  const [firms,    setFirms]   = useState([]);
+  const [contacts, setContacts]= useState([]);
+  const [opps,     setOpps]    = useState([]);
+  const [loading,  setLoading] = useState(true);
+  const [search,   setSearch]  = useState('');
+  const [addFirm,  setAddFirm] = useState(false);
+  const [saving,   setSaving]  = useState(false);
+  const [firmForm, setFirmForm]= useState({ name:'', type:'', next_steps:'', notes:'', priority:false });
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const [f, c, o] = await Promise.all([
+          db.get('firms',        'select=*&order=priority.desc,name.asc'),
+          db.get('contacts',     'select=*&order=name.asc'),
+          db.get('opportunities','select=*&order=created_at.asc'),
+        ]);
+        setFirms(f); setContacts(c); setOpps(o);
+        if (f.length === 0) {
+          await seedData(db);
+          const [f2, c2, o2] = await Promise.all([
+            db.get('firms',        'select=*&order=priority.desc,name.asc'),
+            db.get('contacts',     'select=*&order=name.asc'),
+            db.get('opportunities','select=*&order=created_at.asc'),
+          ]);
+          setFirms(f2); setContacts(c2); setOpps(o2);
+        }
+      } catch(e) { alert('Load error: ' + e.message); }
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  async function seedData(db) {
+    for (const sd of SEED_FIRMS) {
+      const fRow = await db.insert('firms', { name:sd.name, type:sd.type, next_steps:sd.next_steps, notes:'', priority:sd.priority });
+      if (!fRow?.id) continue;
+      for (const sc of SEED_CONTACTS.filter(c => c.firm === sd.name))
+        await db.insert('contacts', { firm_id:fRow.id, name:sc.name, role:sc.role, email:sc.email, linkedin:sc.linkedin, phone:sc.phone, status:sc.status, notes:sc.notes, advice:sc.advice });
+      for (const so of SEED_OPPS.filter(o => o.firm === sd.name))
+        await db.insert('opportunities', { firm_id:fRow.id, role:so.role, location:so.location, link:so.link, referral:so.referral, stage:so.stage, notes:'' });
+    }
+  }
+
+  async function saveFirm() {
+    if (!firmForm.name.trim()) return;
+    setSaving(true);
+    try {
+      const data = await db.insert('firms', firmForm);
+      setFirms(p => [...p, data].sort((a,b) => b.priority - a.priority || a.name.localeCompare(b.name)));
+      setAddFirm(false); setFirmForm({ name:'', type:'', next_steps:'', notes:'', priority:false });
+    } catch(e) { alert('Error: ' + e.message); }
+    setSaving(false);
+  }
+
+  async function deleteFirm(id) {
+    if (!confirm('Delete this firm and all its contacts/opportunities?')) return;
+    await db.del('firms', id);
+    setFirms(p => p.filter(f => f.id !== id));
+    setContacts(p => p.filter(c => c.firm_id !== id));
+    setOpps(p => p.filter(o => o.firm_id !== id));
+  }
+
+  function handleUpdate(type, payload) {
+    if (type === 'firm_update')    setFirms(p => p.map(f => f.id===payload.id ? payload : f).sort((a,b) => b.priority-a.priority || a.name.localeCompare(b.name)));
+    if (type === 'contact_add')    setContacts(p => [...p, payload]);
+    if (type === 'contact_update') setContacts(p => p.map(c => c.id===payload.id ? payload : c));
+    if (type === 'contact_delete') setContacts(p => p.filter(c => c.id!==payload.id));
+    if (type === 'opp_add')        setOpps(p => [...p, payload]);
+    if (type === 'opp_update')     setOpps(p => p.map(o => o.id===payload.id ? payload : o));
+    if (type === 'opp_delete')     setOpps(p => p.filter(o => o.id!==payload.id));
+  }
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return firms;
+    const q = search.toLowerCase();
+    return firms.filter(f => f.name.toLowerCase().includes(q) || f.type?.toLowerCase().includes(q));
+  }, [firms, search]);
+
+  const actionItems = useMemo(() => {
+    const items = [];
+    firms.forEach(f => {
+      const cold = contacts.filter(c => c.firm_id===f.id && c.status==='cold');
+      if (cold.length) items.push({ text:`${f.name}: ${cold.length} cold contact${cold.length>1?'s':''}`, urgent:false });
+      if (opps.some(o => o.firm_id===f.id && o.stage==='offer')) items.push({ text:`🎉 Offer at ${f.name}!`, urgent:true });
+      if (f.priority && f.next_steps) items.push({ text:`${f.name}: ${f.next_steps}`, urgent:false });
+    });
+    return items;
+  }, [firms, contacts, opps]);
+
+  const stats = useMemo(() => ({
+    firms: firms.length,
+    contacts: contacts.length,
+    applied: opps.filter(o => o.stage !== 'not_applied').length,
+    active:  opps.filter(o => !['not_applied','rejected','offer'].includes(o.stage)).length,
+  }), [firms, contacts, opps]);
+
+  if (loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--muted)'}}>Loading…</div>;
+
+  return (
+    <div className="app-shell">
+      <div className="header">
+        <h1>HF Job Tracker</h1>
+        <div className="header-actions">
+          <input className="search-input" placeholder="Search firms…" value={search} onChange={e=>setSearch(e.target.value)} />
+          <button className="btn btn-primary" onClick={() => setAddFirm(true)}>+ Firm</button>
+          <button className="btn btn-ghost btn-sm" title="Log out" onClick={() => { sessionStorage.removeItem('hfcrm_auth'); window.location.reload(); }}>⏻</button>
+        </div>
+      </div>
+
+      <div className="stats-bar">
+        <div className="stat"><div className="stat-value">{stats.firms}</div><div className="stat-label">Firms</div></div>
+        <div className="stat"><div className="stat-value">{stats.contacts}</div><div className="stat-label">Contacts</div></div>
+        <div className="stat"><div className="stat-value">{stats.applied}</div><div className="stat-label">Applied</div></div>
+        <div className="stat"><div className="stat-value">{stats.active}</div><div className="stat-label">Active pipelines</div></div>
+      </div>
+
+      {actionItems.length > 0 && (
+        <div className="action-section">
+          <h2>Needs attention</h2>
+          <div className="action-chips">
+            {actionItems.map((item, i) => <div key={i} className={`action-chip ${item.urgent?'urgent':''}`}>{item.text}</div>)}
+          </div>
+        </div>
+      )}
+
+      {filtered.length === 0
+        ? <div style={{color:'var(--muted)',textAlign:'center',padding:'60px 0'}}>{search ? 'No firms match your search.' : 'No firms yet. Add one to get started.'}</div>
+        : filtered.map(firm => (
+          <FirmCard
+            key={firm.id}
+            firm={firm}
+            contacts={contacts.filter(c => c.firm_id===firm.id)}
+            opportunities={opps.filter(o => o.firm_id===firm.id)}
+            onUpdate={(type, payload) => handleUpdate(type, payload)}
+            onDelete={deleteFirm}
+            db={db}
+          />
+        ))
+      }
+
+      {addFirm && (
+        <Modal title="Add Firm" onClose={() => setAddFirm(false)} onSave={saveFirm} saving={saving}>
+          <FirmForm data={firmForm} onChange={(k,v) => setFirmForm(p => ({...p,[k]:v}))} />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ─── App Root ─────────────────────────────────────────────────────────────────
+
+function App() {
+  const [screen, setScreen] = useState(() => {
+    if (!getConfig()) return 'setup';
+    if (!sessionStorage.getItem('hfcrm_auth')) return 'login';
+    return 'dashboard';
+  });
+  const [db, setDb] = useState(() => {
+    const cfg = getConfig();
+    return cfg ? new DB(cfg.url, cfg.key) : null;
+  });
+
+  function handleSetup(cfg) {
+    setDb(new DB(cfg.url, cfg.key));
+    setScreen('login');
+  }
+
+  if (screen === 'setup')     return <SetupScreen onSetup={handleSetup} />;
+  if (screen === 'login')     return <LoginScreen onLogin={() => setScreen('dashboard')} />;
+  if (screen === 'dashboard') return <Dashboard db={db} />;
+  return null;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -11,16 +11,48 @@ Complete upgrade of the job tracker with sidebar navigation, enhanced pipeline v
 
 **Target State:**
 - Left sidebar (60px wide, always visible)
-- 4 nav items with icons only: 📊 Overview, 📈 Pipeline, 👤 Contacts, 🎯 Opportunities
+- 4 nav items with icons only:
+  -  overview: 
+    <svg width="128" height="128" viewBox="0 0 1024 1024" class="icon" version="1.1" xmlns="http://www.w3.org/2000/svg" data-iconid="486285" data-svgname="Data center asset overview"><path d="M352.329143 79.286857c35.474286 0 64.146286 28.525714 64.146286 63.853714v190.902858a64 64 0 0 1-64.146286 63.853714H180.955429a63.926857 63.926857 0 0 1-64.073143-63.853714v-190.902858c0-35.254857 28.672-63.853714 64.073143-63.853714h171.373714z m0 510.244572c35.474286 0 64.146286 28.525714 64.146286 63.853714v190.902857a64 64 0 0 1-64.146286 63.853714H180.955429a63.926857 63.926857 0 0 1-64.073143-63.853714v-190.902857c0-35.328 28.672-63.853714 64.073143-63.853714h171.373714z m490.715428-510.244572c35.401143 0 64.073143 28.525714 64.073143 63.853714v190.902858a64 64 0 0 1-64.073143 63.853714H671.670857a63.926857 63.926857 0 0 1-64.146286-63.853714v-190.902858c0-35.254857 28.745143-63.853714 64.146286-63.853714h171.373714z m-669.988571 379.611429h187.172571c64.512 0 116.736-51.931429 116.736-116.077715v-208.457142A116.297143 116.297143 0 0 0 360.228571 18.285714H173.129143C108.617143 18.285714 56.32 70.217143 56.32 134.436571v208.384a116.297143 116.297143 0 0 0 116.736 116.077715z m0 510.244571h187.172571c64.512 0 116.736-51.931429 116.736-116.150857V644.608a116.297143 116.297143 0 0 0-116.736-116.077714H173.129143c-64.512 0-116.736 51.931429-116.736 116.077714v208.457143a116.297143 116.297143 0 0 0 116.736 116.077714z m490.788571-510.244571h187.026286c64.512 0 116.736-51.931429 116.736-116.077715v-208.457142A116.297143 116.297143 0 0 0 850.870857 18.285714H663.771429C599.259429 18.285714 547.108571 70.217143 547.108571 134.436571v208.384a116.297143 116.297143 0 0 0 116.736 116.077715z m178.980572 448.877714H663.698286c-38.619429 0-55.296-16.091429-55.296-54.784V644.608c0-38.546286 16.749714-55.369143 55.369143-55.369143h187.099428c38.765714 0 56.173714 16.749714 56.173714 55.296V853.138286c0 12.8 13.677714 27.501714 31.524572 27.501714s29.037714-14.701714 29.037714-27.501714V644.534857a116.297143 116.297143 0 0 0-116.736-116.004571H663.771429c-64.512 0-116.736 51.931429-116.736 116.077714v208.457143a116.297143 116.297143 0 0 0 116.662857 116.077714H850.285714c13.458286 0 30.72-10.971429 30.72-30.793143a30.72 30.72 0 0 0-30.134857-30.573714h-7.972571z" fill="#000000"></path></svg>
+  - Pipeline: 
+  <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools --> 
+  <svg width="800px" height="800px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none"><path fill="#000000" fill-rule="evenodd" d="M2.75 2.5A1.75 1.75 0 001 4.25v1C1 6.216 1.784 7 2.75 7h1a1.75 1.75 0 001.732-1.5H6.5a.75.75 0 01.75.75v3.5A2.25 2.25 0 009.5 12h1.018c.121.848.85 1.5 1.732 1.5h1A1.75 1.75 0 0015 11.75v-1A1.75 1.75 0 0013.25 9h-1a1.75 1.75 0 00-1.732 1.5H9.5a.75.75 0 01-.75-.75v-3.5A2.25 2.25 0 006.5 4H5.482A1.75 1.75 0 003.75 2.5h-1zM2.5 4.25A.25.25 0 012.75 4h1a.25.25 0 01.25.25v1a.25.25 0 01-.25.25h-1a.25.25 0 01-.25-.25v-1zm9.75 6.25a.25.25 0 00-.25.25v1c0 .138.112.25.25.25h1a.25.25 0 00.25-.25v-1a.25.25 0 00-.25-.25h-1z" clip-rule="evenodd"/></svg>
+  - Contacts: 
+    <?xml version="1.0" encoding="utf-8"?>
+
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+  <svg width="800px" height="800px" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <title>contacts-solid</title>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="invisible_box" data-name="invisible box">
+      <rect width="48" height="48" fill="none"/>
+    </g>
+    <g id="Q3_icons" data-name="Q3 icons">
+      <g>
+        <path d="M14,31.7V34H28V31.7a15.3,15.3,0,0,0-14,0Z"/>
+        <circle cx="21" cy="17" r="3"/>
+        <path d="M36,3H6A2,2,0,0,0,4,5V43a2,2,0,0,0,2,2H36a2,2,0,0,0,2-2V5A2,2,0,0,0,36,3ZM21,10a7,7,0,1,1-7,7A7,7,0,0,1,21,10ZM32,36a2,2,0,0,1-2,2H12a2,2,0,0,1-2-2V29.4l.9-.6a19.6,19.6,0,0,1,20.2,0l.9.6Z"/>
+        <path d="M42,19H40V29h2a2,2,0,0,0,2-2V21A2,2,0,0,0,42,19Z"/>
+        <path d="M42,31H40V41h2a2,2,0,0,0,2-2V33A2,2,0,0,0,42,31Z"/>
+        <path d="M42,7H40V17h2a2,2,0,0,0,2-2V9A2,2,0,0,0,42,7Z"/>
+      </g>
+    </g>
+  </g>
+</svg>
+  -  Opportunities:
+    <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+    <svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M9 7H5C3.89543 7 3 7.89543 3 9V18C3 19.1046 3.89543 20 5 20H19C20.1046 20 21 19.1046 21 18V9C21 7.89543 20.1046 7 19 7H15M9 7V5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V7M9 7H15" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
 - On hover: sidebar expands to 180px, showing icon + label
-- Active tab shows accent color and stays expanded even without hover
+- Active tab shows accent color
 - Logout button at bottom
 - Smooth transitions between states
 
 **Implementation Details:**
 - Sidebar is flex column, fixed width
 - Each nav item has icon div and label div
-- Label hidden by default, shows on hover or active state
+- Label hidden by default, shows on hover
 - Navigation state managed by existing `tab` state variable
 - Top bar remains for title and user actions
 
@@ -34,14 +66,13 @@ Complete upgrade of the job tracker with sidebar navigation, enhanced pipeline v
 
 ### Stage Organization:
 - **Column 1:** "Not Applied" (neutral gray)
-- **Column 2:** "Applied" (neutral gray)
+- **Column 2:** "Waiting" (amber/orange)
 - **Grouped Section:** "Interview Rounds" header with vertical mini-columns:
-  - Phone Screen (neutral gray)
-  - First Round (neutral gray)
-  - HireVue (neutral gray)
-  - Case Study (neutral gray)
-  - Final Round (neutral gray)
-- **Column 3:** "Waiting" (amber/orange)
+  - Phone interview (light green)
+  - First Round (light green)
+  - HireVue (light green)
+  - Case Study (light green)
+  - Final Round (light green)
 - **Column 4:** "Rejected" (red)
 - **Column 5:** "Offer" (green)
 
@@ -54,11 +85,10 @@ Complete upgrade of the job tracker with sidebar navigation, enhanced pipeline v
 ### Visual Implementation:
 - Interview Rounds is a grouped container with:
   - Header label "Interview Rounds" (11px, uppercase, muted)
-  - Flex row of 5 narrow stage columns inside
-  - Columns are narrower than non-interview columns to fit
+  - Flex grid of 5 stage zones inside
+  - Zones are shorter than others to fit 2 rows 
 - Stage column header has colored bottom border matching stage color (not text color change)
 - Column count indicator badge remains
-
 ---
 
 ## 3. Drag-and-Drop Within Pipeline Stages
@@ -80,8 +110,8 @@ Complete upgrade of the job tracker with sidebar navigation, enhanced pipeline v
 - When dragging card within stage:
   - Card becomes semi-transparent (opacity 0.4) while dragging
   - Card scales down slightly (0.95)
-  - Target position shows accent border and glow (no dashed border)
-- Card slides back into place smoothly when dropped
+  - when moved ahead of another card (even before the move is confirmed aka the mouse button is released), the other cards slide into the position they would go into if the move was confirmed.
+- When dropped, the card slides to smoothly to its exact position.
 
 ---
 
@@ -262,7 +292,7 @@ Include this SQL in the setup screen's collapsible details section so users can 
 ## Success Criteria
 
 - [ ] Sidebar navigation works with hover expansion
-- [ ] Interview Rounds displayed as compact grouped columns
+- [ ] Interview Rounds displayed as grid with a neutral colour dotted line encircling it and Interview rounds as a header
 - [ ] Pipeline stages color-coded correctly
 - [ ] Drag-and-drop within stage reorders (no dashed borders, smooth animation)
 - [ ] Drag-and-drop between stages updates stage (no dashed borders)

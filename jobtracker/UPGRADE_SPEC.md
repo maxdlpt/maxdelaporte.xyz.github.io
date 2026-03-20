@@ -1,304 +1,229 @@
-# HF Job Tracker Upgrade Specification
+# HF Job Tracker — Upgrade Spec v2
 
-## Overview
-Complete upgrade of the job tracker with sidebar navigation, enhanced pipeline visualization, improved UX for reordering, and better company management. All changes must be implemented with correct interactions and smooth animations.
+Baseline: current `jobtracker/index.html` (post-sidebar/pipeline upgrade).
 
 ---
 
-## 1. Navigation: Horizontal Tabs → Sidebar
+## 0. AUTHENTICATION REFACTOR: Database-backed sign-in + persistent Supabase connection
 
-**Current State:** Horizontal tab bar at top with 4 tabs (Overview, Pipeline, Contacts, Opportunities)
+**Current:** Every time you open the app on a new device, you hit a Setup screen asking for Supabase URL, API key, and password. Once configured, it stores `hfcrm_config` and `hfcrm_auth` in localStorage.
 
-**Target State:**
-- Left sidebar (60px wide, always visible)
-- 4 nav items with icons only:
-  -  overview: 
-    <svg width="128" height="128" viewBox="0 0 1024 1024" class="icon" version="1.1" xmlns="http://www.w3.org/2000/svg" data-iconid="486285" data-svgname="Data center asset overview"><path d="M352.329143 79.286857c35.474286 0 64.146286 28.525714 64.146286 63.853714v190.902858a64 64 0 0 1-64.146286 63.853714H180.955429a63.926857 63.926857 0 0 1-64.073143-63.853714v-190.902858c0-35.254857 28.672-63.853714 64.073143-63.853714h171.373714z m0 510.244572c35.474286 0 64.146286 28.525714 64.146286 63.853714v190.902857a64 64 0 0 1-64.146286 63.853714H180.955429a63.926857 63.926857 0 0 1-64.073143-63.853714v-190.902857c0-35.328 28.672-63.853714 64.073143-63.853714h171.373714z m490.715428-510.244572c35.401143 0 64.073143 28.525714 64.073143 63.853714v190.902858a64 64 0 0 1-64.073143 63.853714H671.670857a63.926857 63.926857 0 0 1-64.146286-63.853714v-190.902858c0-35.254857 28.745143-63.853714 64.146286-63.853714h171.373714z m-669.988571 379.611429h187.172571c64.512 0 116.736-51.931429 116.736-116.077715v-208.457142A116.297143 116.297143 0 0 0 360.228571 18.285714H173.129143C108.617143 18.285714 56.32 70.217143 56.32 134.436571v208.384a116.297143 116.297143 0 0 0 116.736 116.077715z m0 510.244571h187.172571c64.512 0 116.736-51.931429 116.736-116.150857V644.608a116.297143 116.297143 0 0 0-116.736-116.077714H173.129143c-64.512 0-116.736 51.931429-116.736 116.077714v208.457143a116.297143 116.297143 0 0 0 116.736 116.077714z m490.788571-510.244571h187.026286c64.512 0 116.736-51.931429 116.736-116.077715v-208.457142A116.297143 116.297143 0 0 0 850.870857 18.285714H663.771429C599.259429 18.285714 547.108571 70.217143 547.108571 134.436571v208.384a116.297143 116.297143 0 0 0 116.736 116.077715z m178.980572 448.877714H663.698286c-38.619429 0-55.296-16.091429-55.296-54.784V644.608c0-38.546286 16.749714-55.369143 55.369143-55.369143h187.099428c38.765714 0 56.173714 16.749714 56.173714 55.296V853.138286c0 12.8 13.677714 27.501714 31.524572 27.501714s29.037714-14.701714 29.037714-27.501714V644.534857a116.297143 116.297143 0 0 0-116.736-116.004571H663.771429c-64.512 0-116.736 51.931429-116.736 116.077714v208.457143a116.297143 116.297143 0 0 0 116.662857 116.077714H850.285714c13.458286 0 30.72-10.971429 30.72-30.793143a30.72 30.72 0 0 0-30.134857-30.573714h-7.972571z" fill="#000000"></path></svg>
-  - Pipeline: 
-  <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools --> 
-  <svg width="800px" height="800px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none"><path fill="#000000" fill-rule="evenodd" d="M2.75 2.5A1.75 1.75 0 001 4.25v1C1 6.216 1.784 7 2.75 7h1a1.75 1.75 0 001.732-1.5H6.5a.75.75 0 01.75.75v3.5A2.25 2.25 0 009.5 12h1.018c.121.848.85 1.5 1.732 1.5h1A1.75 1.75 0 0015 11.75v-1A1.75 1.75 0 0013.25 9h-1a1.75 1.75 0 00-1.732 1.5H9.5a.75.75 0 01-.75-.75v-3.5A2.25 2.25 0 006.5 4H5.482A1.75 1.75 0 003.75 2.5h-1zM2.5 4.25A.25.25 0 012.75 4h1a.25.25 0 01.25.25v1a.25.25 0 01-.25.25h-1a.25.25 0 01-.25-.25v-1zm9.75 6.25a.25.25 0 00-.25.25v1c0 .138.112.25.25.25h1a.25.25 0 00.25-.25v-1a.25.25 0 00-.25-.25h-1z" clip-rule="evenodd"/></svg>
-  - Contacts: 
-    <?xml version="1.0" encoding="utf-8"?>
+**Change:**
+- **Backend:** Hard-code the Supabase URL and API key into the app itself (not exposed in UI). Create a new `users` table in Supabase to store username/password pairs.
+- **Frontend:** Replace the Setup/Login two-screen flow with a single **Sign-in screen** that only asks for username and password (no Supabase setup needed).
+- **User credentials:** Stored in Supabase `users` table with columns: `id`, `username`, `password_hash` (or plaintext if you prefer simplicity), `created_at`.
+- **Persistence:** On successful sign-in, store an auth token or session flag in localStorage (e.g., `{username, ts}` or a simple `{loggedIn: true}`). On load, check localStorage; if missing/invalid, show the sign-in screen. If valid, jump to Dashboard.
+- **Result:** Any device, any browser — user opens the app, sees sign-in screen, enters username (`max_dlpt`) and password (`Mulasasa1`), and immediately accesses the tracker. The app always connects to the same Supabase backend automatically.
 
-<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-  <svg width="800px" height="800px" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-  <title>contacts-solid</title>
-  <g id="Layer_2" data-name="Layer 2">
-    <g id="invisible_box" data-name="invisible box">
-      <rect width="48" height="48" fill="none"/>
-    </g>
-    <g id="Q3_icons" data-name="Q3 icons">
-      <g>
-        <path d="M14,31.7V34H28V31.7a15.3,15.3,0,0,0-14,0Z"/>
-        <circle cx="21" cy="17" r="3"/>
-        <path d="M36,3H6A2,2,0,0,0,4,5V43a2,2,0,0,0,2,2H36a2,2,0,0,0,2-2V5A2,2,0,0,0,36,3ZM21,10a7,7,0,1,1-7,7A7,7,0,0,1,21,10ZM32,36a2,2,0,0,1-2,2H12a2,2,0,0,1-2-2V29.4l.9-.6a19.6,19.6,0,0,1,20.2,0l.9.6Z"/>
-        <path d="M42,19H40V29h2a2,2,0,0,0,2-2V21A2,2,0,0,0,42,19Z"/>
-        <path d="M42,31H40V41h2a2,2,0,0,0,2-2V33A2,2,0,0,0,42,31Z"/>
-        <path d="M42,7H40V17h2a2,2,0,0,0,2-2V9A2,2,0,0,0,42,7Z"/>
-      </g>
-    </g>
+**Implementation details:**
+
+1. **Create `users` table in Supabase SQL Editor:**
+   ```sql
+   CREATE TABLE users (
+     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+     username TEXT NOT NULL UNIQUE,
+     password TEXT NOT NULL,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+   );
+
+   -- Insert your user
+   INSERT INTO users (username, password) VALUES ('max_dlpt', 'Mulasasa1');
+   ```
+   (Optional: hash the password using a library, but plaintext is fine for simplicity on a personal app.)
+
+2. **Hard-code Supabase credentials at the top of the script:**
+   ```javascript
+   const SUPABASE_URL = '...'; // e.g., 'https://xxxx.supabase.co'
+   const SUPABASE_KEY = '...'; // anon/legacy key
+   ```
+   Do NOT ask the user to provide these.
+
+3. **Create a `SignInScreen` component (replaces `SetupScreen` + `LoginScreen`):**
+   - Two input fields: username and password.
+   - On submit, call a simple async function `verifyCredentials(username, password)` that queries the `users` table.
+   - If match found, set `localStorage.setItem('hfcrm_auth', JSON.stringify({username, ts: Date.now()}))` and navigate to `App()`.
+   - If no match, show an error message.
+
+4. **Update `App()` function:**
+   ```javascript
+   function App() {
+     const auth = getAuth(); // reads localStorage
+     if (!auth) return <SignInScreen />;
+
+     // Auth exists, create DB with hard-coded credentials
+     const db = new DB(SUPABASE_URL, SUPABASE_KEY);
+     return <Dashboard db={db} />;
+   }
+   ```
+
+5. **Logout:** Clear localStorage auth and return to sign-in screen.
+
+**Security note:** Storing credentials in localStorage means anyone with browser access can see them. For a personal app behind the sign-in screen, this is acceptable. If you need stronger security, consider token-based auth (JWT) or session management.
+
+---
+
+## 1. BUG FIX: Pipeline stage changes not persisting
+
+**Problem:** Dragging a card from one pipeline column to another does not update the opportunity's `stage` in Supabase.
+
+**Root cause to investigate:** In `PipelineTab`, the `onCardDragOver` handler calls `e.stopPropagation()`, which prevents the parent `.pl-col`'s `dragover` from firing when hovering over an existing card. While the card-level `dragover` does call `e.preventDefault()`, the `drop` event may not reliably bubble to the column's `onDrop` handler across all browsers. Additionally, when dragging between stages, `onCardDragOver` only handles same-stage reordering logic — there is no cross-stage drop handler at the card level.
+
+**Fix:** Add an `onDrop` handler directly on each `.pl-card` element that handles cross-stage moves (delegates to `colDrop`). Ensure `e.preventDefault()` is called in all relevant `dragover` handlers. Remove `e.stopPropagation()` from `onCardDragOver` or restructure so that column-level drop always works regardless of whether the cursor is over a card or empty space.
+
+---
+
+## 2. Interview Rounds columns: same width as main columns
+
+**Current:** `.itv-grid` uses `grid-template-columns: 1fr 1fr 1fr` and `.itv-grid .pl-col` overrides `min-width:0; max-width:none`. Main columns use fixed `min-width:220px; max-width:220px`.
+
+**Change:** Make all pipeline columns (main and interview) the same width. The interview grid columns should each be the same width as "Not Applied", "Waiting", "Rejected", "Offer".
+
+---
+
+## 3. Pipeline columns fill full available width
+
+**Current:** All columns have fixed `min-width:220px; max-width:220px` with horizontal scroll.
+
+**Change:** Switch the pipeline layout from fixed-width scrollable columns to a responsive flex/grid layout where columns expand to fill the full width of `.tab-content`. The `.pipeline` container should use `display:flex` with columns set to `flex:1; min-width:0` (no `max-width`). The `.itv-group` should also `flex` proportionally (taking ~5/9 of total width since it contains 5 of the 9 stages). Remove `overflow-x:auto` from `.pipeline`. Each column inside `.itv-grid` also flexes to fill its container.
+
+On small screens (<768px), revert to scrollable fixed-width columns.
+
+---
+
+## 4. Hide rejected opportunity cards from Pipeline tab (recycling bin column)
+
+**Current:** The "Rejected" column is rendered like all other stages with cards displayed.
+
+**Change:** The Rejected column still renders on the pipeline, but acts as a visual "recycling bin" where cards disappear. When a card is dragged into the Rejected column, its `stage` is updated to `rejected` in Supabase, but the card no longer appears in the column — it vanishes from the pipeline view. The Rejected column displays a centered recycling bin SVG icon (muted, semi-transparent) to indicate it's a disposal zone.
+
+Rejected opportunities remain visible and editable in the Opportunities tab. The pipeline now shows: Not Applied | Waiting | [Interview Rounds] | Rejected (recycling bin icon, no cards) | Offer (5 main zones + 5 interview = 9 total columns).
+
+**Implementation:**
+- In `renderCol`, detect if `stg.v === 'rejected'`.
+- If rejected and no cards to show, render the recycling bin SVG centered in the `.pl-drop` area.
+- Filter displayed items: `{items.length && stg.v !== 'rejected' ? items.map(...) : (stg.v === 'rejected' ? <RecyclingBinIcon/> : <div className="pl-empty">Drop here</div>)}`
+- The column still accepts drops and updates the stage in the DB.
+
+**Recycling bin SVG component (add near other icon definitions):**
+```javascript
+const IconRecyclingBin = () => <svg fill="var(--muted)" opacity="0.4" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" style={{width:'60px', height:'60px', margin:'0 auto'}}>
+  <g transform="translate(0.000000,511.000000) scale(0.100000,-0.100000)">
+    <path d="M860,4761.7c-341.1-83.7-643.4-379.9-731.2-716.9c-34.7-138.9-38.8-386-8.2-520.8c53.1-234.9,232.8-480,451.4-620.9c112.3-71.5,273.7-134.8,345.2-134.8c22.5,0,44.9-12.3,49-24.5c6.1-22.5,279.8-2175.3,716.9-5653.7c61.3-488.2,124.6-933.4,143-990.6c87.8-283.9,381.9-553.5,690.4-635.2c85.8-22.5,537.2-28.6,2506.2-28.6c2614.4,0,2481.7-6.1,2714.5,112.3c206.3,104.2,410.5,343.1,478,553.5c18.4,55.2,212.4,1525.8,431,3266c220.6,1742.3,406.5,3214.9,414.6,3276.2l14.3,108.3l112.3,34.7c328.8,102.1,602.5,388.1,686.3,719c44.9,175.7,30.6,473.9-30.6,635.2c-96,251.2-332.9,488.2-590.3,592.3l-116.4,47l-4085.1,4.1C1828.2,4786.2,943.8,4782.1,860,4761.7z M9144.5,4140.7c112.3-59.2,145-145,145-371.7s-32.7-312.5-145-371.7c-65.4-34.7-236.9-36.8-4140.2-36.8c-3995.2,0-4072.8,0-4148.4,40.8c-112.3,57.2-145,138.9-145,371.7c0,222.6,32.7,308.4,145,367.7c65.4,34.7,236.9,36.8,4144.3,36.8C8907.6,4177.5,9079.2,4175.4,9144.5,4140.7z M4242.5,2672.1c-36.8-42.9-300.2-328.8-586.2-635.2l-520.8-557.6l-55.2,57.2c-30.6,30.6-228.8,241-439.1,465.7c-212.4,224.7-459.6,484.1-549.4,578l-165.4,167.5h1192.8h1190.8L4242.5,2672.1z M8051.8,2702.8c-20.4-24.5-290-310.5-594.4-633.2l-557.6-586.2l-545.4,586.2c-302.3,322.7-565.8,608.7-586.2,633.2l-38.8,44.9H6910h1180.6L8051.8,2702.8z M5753.9,1822.5c396.2-424.9,716.9-780.3,712.8-790.5C6456.6,1005.4,5035-489.7,5018.6-489.7c-26.5,0-1448.2,1511.5-1444.1,1533.9c8.2,28.6,1431.8,1560.5,1448.2,1554.4C5028.8,2596.6,5357.7,2247.3,5753.9,1822.5z M2210.2,1573.3c275.7-292.1,500.4-537.2,498.4-545.4c-8.2-18.4-780.2-849.7-792.5-851.7c-6.1-2-65.4,426.9-130.7,953.9c-65.4,524.9-122.6,972.2-128.7,994.7C1644.4,2175.8,1595.3,2224.8,2210.2,1573.3z M8262.2,1158.6c-69.5-541.3-130.7-982.5-140.9-980.4c-20.4,8.2-792.5,841.5-792.5,857.9c0,16.3,1045.8,1123.4,1053.9,1115.2C8384.7,2147.2,8331.6,1701.9,8262.2,1158.6z M3874.8-183.3c394.2-414.6,716.9-759.8,716.9-765.9c-2-14.3-1409.4-1499.2-1429.8-1507.4c-12.3-4.1-224.7,216.5-966.1,1009l-96,104.2l-40.8,304.3c-22.5,167.5-40.8,332.9-40.8,365.6c0,53.1,79.7,149.1,555.6,659.7c304.3,328.8,561.7,594.4,569.9,592.3C3151.8,574.5,3482.7,233.4,3874.8-183.3z M7469.7-19.9c633.2-680.2,573.9-561.7,514.7-1029.4c-38.8-292.1-38.8-292.1-118.5-377.9c-44.9-44.9-281.9-298.2-527-559.6c-245.1-261.5-451.4-471.8-461.6-469.8c-20.4,8.2-1427.7,1493.1-1427.7,1509.4c0,22.5,1435.9,1531.9,1452.2,1525.8C6910,574.5,7165.3,306.9,7469.7-19.9z M5753.9-2162.5l714.9-755.7l-149.1-157.3c-81.7-85.8-298.2-318.7-484.1-516.8l-335-359.5h-480l-480,2l-475.9,508.6c-261.4,279.8-475.9,514.7-478,522.9c-2,20.4,1419.6,1521.7,1437.9,1515.6C5032.9-1406.8,5359.7-1747.9,5753.9-2162.5z M2485.9-2644.6l251.2-265.5l-190-204.2c-104.2-112.3-192-202.2-194-198.1c-4.1,2.1-30.6,194-59.2,422.8c-28.6,230.8-57.2,439.1-61.3,465.7c-6.1,24.5-8.2,44.9-4.1,44.9C2232.6-2379,2349-2497.5,2485.9-2644.6z M7755.6-2838.6c-32.7-247.1-61.3-457.5-65.4-465.7c-2.1-10.2-89.9,75.6-196.1,187.9l-190,206.3l251.2,265.5c138.9,145,253.3,261.4,255.3,259.4C7812.8-2387.2,7788.3-2591.5,7755.6-2838.6z M3693-3935.4c0-10.2-245.1-16.3-543.3-16.3c-426.9,0-539.2,6.1-527,26.6c8.2,12.3,130.7,147.1,271.7,296.2l257.4,269.6l269.6-279.8C3570.5-3794.5,3691-3927.3,3693-3935.4z M7416.6-3923.2c14.3-24.5-73.5-28.6-527-28.6c-428.9,0-541.3,6.1-529,26.6c8.2,12.3,130.7,147.1,271.7,294.1l255.3,271.7l255.3-269.6C7283.8-3776.1,7408.4-3908.9,7416.6-3923.2z"/>
   </g>
-</svg>
-  -  Opportunities:
-    <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-    <svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M9 7H5C3.89543 7 3 7.89543 3 9V18C3 19.1046 3.89543 20 5 20H19C20.1046 20 21 19.1046 21 18V9C21 7.89543 20.1046 7 19 7H15M9 7V5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V7M9 7H15" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-- On hover: sidebar expands to 180px, showing icon + label
-- Active tab shows accent color
-- Logout button at bottom
-- Smooth transitions between states
-
-**Implementation Details:**
-- Sidebar is flex column, fixed width
-- Each nav item has icon div and label div
-- Label hidden by default, shows on hover
-- Navigation state managed by existing `tab` state variable
-- Top bar remains for title and user actions
-
----
-
-## 2. Pipeline Stage Grouping & Coloring
-
-**Current State:** All 10 stages shown horizontally as equal-width columns
-
-**Target State:**
-
-### Stage Organization:
-- **Column 1:** "Not Applied" (neutral gray)
-- **Column 2:** "Waiting" (amber/orange)
-- **Grouped Section:** "Interview Rounds" header with vertical mini-columns:
-  - Phone interview (light green)
-  - First Round (light green)
-  - HireVue (light green)
-  - Case Study (light green)
-  - Final Round (light green)
-- **Column 4:** "Rejected" (red)
-- **Column 5:** "Offer" (green)
-
-### Color Scheme:
-- Neutral gray: `#6b7280` (not_applied, applied, interview stages)
-- Amber: `#f59e0b` (waiting)
-- Red: `#ef4444` (rejected)
-- Green: `#10b981` (offer)
-
-### Visual Implementation:
-- Interview Rounds is a grouped container with:
-  - Header label "Interview Rounds" (11px, uppercase, muted)
-  - Flex grid of 5 stage zones inside
-  - Zones are shorter than others to fit 2 rows 
-- Stage column header has colored bottom border matching stage color (not text color change)
-- Column count indicator badge remains
----
-
-## 3. Drag-and-Drop Within Pipeline Stages
-
-**Current State:** Drag opportunity card between stage columns only (updates `stage` field)
-
-**Target State:**
-- Users can drag and drop opportunities WITHIN the same stage to reorder
-- Reordering updates `stage_order` field (INTEGER, added to opportunities table)
-- `stage_order` starts at 0 for each opportunity
-- When opportunities are fetched, sort by `stage_order` ASC within each stage
-- When dragging to a NEW stage, set `stage_order: 0` (goes to top of new stage)
-
-**Database:**
-- Add column: `ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS stage_order INTEGER DEFAULT 0;`
-- Update logic: On reorder within stage, batch update `stage_order` values to maintain sort order
-
-**Visual Feedback:**
-- When dragging card within stage:
-  - Card becomes semi-transparent (opacity 0.4) while dragging
-  - Card scales down slightly (0.95)
-  - when moved ahead of another card (even before the move is confirmed aka the mouse button is released), the other cards slide into the position they would go into if the move was confirmed.
-- When dropped, the card slides to smoothly to its exact position.
-
----
-
-## 4. Remove Dotted Borders, Smooth Animations
-
-**Current State:**
-- Dashed borders appear on drag-over (`.drag-over` class)
-- Cards jump/snap into place
-
-**Target State:**
-- NO dashed borders anywhere (remove the `border-style: dashed` completely)
-- On drag-over: only show a solid accent border + subtle glow shadow (no dashed line)
-- Cards animate in with smooth slideIn animation (already exists, ensure used)
-- When opportunities appear in pipeline: slide in from left with opacity fade
-- When firm cards reorder: smooth transition, not instant
-- Transitions should be 200-300ms for naturalness
-
-**CSS:**
-- Keep the `.drag-over` styling but REMOVE dashing
-- Use `box-shadow` for glow instead of dashed border
-- Ensure all card insertions use `animation: slideIn`
-
----
-
-## 5. Contacts Section: Closed by Default
-
-**Current State:** All company/status sections open by default
-
-**Target State:**
-- All sections start collapsed (chevron points right ▶)
-- Click section header to expand/collapse
-- Expanded state shows all contacts in that section with expandable detail rows
-- No sections are pre-expanded on initial load
-
-**Implementation:**
-- Initialize `expanded` state object as empty `{}`
-- Check `expanded[key] === true` for open state (not `!== false`)
-- All sections render with closed chevron initially
-
----
-
-## 6. Opportunities Section: Collapsible Sections Like Contacts
-
-**Current State:** Opportunities shown in a grid with "Sort by Company/Stage/Role" dropdown
-
-**Target State:**
-- Same collapsible section structure as Contacts tab
-- Sort dropdown with 3 options:
-  - "Sort by Company" (groups by firm name, each firm a collapsed section)
-  - "Sort by Stage" (groups by pipeline stage, each stage a collapsed section)
-  - "Sort by Role" (all in one "All Opportunities" section)
-- Search bar to filter across all opportunities
-- Each section starts collapsed
-- When expanded, show opportunities as rows (like contact rows)
-- Each row shows: role name, location, stage badge, edit/delete icons
-- Remove the grid layout entirely
-
----
-
-## 7. Auto-Create Company Combobox
-
-**Current State:**
-- Contact/Opportunity forms have `<select>` dropdown of existing firms
-- User must select from existing firms only
-
-**Target State:**
-- Replace select with combobox input
-- Type to filter existing firms
-- Show matching firms as dropdown options
-- If typed text doesn't match any firm: show "Create: [typed text]" option
-- Clicking "Create" opens a modal to fill firm details:
-  - Name field (pre-filled with typed text)
-  - Type dropdown
-  - Next Steps input
-  - Notes textarea
-  - Priority checkbox
-  - Save button
-- After saving new firm:
-  - New firm gets added to firms list
-  - Form auto-selects the new firm's ID in the company field
-  - User continues filling contact/opportunity form
-- Modal closes after save, focus returns to contact form
-
-**Implementation:**
-- New `CompanyCombobox` component handles input + dropdown logic
-- Modal state for new firm creation
-- Call `db.ins('firms', firmData)` and get returned firm with ID
-- Set selected firm in parent form
-
----
-
-## 8. Company Name Changes Replicate Everywhere
-
-**Current State:** Should already work via foreign keys, but verify
-
-**Target State:**
-- When user edits a firm's name (in the add/edit firm modal)
-- That name change automatically appears in:
-  - Overview tab firm cards
-  - Pipeline tab firm names on opportunity cards
-  - Contacts tab group headers (if sorted by company)
-  - Opportunities tab group headers (if sorted by company)
-- This works because firms, contacts, and opportunities all reference `firm_id`
-
-**Verification:**
-- Edit a firm name
-- Check that it updates in all views after reload
-- No additional code needed if foreign keys are set up correctly
-
----
-
-## 9. Database Migration
-
-**New Column Required:**
-```sql
-ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS stage_order INTEGER DEFAULT 0;
+</svg>;
 ```
 
-Include this SQL in the setup screen's collapsible details section so users can run it during initial setup or upgrade.
+---
+
+## 5. Pipeline drop zones: minimum height for one card
+
+**Current:** `.pl-drop` has `min-height:80px`.
+
+**Change:** Increase `.pl-drop` min-height to `120px` so that empty columns visually accommodate at least one card height (a card is ~70-80px with padding). This makes it clear to the user that the card will fit.
 
 ---
 
-## 10. State Management & Interaction Flow
+## 6. Pipeline columns expand vertically on drag-hover
 
-### Overview Tab (unchanged but styled for sidebar):
-- Drag firm cards left/right to reorder (urgent ← → least urgent)
-- Updates `order_position` field
-- Rest of functionality same
+**Current:** Columns get a border/glow on drag-over but don't change size.
 
-### Pipeline Tab (major changes):
-- Interview Rounds shown as grouped vertical columns
-- Drag opportunity within stage to reorder (updates `stage_order`)
-- Drag opportunity between stages to change status (updates `stage`, sets `stage_order: 0`)
-- No dotted borders, smooth animations
-- Stages color-coded by status
+**Change:** When a card is being dragged over a column (`.pl-col.drag-over`), add a CSS transition that increases the column's `min-height` or adds extra `padding-bottom` to the `.pl-drop` area (e.g., `padding-bottom: 80px`) with a smooth transition. This creates a visual "opening up" effect showing where the card will land. The transition should use the same duration as other animations (see #7). Remove the extra space when drag leaves.
 
-### Contacts Tab (changes):
-- All sections start closed
-- Create contact form at top
-- Sort dropdown + search
-- Click section to expand
-- Click row to expand detail
-- Edit/delete icons
-
-### Opportunities Tab (major refactor):
-- Create opportunity form at top
-- Sort dropdown + search
-- Collapsible sections by company/stage/role
-- Opportunity rows inside sections
-- Edit/delete icons
+**Implementation:** Add/remove a `drag-over` class on the `.pl-col` (already done). Then in CSS:
+```css
+.pl-drop { transition: padding-bottom 0.3s ease; }
+.pl-col.drag-over .pl-drop { padding-bottom: 80px; }
+```
 
 ---
 
-## 11. Visual Polish
+## 7. Slightly slower animations
 
-- All borders: solid lines only, no dashed
-- Drag feedback: opacity + scale + accent border + glow
-- Card animations: slideIn on insert, smooth transitions on reorder
-- Sidebar: smooth width expansion on hover, 300ms transition
-- Modals: popIn animation (already exists)
-- Color scheme: dark theme, accent green, status colors for stages
+**Current transition durations:**
+- `.pl-card` transform/opacity: `0.2s`
+- `.pl-card:hover` transform: `0.2s`
+- `slideIn` animation: `0.25s`
+- `.pl-col` border/shadow transition: `0.2s`
+- `.sidebar` width: `0.25s`
+- `.firm-col` transform/opacity: `0.25s`
+
+**Change:** Increase all animation/transition durations by ~40%:
+- `.pl-card` transitions: `0.2s` → `0.28s`
+- `slideIn`: `0.25s` → `0.35s`
+- `.pl-col` transitions: `0.2s` → `0.28s`
+- `.sidebar` width: `0.25s` → `0.35s`
+- `.firm-col` transitions: `0.25s` → `0.35s`
+- `fadeIn` animation: `0.4s` → `0.5s`
+- `popIn` animation: `0.25s` → `0.35s`
+
+Do NOT make anything sluggish — this is a subtle increase.
 
 ---
 
-## Build Order
+## 8. Pipeline card color matches stage color
 
-1. **Database:** Add `stage_order` column (via SQL provided in setup screen)
-2. **Navigation:** Sidebar + icon expansion
-3. **Pipeline:** Stage grouping, coloring, within-stage reordering
-4. **Remove dashed borders:** Update drag-over styling
-5. **Contacts:** Closed by default
-6. **Opportunities:** Collapsible sections refactor
-7. **Company Combobox:** New component + modal flow
-8. **Testing:** All features work end-to-end
+**Current:** All pipeline cards use the same `var(--card)` background with `var(--bdr)` border. The stage color only appears on the column header's bottom border.
+
+**Change:** Each `.pl-card` should have a left border (3px solid) colored to match its stage:
+- Not Applied → `var(--col-neutral)` (gray)
+- Waiting → `var(--col-amber)` (amber)
+- Interview stages (hirevue, phone_itv, interview, test, case_study) → `var(--col-lgreen)` (light green)
+- Offer → `var(--col-green)` (green)
+- Rejected → `var(--col-red)` (red, though won't be visible in column)
+
+**Implementation:** In `renderCol`, pass the stage's color variable to each card. Add an inline `style={{ borderLeft: '3px solid var(--col-X)' }}` on each `.pl-card`, where X is derived from the stage's `color` property.
 
 ---
 
-## Success Criteria
+## 9. Overview: remove Priority toggle
 
-- [ ] Sidebar navigation works with hover expansion
-- [ ] Interview Rounds displayed as grid with a neutral colour dotted line encircling it and Interview rounds as a header
-- [ ] Pipeline stages color-coded correctly
-- [ ] Drag-and-drop within stage reorders (no dashed borders, smooth animation)
-- [ ] Drag-and-drop between stages updates stage (no dashed borders)
-- [ ] Contacts all sections start closed
-- [ ] Opportunities show as collapsible sections (not grid)
-- [ ] Auto-create company combobox works (dropdown, create option, modal flow)
-- [ ] Company name changes appear everywhere
-- [ ] No visual glitches or layout breaks
-- [ ] All animations smooth and performant
+**Current:** `FirmForm` has a priority checkbox. Firm cards show a "Priority" tag. The `firms` table has a `priority BOOLEAN` column.
+
+**Change:** Remove the priority checkbox from `FirmForm` entirely. Remove the `{f.priority && <span className="tag tag-p">Priority</span>}` display from firm cards. The `priority` field stays in the DB (no migration needed) but is no longer exposed in the UI.
+
+Priority is now implicit: the first 5 firms by `order_position` are the priorities. No visual indicator needed — the user knows the order is what matters since they can drag to reorder.
+
+---
+
+## 10. Overview: remove contact/opportunity count text, move count to section headers
+
+**Current:** Each firm card's `.fc-meta` shows `{firmContacts(f.id).length}c · {firmOpps(f.id).length}o` (e.g., "3c · 2o").
+
+**Change:** Remove that `<span>` entirely from `.fc-meta`. Instead, move the count next to the section headers ("CONTACTS" and "OPPORTUNITIES"). The headers should read like "CONTACTS (3)" and "OPPORTUNITIES (2)".
+
+**Implementation:** In the `.fc-section-head`, add the count: `<span>Contacts {firmContacts(f.id).length && `(${firmContacts(f.id).length})`}</span>` and similarly for Opportunities.
+
+---
+
+## Summary of affected code sections
+
+| # | Section | Type |
+|---|---------|------|
+| 0 | Setup/Login screens, DB init, App | Auth refactor |
+| 1 | `PipelineTab` drag handlers | Bug fix |
+| 2 | `.itv-grid` CSS, `.pl-col` CSS | Style |
+| 3 | `.pipeline` CSS, `.pl-col` CSS, `.itv-group` CSS | Layout |
+| 4 | `PipelineTab` render, new `IconRecyclingBin`, `.pl-drop` logic | Logic + icon |
+| 5 | `.pl-drop` CSS | Style |
+| 6 | `.pl-drop` / `.pl-col.drag-over` CSS | Style + interaction |
+| 7 | Multiple CSS transitions/animations | Style |
+| 8 | `renderCol` JSX, new CSS classes | Style + JSX |
+| 9 | `FirmForm`, `OverviewTab` JSX | Remove code |
+| 10 | `OverviewTab` `.fc-section-head` JSX | Restructure code |
+
+---
+
+## Success criteria
+
+- Opening the app on any device shows a sign-in screen (no Setup needed). Username `max_dlpt` / password `Mulasasa1` logs in.
+- After sign-in, stored credentials work across devices automatically.
+- Dragging a card between pipeline stages persists the new stage to Supabase and reflects on reload.
+- All pipeline columns are the same width and collectively fill the viewport width.
+- Interview Rounds columns are visually identical in width to main columns.
+- Rejected column is visible but displays a recycling bin icon; dropped cards disappear from view but update in the DB.
+- Empty columns are tall enough to clearly accept a card drop.
+- Columns visually expand when a card hovers over them.
+- Animations are slightly slower but still snappy.
+- Pipeline cards have a colored left border matching their stage.
+- No priority checkbox in firm forms. No "Priority" tag on firm cards.
+- No "Xc · Yo" text on firm cards. Counts appear next to "CONTACTS" and "OPPORTUNITIES" headers instead.

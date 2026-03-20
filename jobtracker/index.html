@@ -28,10 +28,6 @@
       --sh-lg: 0 8px 20px rgba(0,0,0,0.35);
       --r: 8px;
       --r-pill: 20px;
-      --col-neutral: #6b7280;
-      --col-amber: #f59e0b;
-      --col-red: #ef4444;
-      --col-green: #10b981;
     }
 
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.6; }
@@ -41,7 +37,6 @@
     @keyframes popIn { from { opacity:0; transform:scale(.95); } to { opacity:1; transform:scale(1); } }
     @keyframes toastIn { from { opacity:0; transform:translateX(100%); } to { opacity:1; transform:translateX(0); } }
     @keyframes toastOut { to { opacity:0; transform:translateX(100%); } }
-    @keyframes slideIn { from { transform: translateX(-8px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
     /* ── Auth ── */
     .auth-wrap { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
@@ -58,15 +53,6 @@
     .field select { cursor:pointer; }
     .field select option { background:var(--card); }
 
-    /* ── Combobox ── */
-    .combobox-wrap { position: relative; }
-    .combobox-input { width: 100%; background: var(--bg); border: 1px solid var(--bdr2); border-radius: var(--r); color: var(--text); padding: 10px 12px; font-size: 14px; outline: none; font-family: inherit; transition: border-color .15s; }
-    .combobox-input:focus { border-color: var(--accent); }
-    .combobox-list { position: absolute; top: 100%; left: 0; right: 0; background: var(--card); border: 1px solid var(--bdr2); border-top: none; border-radius: 0 0 var(--r) var(--r); max-height: 200px; overflow-y: auto; z-index: 10; }
-    .combobox-opt { padding: 10px 12px; cursor: pointer; transition: background .15s; border-bottom: 1px solid var(--bdr); }
-    .combobox-opt:hover { background: var(--bg2); }
-    .combobox-opt.create { color: var(--accent); font-weight: 600; }
-
     /* ── Buttons ── */
     .btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:var(--r); border:none; cursor:pointer; font-size:13px; font-weight:600; transition:all .15s; font-family:inherit; }
     .btn-p { background:var(--accent); color:#111; }
@@ -81,21 +67,16 @@
     .btn-icon:hover { color:var(--accent); background:rgba(129,211,26,.08); }
 
     /* ── Layout ── */
-    .app { display:flex; height:100vh; }
-    .sidebar { width:60px; background:var(--card); border-right:1px solid var(--bdr); display:flex; flex-direction:column; align-items:center; padding:12px 0; transition:width .3s; position:relative; flex-shrink:0; }
-    .sidebar:hover { width:180px; }
-    .sidebar-item { width:100%; padding:12px; text-align:center; cursor:pointer; color:var(--muted); transition:all .15s; display:flex; align-items:center; justify-content:center; gap:12px; position:relative; }
-    .sidebar-item:hover { color:var(--accent); background:rgba(129,211,26,.08); }
-    .sidebar-item.active { color:var(--accent); background:rgba(129,211,26,.12); }
-    .sidebar-item-icon { font-size:20px; min-width:20px; }
-    .sidebar-item-label { display:none; font-weight:600; font-size:13px; white-space:nowrap; }
-    .sidebar:hover .sidebar-item-label { display:inline; }
-    .sidebar-item.active .sidebar-item-label { display:inline; }
-
-    .main { display:flex; flex-direction:column; flex:1; }
+    .app { display:flex; flex-direction:column; height:100vh; }
     .topbar { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; background:var(--card); border-bottom:1px solid var(--bdr); flex-shrink:0; }
     .topbar h1 { font-size:18px; font-weight:700; letter-spacing:-.02em; }
     .topbar-r { display:flex; align-items:center; gap:10px; }
+
+    /* ── Tabs ── */
+    .tabs { display:flex; gap:0; background:var(--bg2); border-bottom:1px solid var(--bdr); flex-shrink:0; padding:0 20px; }
+    .tab { padding:12px 20px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; user-select:none; white-space:nowrap; }
+    .tab:hover { color:var(--text); }
+    .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
 
     /* ── Tab Content ── */
     .tab-content { flex:1; overflow:auto; }
@@ -108,8 +89,8 @@
 
     .firm-col { min-width:300px; max-width:300px; background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); flex-shrink:0; cursor:grab; transition:all .2s; animation:fadeIn .4s ease-out; }
     .firm-col:hover { border-color:rgba(129,211,26,.4); box-shadow:var(--sh-sm); }
-    .firm-col.dragging { opacity:.5; cursor:grabbing; transform: scale(.98); }
-    .firm-col.drag-over { border-color:var(--accent); box-shadow:0 0 20px rgba(129,211,26,.15); }
+    .firm-col.dragging { opacity:.5; cursor:grabbing; }
+    .firm-col.drag-over { border-color:var(--accent); border-style:dashed; box-shadow:0 0 20px rgba(129,211,26,.15); }
 
     .fc-head { padding:14px 16px 10px; }
     .fc-name { font-size:15px; font-weight:700; margin-bottom:2px; display:flex; align-items:center; gap:8px; }
@@ -118,163 +99,160 @@
     .fc-actions { display:flex; gap:4px; margin-left:auto; opacity:0; transition:opacity .15s; }
     .firm-col:hover .fc-actions { opacity:1; }
 
-    .fc-section { padding:12px 16px; border-top:1px solid var(--bdr); }
-    .fc-section:first-of-type { border-top:none; }
-    .fc-section-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-    .fc-section-head span { font-size:11px; font-weight:700; text-transform:uppercase; color:var(--muted); }
-    .fc-item { padding:8px 0; display:flex; align-items:center; gap:8px; cursor:pointer; border-radius:4px; padding:6px 4px; transition:all .15s; }
-    .fc-item:hover { background:rgba(129,211,26,.08); }
-    .fc-empty { padding:8px 0; font-size:12px; color:var(--muted); font-style:italic; }
+    .fc-section { border-top:1px solid var(--bdr); }
+    .fc-section-head { padding:8px 16px; font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:600; display:flex; align-items:center; justify-content:space-between; }
+    .fc-item { padding:6px 16px; font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; transition:background .1s; display:flex; align-items:center; gap:6px; }
+    .fc-item:hover { background:rgba(255,255,255,.03); color:var(--text); }
+    .fc-empty { padding:10px 16px; font-size:12px; color:var(--muted); font-style:italic; }
 
-    .add-firm-col { min-width:300px; max-width:300px; background:var(--bg2); border:2px dashed var(--bdr2); border-radius:var(--r); padding:40px 20px; text-align:center; cursor:pointer; color:var(--muted); transition:all .2s; display:flex; align-items:center; justify-content:center; font-weight:600; }
-    .add-firm-col:hover { border-color:var(--accent); color:var(--accent); background:rgba(129,211,26,.05); }
+    .add-firm-col { min-width:300px; max-width:300px; background:transparent; border:2px dashed var(--bdr2); border-radius:var(--r); display:flex; align-items:center; justify-content:center; min-height:200px; cursor:pointer; transition:all .15s; flex-shrink:0; color:var(--muted); font-size:14px; font-weight:600; }
+    .add-firm-col:hover { border-color:var(--accent); color:var(--accent); }
 
     /* ── Pipeline ── */
-    .pipeline { display:flex; gap:16px; padding:20px; overflow-x:auto; min-height:0; }
+    .pipeline { display:flex; gap:12px; padding:20px; overflow-x:auto; min-height:0; align-items:flex-start; }
     .pipeline::-webkit-scrollbar { height:8px; }
     .pipeline::-webkit-scrollbar-track { background:var(--bg); }
     .pipeline::-webkit-scrollbar-thumb { background:var(--bdr2); border-radius:4px; }
 
-    .pl-stage-group { display:flex; flex-direction:column; gap:8px; }
-    .pl-stage-group-label { font-size:11px; font-weight:700; text-transform:uppercase; color:var(--muted); padding:0 0 4px 0; }
-
-    .pl-col { min-width:280px; background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); padding:12px; display:flex; flex-direction:column; flex-shrink:0; }
-    .pl-col-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid var(--bdr); }
-    .pl-col-head span:first-child { font-size:13px; font-weight:700; }
-    .pl-count { font-size:11px; color:var(--muted); background:var(--bg2); padding:2px 8px; border-radius:12px; }
-
-    .pl-col.neutral .pl-col-head { border-bottom-color:var(--col-neutral); }
-    .pl-col.amber .pl-col-head { border-bottom-color:var(--col-amber); }
-    .pl-col.red .pl-col-head { border-bottom-color:var(--col-red); }
-    .pl-col.green .pl-col-head { border-bottom-color:var(--col-green); }
-
-    .pl-drop { display:flex; flex-direction:column; gap:8px; min-height:100px; }
-    .pl-card { background:var(--bg2); border:1px solid var(--bdr); border-radius:var(--r); padding:10px; cursor:grab; transition:all .15s; animation:slideIn .3s ease-out; display:flex; flex-direction:column; gap:6px; }
-    .pl-card:hover { border-color:var(--accent); box-shadow:var(--sh-sm); }
-    .pl-card.dragging { opacity:.4; cursor:grabbing; transform: scale(.95); }
-    .pl-card.drag-over { border-color:var(--accent); box-shadow:0 0 12px rgba(129,211,26,.2); }
-
-    .pl-card-firm { font-size:12px; font-weight:700; color:var(--accent); }
-    .pl-card-role { font-size:13px; font-weight:600; }
-    .pl-card-ref { font-size:11px; color:var(--warning); }
-    .pl-card-actions { display:flex; gap:4px; opacity:0; transition:opacity .15s; }
+    .pl-col { min-width:240px; max-width:240px; background:var(--bg2); border:1px solid var(--bdr); border-radius:var(--r); flex-shrink:0; display:flex; flex-direction:column; }
+    .pl-col.drag-over { border-color:var(--accent); border-style:dashed; background:rgba(129,211,26,.03); }
+    .pl-col-head { padding:12px 14px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--bdr); }
+    .pl-count { background:var(--card); padding:2px 8px; border-radius:var(--r-pill); font-size:11px; }
+    .pl-drop { min-height:100px; padding:8px; flex:1; }
+    .pl-card { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); padding:10px 12px; margin-bottom:8px; cursor:grab; transition:all .15s; }
+    .pl-card:hover { border-color:rgba(129,211,26,.4); transform:translateY(-1px); box-shadow:var(--sh-sm); }
+    .pl-card.dragging { opacity:.5; cursor:grabbing; }
+    .pl-card-firm { font-size:12px; font-weight:700; color:var(--accent); margin-bottom:2px; }
+    .pl-card-role { font-size:13px; font-weight:500; margin-bottom:2px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .pl-card-ref { font-size:11px; color:var(--muted); }
+    .pl-card-actions { display:flex; gap:4px; margin-top:6px; opacity:0; transition:opacity .15s; }
     .pl-card:hover .pl-card-actions { opacity:1; }
-
-    .pl-empty { padding:20px 8px; text-align:center; color:var(--muted); font-size:12px; font-style:italic; }
+    .pl-empty { text-align:center; padding:20px 10px; font-size:12px; color:var(--muted); font-style:italic; }
 
     /* ── Contacts ── */
-    .contacts-page { padding:20px; overflow-y:auto; }
-    .create-card { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); margin-bottom:20px; }
-    .create-card-head { padding:14px 16px; cursor:pointer; display:flex; align-items:center; gap:8px; font-weight:600; transition:all .15s; }
-    .create-card-head:hover { background:var(--bg2); }
-    .create-card-body { padding:0 16px 16px; border-top:1px solid var(--bdr); }
+    .contacts-page { padding:20px; max-width:900px; margin:0 auto; width:100%; }
+    .filter-bar { display:flex; gap:12px; align-items:center; margin-bottom:20px; flex-wrap:wrap; }
+    .filter-bar select, .filter-bar input { background:var(--bg); border:1px solid var(--bdr2); border-radius:var(--r); color:var(--text); padding:8px 12px; font-size:13px; outline:none; font-family:inherit; }
+    .filter-bar input { flex:1; min-width:180px; }
+    .filter-bar select { cursor:pointer; }
+    .filter-bar select option { background:var(--card); }
 
-    .filter-bar { display:flex; gap:10px; margin-bottom:20px; }
-    .filter-bar select, .filter-bar input { flex:1; background:var(--bg); border:1px solid var(--bdr2); border-radius:var(--r); color:var(--text); padding:8px 12px; font-size:13px; }
-    .filter-bar input::placeholder { color:var(--muted); }
+    .section-group { margin-bottom:16px; background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); overflow:hidden; animation:fadeIn .3s ease-out; }
+    .section-head { padding:12px 16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:background .1s; user-select:none; }
+    .section-head:hover { background:rgba(255,255,255,.03); }
+    .section-head .chevron { color:var(--muted); font-size:12px; transition:transform .2s; }
+    .section-head .chevron.open { transform:rotate(90deg); }
+    .section-count { font-size:12px; color:var(--muted); margin-left:8px; }
 
-    .section-group { margin-bottom:16px; }
-    .section-head { padding:12px 16px; background:var(--bg2); border:1px solid var(--bdr); border-radius:var(--r); cursor:pointer; display:flex; align-items:center; gap:8px; font-weight:600; transition:all .15s; }
-    .section-head:hover { background:var(--card); }
-    .chevron { display:inline-block; transition:transform .2s; }
-    .chevron.open { transform:rotate(90deg); }
-    .section-count { font-size:12px; color:var(--muted); margin-left:auto; }
-
-    .c-row { padding:10px 16px; border-bottom:1px solid var(--bdr); display:flex; align-items:center; gap:8px; cursor:pointer; transition:all .15s; }
-    .c-row:hover { background:var(--bg2); }
-    .c-row.expanded { background:var(--bg2); }
-    .c-row-name { font-weight:600; min-width:150px; }
-    .c-row-role { font-size:12px; color:var(--muted); flex:1; }
-    .c-row-links { display:flex; gap:6px; }
-    .c-row-link { color:var(--accent); text-decoration:none; transition:all .15s; }
-    .c-row-link:hover { color:var(--accent-h); }
+    .c-row { padding:10px 16px; border-top:1px solid var(--bdr); display:flex; align-items:center; gap:10px; transition:all .15s; cursor:pointer; }
+    .c-row:hover { background:rgba(255,255,255,.03); }
+    .c-row.expanded { background:var(--bg2); border-left:3px solid var(--accent); }
+    .c-row-name { font-weight:600; min-width:130px; font-size:13px; }
+    .c-row-role { color:var(--muted); font-size:12px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .c-row-links { display:flex; gap:4px; }
+    .c-row-link { font-size:11px; color:var(--muted); text-decoration:none; padding:3px 6px; border:1px solid var(--bdr); border-radius:4px; transition:all .15s; }
+    .c-row-link:hover { color:var(--accent); border-color:var(--accent); }
     .c-row-actions { display:flex; gap:4px; opacity:0; transition:opacity .15s; }
     .c-row:hover .c-row-actions { opacity:1; }
 
-    .c-detail { padding:10px 16px 16px; background:var(--bg2); border-left:3px solid var(--accent); margin:0 16px 8px; border-radius:4px; font-size:12px; }
-    .c-detail-row { display:flex; gap:12px; margin-bottom:8px; }
-    .c-detail-row:last-child { margin-bottom:0; }
-    .c-detail-label { font-weight:600; color:var(--muted); min-width:80px; }
-    .c-detail-val { flex:1; word-break:break-word; }
+    .c-detail { padding:12px 16px 12px 24px; border-top:1px solid var(--bdr); background:var(--bg2); font-size:13px; animation:fadeIn .2s ease-out; }
+    .c-detail-row { margin-bottom:6px; }
+    .c-detail-label { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:2px; }
+    .c-detail-val { color:var(--text); }
     .c-detail-val a { color:var(--accent); text-decoration:none; }
     .c-detail-val a:hover { text-decoration:underline; }
 
     /* ── Opportunities ── */
-    .opps-page { padding:20px; overflow-y:auto; }
-    .note-box { background:rgba(129,211,26,.08); border:1px solid rgba(129,211,26,.2); border-radius:var(--r); padding:10px 12px; margin-bottom:16px; font-size:12px; color:var(--muted); }
-
-    .opp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
-    .opp-card { background:var(--bg2); border:1px solid var(--bdr); border-radius:var(--r); padding:12px; cursor:pointer; transition:all .15s; animation:slideIn .3s ease-out; }
-    .opp-card:hover { border-color:var(--accent); box-shadow:var(--sh-sm); }
-    .opp-card-firm { font-size:11px; font-weight:700; color:var(--accent); margin-bottom:4px; }
-    .opp-card-role { font-size:13px; font-weight:600; margin-bottom:4px; }
+    .opps-page { padding:20px; max-width:900px; margin:0 auto; width:100%; }
+    .opp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+    .opp-card { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); padding:14px; cursor:pointer; transition:all .15s; animation:fadeIn .3s ease-out; }
+    .opp-card:hover { border-color:rgba(129,211,26,.4); transform:translateY(-2px); box-shadow:var(--sh-md); }
+    .opp-card-firm { font-size:12px; font-weight:700; color:var(--accent); margin-bottom:4px; }
+    .opp-card-role { font-size:14px; font-weight:600; margin-bottom:4px; }
     .opp-card-loc { font-size:12px; color:var(--muted); margin-bottom:8px; }
     .opp-card-foot { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-    .opp-card-actions { display:flex; gap:4px; margin-left:auto; }
+    .opp-card-actions { display:flex; gap:4px; margin-left:auto; opacity:0; transition:opacity .15s; }
+    .opp-card:hover .opp-card-actions { opacity:1; }
 
-    /* ── Tag/Badge ── */
-    .tag { display:inline-block; padding:2px 8px; background:var(--bg); border-radius:12px; font-size:11px; font-weight:600; }
-    .tag-p { background:rgba(255,206,86,.15); color:var(--warning); }
-    .b-gray { background:rgba(107,114,128,.15); color:#d1d5db; }
-    .b-amber { background:rgba(245,158,11,.15); color:var(--col-amber); }
-    .b-red { background:rgba(239,68,68,.15); color:var(--col-red); }
-    .b-green { background:rgba(16,185,129,.15); color:var(--col-green); }
+    /* ── Badges ── */
+    .badge { padding:3px 10px; border-radius:var(--r-pill); font-size:11px; font-weight:600; white-space:nowrap; flex-shrink:0; }
+    .b-grey   { background:rgba(168,181,209,.15); color:#a8b5d1; }
+    .b-blue   { background:rgba(72,219,251,.15);  color:#48dbfb; }
+    .b-purple { background:rgba(167,139,250,.15); color:#a78bfa; }
+    .b-green  { background:rgba(0,208,132,.15);   color:var(--success); }
+    .b-amber  { background:rgba(254,202,87,.15);  color:var(--warning); }
+    .b-red    { background:rgba(255,99,72,.15);    color:var(--danger); }
+    .b-indigo { background:rgba(99,102,241,.15);   color:#818cf8; }
+    .b-teal   { background:rgba(20,184,166,.15);   color:#2dd4bf; }
+
+    .tag { padding:3px 10px; border-radius:var(--r-pill); font-size:11px; font-weight:600; background:var(--bg2); color:var(--muted); border:1px solid var(--bdr); }
+    .tag-p { background:rgba(129,211,26,.12); color:var(--accent); border-color:rgba(129,211,26,.3); }
 
     /* ── Modal ── */
-    .modal-ov { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:1000; }
-    .modal { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); max-width:480px; width:90%; max-height:90vh; overflow-y:auto; animation:popIn .3s ease-out; }
-    .modal-h { padding:16px; border-bottom:1px solid var(--bdr); display:flex; align-items:center; justify-content:space-between; }
+    .modal-ov { position:fixed; inset:0; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px; backdrop-filter:blur(2px); }
+    .modal { background:var(--card); border:1px solid var(--bdr2); border-radius:10px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; animation:popIn .25s ease-out; box-shadow:var(--sh-lg); }
+    .modal-h { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid var(--bdr); }
     .modal-h h3 { font-size:16px; font-weight:700; }
-    .modal-b { padding:16px; }
-    .modal-f { padding:16px; border-top:1px solid var(--bdr); display:flex; gap:10px; justify-content:flex-end; }
+    .modal-b { padding:20px 24px; }
+    .modal-f { display:flex; justify-content:flex-end; gap:10px; padding:0 24px 20px; }
 
     /* ── Toast ── */
-    .toast-container { position:fixed; bottom:20px; right:20px; display:flex; flex-direction:column; gap:8px; z-index:2000; }
-    .toast { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); padding:12px 16px; font-size:13px; animation:toastIn .3s ease-out; }
-    .toast.out { animation:toastOut .3s ease-out forwards; }
-    .toast-s { border-left:3px solid var(--success); }
-    .toast-e { border-left:3px solid var(--danger); }
+    .toast-container { position:fixed; top:16px; right:16px; z-index:200; display:flex; flex-direction:column; gap:8px; }
+    .toast { padding:12px 16px; border-radius:var(--r); font-size:13px; font-weight:500; animation:toastIn .3s ease-out; min-width:260px; box-shadow:var(--sh-md); }
+    .toast.out { animation:toastOut .3s ease-in forwards; }
+    .toast-s { background:#1a3d2a; border:1px solid var(--success); color:var(--success); }
+    .toast-e { background:#3d1a1a; border:1px solid var(--danger); color:var(--danger); }
 
-    /* ── Error ── */
-    .error-msg { color:var(--danger); font-size:12px; margin-top:8px; }
-    .empty-state { padding:40px 20px; text-align:center; color:var(--muted); font-size:13px; }
+    /* ── Create form card ── */
+    .create-card { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); margin-bottom:24px; overflow:hidden; }
+    .create-card-head { padding:14px 16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; transition:background .1s; user-select:none; color:var(--accent); }
+    .create-card-head:hover { background:rgba(129,211,26,.05); }
+    .create-card-body { padding:16px; border-top:1px solid var(--bdr); }
+
+    /* ── Misc ── */
+    .error-msg { color:var(--danger); font-size:13px; margin-top:8px; padding:10px; background:rgba(255,99,72,.08); border:1px solid rgba(255,99,72,.2); border-radius:var(--r); }
+    .setup-code { background:var(--bg); border:1px solid var(--bdr); border-radius:var(--r); padding:14px; font-family:'Monaco','Courier New',monospace; font-size:11px; color:var(--muted); white-space:pre-wrap; margin-bottom:16px; overflow-x:auto; max-height:300px; overflow-y:auto; }
+    .note-box { padding:12px 16px; background:rgba(129,211,26,.06); border:1px solid rgba(129,211,26,.2); border-radius:var(--r); font-size:13px; color:var(--muted); margin-bottom:20px; }
+    .empty-state { text-align:center; padding:40px 20px; color:var(--muted); font-size:14px; }
+
+    @media (max-width:768px) {
+      .topbar { flex-wrap:wrap; gap:8px; }
+      .tabs { overflow-x:auto; }
+      .overview, .pipeline { padding:12px; gap:12px; }
+      .firm-col, .add-firm-col { min-width:260px; max-width:260px; }
+      .pl-col { min-width:200px; max-width:200px; }
+      .filter-bar { flex-direction:column; }
+    }
   </style>
 </head>
 <body>
-  <div id="root"></div>
-</body>
+<div id="root"></div>
 <script type="text/babel">
-const {useState, useContext, createContext, useRef, useEffect, useCallback, useMemo} = React;
+const {useState,useEffect,useMemo,useCallback,useRef,createContext,useContext} = React;
 
-const PW = 'Mulasasa1';
-const STAGES = [
-  {v:'not_applied',label:'Not Applied',cls:'b-gray',group:'main'},
-  {v:'applied',label:'Applied',cls:'b-gray',group:'main'},
-  {v:'phone_screen',label:'Phone Screen',cls:'b-gray',group:'interview'},
-  {v:'first_round',label:'First Round',cls:'b-gray',group:'interview'},
-  {v:'hirevue',label:'HireVue',cls:'b-gray',group:'interview'},
-  {v:'case_study',label:'Case Study',cls:'b-gray',group:'interview'},
-  {v:'final_round',label:'Final Round',cls:'b-gray',group:'interview'},
-  {v:'waiting',label:'Waiting',cls:'b-amber',group:'main'},
-  {v:'rejected',label:'Rejected',cls:'b-red',group:'main'},
-  {v:'offer',label:'Offer',cls:'b-green',group:'main'},
-];
-const INTERVIEW_STAGES = STAGES.filter(s=>s.group==='interview');
-const MAIN_STAGES = STAGES.filter(s=>s.group==='main');
+/* ══════════════════ CONSTANTS ══════════════════ */
+const PW = "Mulasasa1";
 const C_ST = [
-  {v:'not_contacted',label:'Not Contacted',cls:'b-gray'},
-  {v:'contacted',label:'Contacted',cls:'b-amber'},
-  {v:'willing_to_refer',label:'Willing to Refer',cls:'b-green'},
-  {v:'will_not_refer',label:'Will Not Refer',cls:'b-red'},
+  {v:"not_contacted",label:"Not contacted",cls:"b-grey"},
+  {v:"contacted",label:"Contacted",cls:"b-blue"},
+  {v:"contacted_spoken_to",label:"Spoken to",cls:"b-purple"},
+  {v:"contacted_cant_help",label:"Can't help",cls:"b-red"},
+  {v:"cold",label:"Gone cold",cls:"b-amber"},
+  {v:"willing_to_refer",label:"Willing to refer",cls:"b-green"},
 ];
-const F_TYPES = ['Quant HF','Multi-strat HF','Macro HF','L/S Equity HF','Credit HF','PE','IB','Asset Manager','Other'];
+const STAGES = [
+  {v:"not_applied",label:"Not Applied",cls:"b-grey"},
+  {v:"waiting",label:"Waiting",cls:"b-blue"},
+  {v:"hirevue",label:"HireVue",cls:"b-indigo"},
+  {v:"phone_itv",label:"Phone Itv",cls:"b-purple"},
+  {v:"interview",label:"Interview",cls:"b-teal"},
+  {v:"test",label:"Test",cls:"b-amber"},
+  {v:"case_study",label:"Case Study",cls:"b-amber"},
+  {v:"rejected",label:"Rejected",cls:"b-red"},
+  {v:"offer",label:"Offer",cls:"b-green"},
+];
+const F_TYPES = ["Quant HF","Multi-strat HF","Macro HF","L/S Equity HF","Credit HF","PE","IB","Asset Manager","Other"];
 const si = (v,a) => a.find(s=>s.v===v)||a[0];
-const stageColor = (stage) => {
-  if(stage.includes('waiting')) return 'amber';
-  if(stage.includes('rejected')) return 'red';
-  if(stage.includes('offer')) return 'green';
-  return 'neutral';
-};
 
 /* ══════════════════ DB CLASS ══════════════════ */
 class DB {
@@ -316,68 +294,6 @@ function Modal({title,onClose,onSave,saveLabel='Save',children,saving,danger}){
   );
 }
 
-/* ══════════════════ COMBOBOX ══════════════════ */
-function CompanyCombobox({value,onChange,onNewCompany,firms,disabled}){
-  const [open,setOpen] = useState(false);
-  const [input,setInput] = useState('');
-  const filtered = useMemo(()=>{
-    const q = input.toLowerCase();
-    if(!q) return firms;
-    return firms.filter(f => f.name.toLowerCase().includes(q));
-  },[firms,input]);
-  const hasMatch = filtered.find(f => f.id === value);
-  const showCreate = input.trim() && !filtered.find(f => f.name.toLowerCase() === input.toLowerCase());
-
-  useEffect(() => {
-    if(value && !input) {
-      const firm = firms.find(f => f.id === value);
-      setInput(firm ? firm.name : '');
-    }
-  }, [value, firms]);
-
-  return (
-    <div className="field">
-      <label>Company</label>
-      <div className="combobox-wrap">
-        <input
-          type="text"
-          className="combobox-input"
-          placeholder="Type company name..."
-          value={input}
-          onChange={e => {setInput(e.target.value); setOpen(true);}}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 200)}
-          disabled={disabled}
-        />
-        {open && (
-          <div className="combobox-list">
-            {filtered.length ? (
-              <>
-                {filtered.map(f => (
-                  <div key={f.id} className="combobox-opt" onClick={() => {onChange(f.id); setInput(f.name); setOpen(false);}}>
-                    {f.name}
-                  </div>
-                ))}
-                {showCreate && (
-                  <div className="combobox-opt create" onClick={() => {onNewCompany(input); setInput(''); setOpen(false);}}>
-                    + Create: {input}
-                  </div>
-                )}
-              </>
-            ) : showCreate ? (
-              <div className="combobox-opt create" onClick={() => {onNewCompany(input); setInput(''); setOpen(false);}}>
-                + Create: {input}
-              </div>
-            ) : (
-              <div className="combobox-opt" style={{color:'var(--muted)'}}>No matches</div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 /* ══════════════════ FORMS ══════════════════ */
 function FirmForm({d,set}){
   const ch=(k,v)=>set({...d,[k]:v});
@@ -390,10 +306,10 @@ function FirmForm({d,set}){
   </>);
 }
 
-function ContactFormFields({d,set,firms,onNewCompany}){
+function ContactFormFields({d,set,firms}){
   const ch=(k,v)=>set({...d,[k]:v});
   return(<>
-    <CompanyCombobox value={d.firm_id||''} onChange={v=>ch('firm_id',v)} onNewCompany={onNewCompany} firms={firms}/>
+    <div className="field"><label>Company</label><select value={d.firm_id||''} onChange={e=>ch('firm_id',e.target.value)}><option value="">— Select —</option>{firms.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}</select></div>
     <div className="field"><label>Name</label><input value={d.name} onChange={e=>ch('name',e.target.value)} placeholder="Full name"/></div>
     <div className="field"><label>Role / Title</label><input value={d.role} onChange={e=>ch('role',e.target.value)} placeholder="VP, Investor Relations"/></div>
     <div className="field"><label>Email</label><input value={d.email} onChange={e=>ch('email',e.target.value)} placeholder="name@firm.com"/></div>
@@ -405,10 +321,10 @@ function ContactFormFields({d,set,firms,onNewCompany}){
   </>);
 }
 
-function OppFormFields({d,set,firms,onNewCompany}){
+function OppFormFields({d,set,firms}){
   const ch=(k,v)=>set({...d,[k]:v});
   return(<>
-    <CompanyCombobox value={d.firm_id||''} onChange={v=>ch('firm_id',v)} onNewCompany={onNewCompany} firms={firms}/>
+    <div className="field"><label>Company</label><select value={d.firm_id||''} onChange={e=>ch('firm_id',e.target.value)}><option value="">— Select —</option>{firms.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}</select></div>
     <div className="field"><label>Role Title</label><input value={d.role} onChange={e=>ch('role',e.target.value)} placeholder="Quantitative Researcher"/></div>
     <div className="field"><label>Location</label><input value={d.location} onChange={e=>ch('location',e.target.value)} placeholder="New York"/></div>
     <div className="field"><label>Job Link</label><input value={d.link} onChange={e=>ch('link',e.target.value)} placeholder="https://..."/></div>
@@ -422,10 +338,11 @@ function OverviewTab(){
   const {firms,contacts,opps,db,toast,reload,setModal} = useContext(Ctx);
   const sorted = useMemo(()=>[...firms].sort((a,b)=>(a.order_position||0)-(b.order_position||0)),[firms]);
   const dragRef = useRef(null);
+  const overRef = useRef(null);
 
-  function onDragStart(e,i){dragRef.current=i;e.dataTransfer.effectAllowed='move';e.currentTarget.classList.add('dragging');}
+  function onDragStart(e,i){dragRef.current=i;e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
   function onDragEnd(e){e.currentTarget.classList.remove('dragging');dragRef.current=null;}
-  function onDragOver(e,i){e.preventDefault();e.currentTarget.classList.add('drag-over');}
+  function onDragOver(e,i){e.preventDefault();overRef.current=i;e.currentTarget.classList.add('drag-over');}
   function onDragLeave(e){e.currentTarget.classList.remove('drag-over');}
   async function onDrop(e,i){
     e.currentTarget.classList.remove('drag-over');
@@ -483,7 +400,7 @@ function PipelineTab(){
 
   function firmName(fid){const f=firms.find(x=>x.id===fid);return f?f.name:'?';}
   function referrer(o){const c=contacts.find(x=>x.firm_id===o.firm_id&&x.status==='willing_to_refer');return c?c.name:o.referral==='Yes'||o.referral==='Pending'?'(referral pending)':null;}
-  function stageOpps(stg){return [...opps.filter(o=>o.stage===stg)].sort((a,b)=>(a.stage_order||0)-(b.stage_order||0));}
+  function stageOpps(stg){return opps.filter(o=>o.stage===stg);}
 
   function onDragStart(e,opp){dragRef.current=opp;e.dataTransfer.effectAllowed='move';e.currentTarget.classList.add('dragging');}
   function onDragEnd(e){e.currentTarget.classList.remove('dragging');dragRef.current=null;}
@@ -491,40 +408,34 @@ function PipelineTab(){
   function colDragLeave(e){e.currentTarget.classList.remove('drag-over');}
   async function colDrop(e,stage){
     e.currentTarget.classList.remove('drag-over');
-    const opp=dragRef.current;if(!opp)return;
-    const isNewStage = opp.stage !== stage;
-    if(isNewStage){
-      try{await db.upd('opportunities',opp.id,{stage,stage_order:0});reload();toast(`Moved to ${si(stage,STAGES).label}`,'s');}
-      catch(err){toast('Failed to update stage','e');reload();}
-    }
+    const opp=dragRef.current;if(!opp||opp.stage===stage)return;
+    try{await db.upd('opportunities',opp.id,{stage});reload();toast(`Moved to ${si(stage,STAGES).label}`,'s');}
+    catch(err){toast('Failed to update stage','e');reload();}
   }
-
-  const renderStageColumn = (stg) => {
-    const items = stageOpps(stg.v);
-    const colClass = `pl-col ${stageColor(stg.v)}`;
-    return (
-      <div key={stg.v} className={colClass} onDragOver={colDragOver} onDragLeave={colDragLeave} onDrop={e=>colDrop(e,stg.v)}>
-        <div className="pl-col-head"><span>{stg.label}</span><span className="pl-count">{items.length}</span></div>
-        <div className="pl-drop">
-          {items.length?items.map(o=>(
-            <div key={o.id} className="pl-card" draggable onDragStart={e=>onDragStart(e,o)} onDragEnd={onDragEnd}>
-              <div className="pl-card-firm">{firmName(o.firm_id)}</div>
-              <div className="pl-card-role">{o.role}</div>
-              {referrer(o)&&<div className="pl-card-ref">↪ {referrer(o)}</div>}
-              <div className="pl-card-actions">
-                <button className="btn-icon" style={{fontSize:14}} onClick={()=>setModal({type:'edit-opp',data:o})}>✎</button>
-                <button className="btn-icon" style={{fontSize:14,color:'var(--danger)'}} onClick={()=>setModal({type:'del-opp',data:o})}>✕</button>
-              </div>
-            </div>
-          )):<div className="pl-empty">Drop here</div>}
-        </div>
-      </div>
-    );
-  };
 
   return(
     <div className="pipeline">
-      {MAIN_STAGES.map(s => <React.Fragment key={s.v}>{s.v==='phone_screen' && <div className="pl-stage-group"><div className="pl-stage-group-label">Interview Rounds</div><div style={{display:'flex',gap:8}}>{INTERVIEW_STAGES.map(renderStageColumn)}</div></div>}{s.group==='main' && renderStageColumn(s)}</React.Fragment>)}
+      {STAGES.map(stg=>{
+        const items=stageOpps(stg.v);
+        return(
+          <div key={stg.v} className="pl-col" onDragOver={colDragOver} onDragLeave={colDragLeave} onDrop={e=>colDrop(e,stg.v)}>
+            <div className="pl-col-head"><span>{stg.label}</span><span className="pl-count">{items.length}</span></div>
+            <div className="pl-drop">
+              {items.length?items.map(o=>(
+                <div key={o.id} className="pl-card" draggable onDragStart={e=>onDragStart(e,o)} onDragEnd={onDragEnd}>
+                  <div className="pl-card-firm">{firmName(o.firm_id)}</div>
+                  <div className="pl-card-role">{o.role}</div>
+                  {referrer(o)&&<div className="pl-card-ref">↪ {referrer(o)}</div>}
+                  <div className="pl-card-actions">
+                    <button className="btn-icon" style={{fontSize:14}} onClick={()=>setModal({type:'edit-opp',data:o})}>✎</button>
+                    <button className="btn-icon" style={{fontSize:14,color:'var(--danger)'}} onClick={()=>setModal({type:'del-opp',data:o})}>✕</button>
+                  </div>
+                </div>
+              )):<div className="pl-empty">Drop here</div>}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -538,8 +449,6 @@ function ContactsTab(){
   const [detail,setDetail] = useState(null);
   const [formOpen,setFormOpen] = useState(false);
   const [form,setForm] = useState({firm_id:'',name:'',role:'',email:'',linkedin:'',phone:'',status:'not_contacted',notes:'',advice:''});
-  const [newFirmForm,setNewFirmForm] = useState({name:'',type:'',next_steps:'',notes:'',priority:false});
-  const [newFirmOpen,setNewFirmOpen] = useState(false);
   const [saving,setSaving] = useState(false);
 
   const filtered = useMemo(()=>{
@@ -563,12 +472,6 @@ function ContactsTab(){
 
   const toggle = k => setExpanded(p=>({...p,[k]:!p[k]}));
 
-  async function createNewFirm(){
-    if(!newFirmForm.name.trim()){toast('Firm name required','e');return;}
-    try{const newFirm = await db.ins('firms',{...newFirmForm,order_position:firms.length});setForm({...form,firm_id:newFirm.id});setNewFirmOpen(false);toast('Firm created','s');}
-    catch(e){toast('Error: '+e.message,'e');}
-  }
-
   async function createContact(){
     if(!form.name.trim()||!form.firm_id){toast('Name and company required','e');return;}
     setSaving(true);
@@ -584,8 +487,7 @@ function ContactsTab(){
           <span style={{fontSize:18}}>{formOpen?'−':'+'}</span> New Contact
         </div>
         {formOpen&&<div className="create-card-body">
-          <ContactFormFields d={form} set={setForm} firms={firms} onNewCompany={(name)=>{setNewFirmForm({name,type:'',next_steps:'',notes:'',priority:false});setNewFirmOpen(true);}}/>
-          {newFirmOpen&&<Modal title="Create Firm" onClose={()=>setNewFirmOpen(false)} onSave={createNewFirm}><FirmForm d={newFirmForm} set={setNewFirmForm}/></Modal>}
+          <ContactFormFields d={form} set={setForm} firms={firms}/>
           <button className="btn btn-p" onClick={createContact} disabled={saving} style={{marginTop:8}}>{saving?'Saving…':'Create Contact'}</button>
         </div>}
       </div>
@@ -600,7 +502,7 @@ function ContactsTab(){
       </div>
 
       {Object.keys(groups).length?Object.entries(groups).map(([key,list])=>{
-        const isOpen = expanded[key] === true;
+        const isOpen = expanded[key] !== false;
         return(
           <div key={key} className="section-group">
             <div className="section-head" onClick={()=>toggle(key)}>
@@ -643,46 +545,16 @@ function ContactsTab(){
 /* ══════════════════ TAB 4: OPPORTUNITIES ══════════════════ */
 function OppsTab(){
   const {firms,opps,db,toast,reload,setModal} = useContext(Ctx);
-  const [sortBy,setSortBy] = useState('company');
-  const [search,setSearch] = useState('');
-  const [expanded,setExpanded] = useState({});
   const [formOpen,setFormOpen] = useState(false);
   const [form,setForm] = useState({firm_id:'',role:'',location:'',link:'',referral:'',notes:''});
-  const [newFirmForm,setNewFirmForm] = useState({name:'',type:'',next_steps:'',notes:'',priority:false});
-  const [newFirmOpen,setNewFirmOpen] = useState(false);
   const [saving,setSaving] = useState(false);
 
-  const filtered = useMemo(()=>{
-    let list = opps;
-    if(search){const q=search.toLowerCase();list=list.filter(o=>o.role.toLowerCase().includes(q));}
-    return list;
-  },[opps,search]);
-
-  const groups = useMemo(()=>{
-    const map={};
-    if(sortBy==='company'){
-      firms.forEach(f=>{const fo=filtered.filter(o=>o.firm_id===f.id);if(fo.length)map[f.name]=fo;});
-    } else if(sortBy==='stage'){
-      STAGES.forEach(s=>{const fo=filtered.filter(o=>o.stage===s.v);if(fo.length)map[s.label]=fo;});
-    } else {
-      const sorted=[...filtered].sort((a,b)=>a.role.localeCompare(b.role));
-      if(sorted.length)map['All Opportunities']=sorted;
-    }
-    return map;
-  },[sortBy,filtered,firms]);
-
-  const toggle = k => setExpanded(p=>({...p,[k]:!p[k]}));
-
-  async function createNewFirm(){
-    if(!newFirmForm.name.trim()){toast('Firm name required','e');return;}
-    try{const newFirm = await db.ins('firms',{...newFirmForm,order_position:firms.length});setForm({...form,firm_id:newFirm.id});setNewFirmOpen(false);toast('Firm created','s');}
-    catch(e){toast('Error: '+e.message,'e');}
-  }
+  function firmName(fid){const f=firms.find(x=>x.id===fid);return f?f.name:'?';}
 
   async function createOpp(){
     if(!form.firm_id||!form.role.trim()){toast('Company and role required','e');return;}
     setSaving(true);
-    try{await db.ins('opportunities',{...form,stage:'not_applied',stage_order:0});reload();toast('Opportunity created — check Pipeline','s');setForm({firm_id:'',role:'',location:'',link:'',referral:'',notes:''});setFormOpen(false);}
+    try{await db.ins('opportunities',{...form,stage:'not_applied'});reload();toast('Opportunity created — check Pipeline','s');setForm({firm_id:'',role:'',location:'',link:'',referral:'',notes:''});}
     catch(e){toast('Error: '+e.message,'e');}
     setSaving(false);
   }
@@ -694,42 +566,31 @@ function OppsTab(){
           <span style={{fontSize:18}}>{formOpen?'−':'+'}</span> New Opportunity
         </div>
         {formOpen&&<div className="create-card-body">
-          <OppFormFields d={form} set={setForm} firms={firms} onNewCompany={(name)=>{setNewFirmForm({name,type:'',next_steps:'',notes:'',priority:false});setNewFirmOpen(true);}}/>
-          {newFirmOpen&&<Modal title="Create Firm" onClose={()=>setNewFirmOpen(false)} onSave={createNewFirm}><FirmForm d={newFirmForm} set={setNewFirmForm}/></Modal>}
+          <OppFormFields d={form} set={setForm} firms={firms}/>
           <button className="btn btn-p" onClick={createOpp} disabled={saving} style={{marginTop:8}}>{saving?'Saving…':'Create Opportunity'}</button>
         </div>}
       </div>
+      <div className="note-box">New opportunities automatically appear in the Pipeline tab under "Not Applied".</div>
 
-      <div className="filter-bar">
-        <select value={sortBy} onChange={e=>setSortBy(e.target.value)}>
-          <option value="company">Sort by Company</option>
-          <option value="stage">Sort by Stage</option>
-          <option value="role">Sort by Role</option>
-        </select>
-        <input placeholder="Search opportunities..." value={search} onChange={e=>setSearch(e.target.value)}/>
-      </div>
-
-      {Object.keys(groups).length?Object.entries(groups).map(([key,list])=>{
-        const isOpen = expanded[key] === true;
-        return(
-          <div key={key} className="section-group">
-            <div className="section-head" onClick={()=>toggle(key)}>
-              <div style={{display:'flex',alignItems:'center'}}><span className={`chevron ${isOpen?'open':''}`}>▶</span><span style={{marginLeft:8}}>{key}</span><span className="section-count">({list.length})</span></div>
-            </div>
-            {isOpen&&list.map(o=>(
-              <div key={o.id} className="c-row" style={{paddingLeft:40}} onClick={()=>setModal({type:'edit-opp',data:o})}>
-                <div className="c-row-name">{o.role}</div>
-                <div className="c-row-role">{o.location}</div>
+      {opps.length?(
+        <div className="opp-grid">
+          {opps.map(o=>(
+            <div key={o.id} className="opp-card" onClick={()=>setModal({type:'edit-opp',data:o})}>
+              <div className="opp-card-firm">{firmName(o.firm_id)}</div>
+              <div className="opp-card-role">{o.role}</div>
+              {o.location&&<div className="opp-card-loc">{o.location}</div>}
+              <div className="opp-card-foot">
                 <Badge v={o.stage} arr={STAGES}/>
-                <div className="c-row-actions" style={{marginLeft:'auto'}}>
+                {o.referral&&o.referral!=='No'&&<span className="tag" style={{fontSize:11}}>{o.referral==='Yes'?'✓ Referral':'⏳ Referral'}</span>}
+                <div className="opp-card-actions">
                   <button className="btn-icon" style={{fontSize:14}} onClick={e=>{e.stopPropagation();setModal({type:'edit-opp',data:o})}}>✎</button>
                   <button className="btn-icon" style={{fontSize:14,color:'var(--danger)'}} onClick={e=>{e.stopPropagation();setModal({type:'del-opp',data:o})}}>✕</button>
                 </div>
               </div>
-            ))}
-          </div>
-        );
-      }):<div className="empty-state">No opportunities yet. Create one above.</div>}
+            </div>
+          ))}
+        </div>
+      ):<div className="empty-state">No opportunities yet. Create one above.</div>}
     </div>
   );
 }
@@ -759,7 +620,7 @@ function GlobalModals(){
       if(modal.type==='edit-firm'){await db.upd('firms',modal.data.id,form);reload();toast('Firm updated','s');close();}
       if(modal.type==='add-contact'){if(!form.name.trim()||!form.firm_id){toast('Name and company required','e');setSaving(false);return;}await db.ins('contacts',form);reload();toast('Contact added','s');close();}
       if(modal.type==='edit-contact'){await db.upd('contacts',modal.data.id,form);reload();toast('Contact updated','s');close();}
-      if(modal.type==='add-opp'){if(!form.role.trim()||!form.firm_id){toast('Role and company required','e');setSaving(false);return;}await db.ins('opportunities',{...form,stage:'not_applied',stage_order:0});reload();toast('Opportunity created','s');close();}
+      if(modal.type==='add-opp'){if(!form.role.trim()||!form.firm_id){toast('Role and company required','e');setSaving(false);return;}await db.ins('opportunities',{...form,stage:'not_applied'});reload();toast('Opportunity created','s');close();}
       if(modal.type==='edit-opp'){await db.upd('opportunities',modal.data.id,form);reload();toast('Opportunity updated','s');close();}
       if(modal.type==='del-firm'){await db.del('firms',modal.data.id);reload();toast('Firm deleted','s');close();}
       if(modal.type==='del-contact'){await db.del('contacts',modal.data.id);reload();toast('Contact deleted','s');close();}
@@ -773,11 +634,11 @@ function GlobalModals(){
   if(modal.type==='del-opp')return <Modal title="Delete Opportunity" onClose={close} onSave={save} saveLabel="Delete" saving={saving} danger><p>Delete <strong>{modal.data.role}</strong>? This cannot be undone.</p></Modal>;
 
   if(modal.type==='add-firm'||modal.type==='edit-firm')return <Modal title={modal.type==='add-firm'?'Add Firm':'Edit Firm'} onClose={close} onSave={save} saveLabel={modal.type==='add-firm'?'Create':'Update'} saving={saving}><FirmForm d={form} set={setForm}/></Modal>;
-  if(modal.type==='add-contact'||modal.type==='edit-contact')return <Modal title={modal.type==='add-contact'?'Add Contact':'Edit Contact'} onClose={close} onSave={save} saveLabel={modal.type==='add-contact'?'Create':'Update'} saving={saving}><ContactFormFields d={form} set={setForm} firms={firms} onNewCompany={()=>{}} /></Modal>;
+  if(modal.type==='add-contact'||modal.type==='edit-contact')return <Modal title={modal.type==='add-contact'?'Add Contact':'Edit Contact'} onClose={close} onSave={save} saveLabel={modal.type==='add-contact'?'Create':'Update'} saving={saving}><ContactFormFields d={form} set={setForm} firms={firms}/></Modal>;
   if(modal.type==='add-opp'||modal.type==='edit-opp'){
     const isEdit=modal.type==='edit-opp';
     return <Modal title={isEdit?'Edit Opportunity':'Add Opportunity'} onClose={close} onSave={save} saveLabel={isEdit?'Update':'Create'} saving={saving}>
-      <OppFormFields d={form} set={setForm} firms={firms} onNewCompany={()=>{}}/>
+      <OppFormFields d={form} set={setForm} firms={firms}/>
       {isEdit&&<div className="field"><label>Stage</label><select value={form.stage||'not_applied'} onChange={e=>setForm({...form,stage:e.target.value})}>{STAGES.map(s=><option key={s.v} value={s.v}>{s.label}</option>)}</select></div>}
     </Modal>;
   }
@@ -820,25 +681,22 @@ function Dashboard({db:dbInstance}){
   return(
     <Ctx.Provider value={ctx}>
       <div className="app">
-        <div className="sidebar">
-          <div className={`sidebar-item ${tab==='overview'?'active':''}`} onClick={()=>setTab('overview')}><div className="sidebar-item-icon">📊</div><div className="sidebar-item-label">Overview</div></div>
-          <div className={`sidebar-item ${tab==='pipeline'?'active':''}`} onClick={()=>setTab('pipeline')}><div className="sidebar-item-icon">📈</div><div className="sidebar-item-label">Pipeline</div></div>
-          <div className={`sidebar-item ${tab==='contacts'?'active':''}`} onClick={()=>setTab('contacts')}><div className="sidebar-item-icon">👤</div><div className="sidebar-item-label">Contacts</div></div>
-          <div className={`sidebar-item ${tab==='opportunities'?'active':''}`} onClick={()=>setTab('opportunities')}><div className="sidebar-item-icon">🎯</div><div className="sidebar-item-label">Opportunities</div></div>
-          <div style={{flex:1}}></div>
-          <div className="sidebar-item" onClick={logout}><div className="sidebar-item-icon">↗</div><div className="sidebar-item-label">Logout</div></div>
+        <div className="topbar">
+          <h1>HF Job Tracker</h1>
+          <div className="topbar-r">
+            <button className="btn btn-s btn-sm" onClick={logout}>Logout</button>
+          </div>
         </div>
-        <div className="main">
-          <div className="topbar">
-            <h1>HF Job Tracker</h1>
-            <div className="topbar-r"></div>
-          </div>
-          <div className="tab-content">
-            {tab==='overview'&&<OverviewTab/>}
-            {tab==='pipeline'&&<PipelineTab/>}
-            {tab==='contacts'&&<ContactsTab/>}
-            {tab==='opportunities'&&<OppsTab/>}
-          </div>
+        <div className="tabs">
+          {[['overview','Overview'],['pipeline','Pipeline'],['contacts','Contacts'],['opportunities','Opportunities']].map(([k,l])=>(
+            <div key={k} className={`tab ${tab===k?'active':''}`} onClick={()=>setTab(k)}>{l}</div>
+          ))}
+        </div>
+        <div className="tab-content">
+          {tab==='overview'&&<OverviewTab/>}
+          {tab==='pipeline'&&<PipelineTab/>}
+          {tab==='contacts'&&<ContactsTab/>}
+          {tab==='opportunities'&&<OppsTab/>}
         </div>
         <GlobalModals/>
         <ToastContainer/>
@@ -862,7 +720,7 @@ function SetupScreen(){
     <div className="auth-wrap"><div className="auth-card">
       <h1>HF Job Tracker</h1><p className="sub">Connect your Supabase project to get started.</p>
       <details style={{marginBottom:24}}><summary style={{cursor:'pointer',fontSize:13,color:'var(--accent)',fontWeight:600,marginBottom:8}}>First time? Create tables in Supabase SQL Editor</summary>
-        <div className="setup-code" style={{marginTop:8,fontSize:11,background:'var(--bg)',padding:8,borderRadius:4,overflow:'auto'}}>{`CREATE TABLE firms (
+        <div className="setup-code">{`CREATE TABLE firms (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL, type TEXT, next_steps TEXT, notes TEXT,
   priority BOOLEAN DEFAULT false, order_position INTEGER DEFAULT 0,
@@ -879,13 +737,9 @@ CREATE TABLE opportunities (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   firm_id UUID NOT NULL REFERENCES firms(id) ON DELETE CASCADE,
   role TEXT NOT NULL, location TEXT, link TEXT, referral TEXT,
-  stage TEXT DEFAULT 'not_applied', stage_order INTEGER DEFAULT 0, notes TEXT,
+  stage TEXT DEFAULT 'not_applied', notes TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- If upgrading from old version, add stage_order to opportunities:
-ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS stage_order INTEGER DEFAULT 0;`}</div>
-        <p style={{marginTop:8,fontSize:11,color:'var(--muted)'}}>Copy the SQL above, run in your Supabase SQL Editor, then enable Data API on all 3 tables.</p>
+);`}</div>
       </details>
       <div className="field"><label>Project URL</label><input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://xxxx.supabase.co"/></div>
       <div className="field"><label>Anon / Legacy Key</label><input type="password" value={key} onChange={e=>setKey(e.target.value)} placeholder="eyJhbGci..."/></div>

@@ -223,8 +223,8 @@
   <script type="text/babel">
 const {useState,useEffect,useMemo,useCallback,useRef,createContext,useContext} = React;
 
-const SUPABASE_URL = '';
-const SUPABASE_KEY = '';
+const SUPABASE_URL = 'https://qmwjhbijvtxuesikpnfb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtd2poYmlqdnR4dWVzaWtwbmZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5Mjk3MzAsImV4cCI6MjA4OTUwNTczMH0.7tm7jOvmejaRbAQOw0Dljv476bRgn53FLP62HvDeMkM';
 
 const STAGES = [
   {v:'not-applied',label:'Not Applied',group:'pre',cls:'c-neutral'},
@@ -331,26 +331,9 @@ function OppFormFields({d,set,firms,onCreateFirm}){
 
 function Dashboard({firms,opps,contacts}){
   const today = new Date();
-  const weekFromNow = new Date(today.getTime() + 7*24*60*60*1000);
-
-  const upcomingIntv = useMemo(()=>{
-    return opps.filter(o=>['hv','phone','interview','test','case','offer'].includes(o.stage))
-      .slice(0,5);
-  },[opps]);
-
-  const hotOpps = useMemo(()=>{
-    return opps.filter(o=>o.is_favorite && !['rejected'].includes(o.stage)).slice(0,5);
-  },[opps]);
-
-  const stalledOpps = useMemo(()=>{
-    return opps.filter(o=>{
-      if(!o.last_contact_date || ['rejected','offer'].includes(o.stage)) return false;
-      const lastContact = new Date(o.last_contact_date);
-      const daysSince = Math.floor((today - lastContact) / (1000*60*60*24));
-      return daysSince >= 14;
-    });
-  },[opps]);
-
+  const upcomingIntv = useMemo(()=>opps.filter(o=>['hv','phone','interview','test','case','offer'].includes(o.stage)).slice(0,5),[opps]);
+  const hotOpps = useMemo(()=>opps.filter(o=>o.is_favorite && !['rejected'].includes(o.stage)).slice(0,5),[opps]);
+  const stalledOpps = useMemo(()=>opps.filter(o=>{if(!o.last_contact_date || ['rejected','offer'].includes(o.stage)) return false; const lastContact = new Date(o.last_contact_date); const daysSince = Math.floor((today - lastContact) / (1000*60*60*24)); return daysSince >= 14;}),[ opps]);
   const activeFirms = new Set(opps.filter(o=>!['rejected'].includes(o.stage)).map(o=>o.firm_id));
   const offersCount = opps.filter(o=>o.stage==='offer').length;
 
@@ -511,48 +494,6 @@ function PipelineTab({opps,firms,onUpdateOpp,onDeleteOpp}){
         })}
       </div>
     </div>
-  </div>;
-}
-
-function Dashboard({firms,opps,contacts}){
-  const today = new Date();
-  const upcomingIntv = useMemo(()=>opps.filter(o=>['hv','phone','interview','test','case','offer'].includes(o.stage)).slice(0,5),[opps]);
-  const hotOpps = useMemo(()=>opps.filter(o=>o.is_favorite && !['rejected'].includes(o.stage)).slice(0,5),[opps]);
-  const stalledOpps = useMemo(()=>opps.filter(o=>{if(!o.last_contact_date || ['rejected','offer'].includes(o.stage)) return false; const lastContact = new Date(o.last_contact_date); const daysSince = Math.floor((today - lastContact) / (1000*60*60*24)); return daysSince >= 14;}),[ opps]);
-  const activeFirms = new Set(opps.filter(o=>!['rejected'].includes(o.stage)).map(o=>o.firm_id));
-  const offersCount = opps.filter(o=>o.stage==='offer').length;
-
-  return <div className="dashboard">
-    <div className="dash-section">
-      <div className="dash-section-title">Pipeline Stats</div>
-      <div className="dash-stat-row">
-        <div className="dash-stat-card"><div className="dash-stat-num">{activeFirms.size}</div><div className="dash-stat-label">Active Firms</div></div>
-        <div className="dash-stat-card"><div className="dash-stat-num">{opps.filter(o=>!['rejected'].includes(o.stage)).length}</div><div className="dash-stat-label">In Pipeline</div></div>
-        <div className="dash-stat-card"><div className="dash-stat-num">{offersCount}</div><div className="dash-stat-label">Offers</div></div>
-        <div className="dash-stat-card"><div className="dash-stat-num">{hotOpps.length}</div><div className="dash-stat-label">Starred Targets</div></div>
-      </div>
-    </div>
-
-    {hotOpps.length > 0 && <div className="dash-section">
-      <div className="dash-section-title">🔥 Your Hot List</div>
-      <div className="dash-hot-list">
-        {hotOpps.map(o=>{const firm = firms.find(f=>f.id===o.firm_id); return <div key={o.id} className="dash-hot-item"><div className="dash-hot-firm">{firm?.name}</div><div className="dash-hot-role">{o.role_title}</div></div>;})}
-      </div>
-    </div>}
-
-    {upcomingIntv.length > 0 && <div className="dash-section">
-      <div className="dash-section-title">Upcoming Interviews & Status</div>
-      <div className="dash-upcoming">
-        {upcomingIntv.map(o=>{const firm = firms.find(f=>f.id===o.firm_id); return <div key={o.id} className="dash-upcoming-item"><div className="dash-upcoming-left"><div className="dash-upcoming-firm">{firm?.name}</div><div className="dash-upcoming-role">{o.role_title}</div><div className="dash-upcoming-date">Currently: <Badge v={o.stage} arr={STAGES} /></div></div><div className="dash-upcoming-right">{o.next_follow_up && <div>{new Date(o.next_follow_up).toLocaleDateString([], {month:'short',day:'numeric'})}</div>}</div></div>;})}
-      </div>
-    </div>}
-
-    {stalledOpps.length > 0 && <div className="dash-section">
-      <div className="dash-stalled">
-        <div className="dash-stalled-title">⚠️ Stalled Opportunities (14+ days no contact)</div>
-        {stalledOpps.map(o=>{const firm = firms.find(f=>f.id===o.firm_id); const lastContact = new Date(o.last_contact_date); const daysSince = Math.floor((today - lastContact) / (1000*60*60*24)); return <div key={o.id} className="dash-stalled-item"><div className="dash-stalled-left"><div className="dash-stalled-firm">{firm?.name}</div><div className="dash-stalled-days">{daysSince} days since contact</div></div></div>;})}
-      </div>
-    </div>}
   </div>;
 }
 

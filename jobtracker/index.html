@@ -539,12 +539,12 @@ function PipelineTab(){
     setDragOverStage(null);
     const opp=dragRef.current;if(!opp)return;
     if(opp.stage!==stage){
-      try{await db.upd('opportunities',opp.id,{stage,stage_order:0});reload();toast(`Moved to ${si(stage,STAGES).label}`,'s');}
-      catch(err){toast('Failed to update stage','e');reload();}
+      try{await db.upd('opportunities',opp.id,{stage});reload();toast(`Moved to ${si(stage,STAGES).label}`,'s');}
+      catch(err){toast('Stage update failed: '+err.message,'e');reload();}
     } else {
       const items=stageOpps(stage);
       try{await Promise.all(items.map((o,idx)=>db.upd('opportunities',o.id,{stage_order:idx})));reload();toast('Order saved','s');}
-      catch(err){toast('Failed to save order','e');reload();}
+      catch(err){toast('Order save failed: '+err.message,'e');reload();}
     }
   }
 

@@ -992,7 +992,7 @@ function Dashboard({db:dbInstance}){
           </div>
         </div>
         <div className="main-area">
-          <div className="topbar"><h1>HF Job Tracker</h1><div className="topbar-r"><button className="btn-icon" onClick={()=>setShowHelp(true)} title="Keyboard shortcuts (?)">⌨</button></div></div>
+          <div className="topbar"><h1>Job Search Tracker</h1><div className="topbar-r"><button className="btn-icon" onClick={()=>setShowHelp(true)} title="Keyboard shortcuts (?)">⌨</button></div></div>
           <div className="tab-content">
             {tab==='overview'&&<OverviewTab/>}
             {tab==='pipeline'&&<PipelineTab/>}
@@ -1072,7 +1072,7 @@ function SignInScreen(){
 
   return(
     <div className="auth-wrap"><div className="auth-card">
-      <h1>HF Job Tracker</h1><p className="sub">Sign in to access your tracker.</p>
+      <h1>Job Search Tracker</h1><p className="sub">Sign in to access your tracker.</p>
       <div className="field"><label>Username</label><input value={username} onChange={e=>setUsername(e.target.value)} placeholder="Username" onKeyDown={e=>e.key==='Enter'&&go()}/></div>
       <div className="field"><label>Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" onKeyDown={e=>e.key==='Enter'&&go()}/></div>
       {err&&<div className="error-msg">{err}</div>}
@@ -1093,7 +1093,7 @@ function SetupScreen(){
   }
   return(
     <div className="auth-wrap"><div className="auth-card">
-      <h1>HF Job Tracker</h1><p className="sub">One-time setup: connect your Supabase project.</p>
+      <h1>Job Search Tracker</h1><p className="sub">One-time setup: connect your Supabase project.</p>
       <div className="note-box">After setup, you can hard-code SUPABASE_URL and SUPABASE_KEY in the source to skip this on all devices.</div>
       <details style={{marginBottom:24}}><summary style={{cursor:'pointer',fontSize:13,color:'var(--accent)',fontWeight:600,marginBottom:8}}>First time? Create tables in Supabase SQL Editor</summary>
         <div className="setup-code">{`CREATE TABLE users (

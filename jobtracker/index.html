@@ -265,6 +265,30 @@
     .note-box { padding:12px 16px; background:rgba(129,211,26,.06); border:1px solid rgba(129,211,26,.2); border-radius:var(--r); font-size:13px; color:var(--muted); margin-bottom:20px; }
     .empty-state { text-align:center; padding:40px 20px; color:var(--muted); font-size:14px; }
 
+    /* ── Todo ── */
+    .todo-page { padding:20px; max-width:700px; margin:0 auto; width:100%; }
+    .task-row { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border:1px solid var(--bdr); border-radius:var(--r); background:var(--card); margin-bottom:6px; cursor:default; transition:border-color .15s, box-shadow .15s; animation:fadeIn .2s ease-out; position:relative; }
+    .task-row:hover { border-color:rgba(129,211,26,.3); box-shadow:var(--sh-sm); }
+    .task-row.dragging { opacity:.4; }
+    .task-row.drag-over { border-color:var(--accent); box-shadow:0 0 10px rgba(129,211,26,.2); }
+    .task-row.done-row { opacity:.5; }
+    .task-drag-handle { color:var(--muted); cursor:grab; font-size:16px; padding:2px 0; flex-shrink:0; user-select:none; line-height:1.2; }
+    .task-drag-handle:active { cursor:grabbing; }
+    .task-checkbox { width:16px; height:16px; accent-color:var(--accent); cursor:pointer; flex-shrink:0; margin-top:3px; }
+    .task-main { flex:1; min-width:0; }
+    .task-title { font-size:13px; font-weight:600; color:var(--text); }
+    .task-row.done-row .task-title { text-decoration:line-through; color:var(--muted); }
+    .task-meta { display:flex; align-items:center; gap:6px; margin-top:4px; flex-wrap:wrap; }
+    .task-notes { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:300px; }
+    .task-actions { display:flex; gap:4px; opacity:0; transition:opacity .15s; flex-shrink:0; }
+    .task-row:hover .task-actions { opacity:1; }
+    .task-drop-indicator { height:2px; background:var(--accent); border-radius:2px; margin-bottom:4px; }
+    .done-section-header { display:flex; align-items:center; gap:6px; padding:10px 0 6px; font-size:12px; color:var(--muted); font-weight:600; cursor:pointer; user-select:none; border-top:1px solid var(--bdr); margin-top:8px; }
+    .done-section-header:hover { color:var(--text); }
+    .firm-todo-item { padding:5px 16px; font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; cursor:pointer; transition:background .1s; }
+    .firm-todo-item:hover { background:rgba(255,255,255,.03); color:var(--text); }
+    .firm-todo-item .todo-dot { width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+
     @media (max-width:768px) {
       .sidebar { width:50px; }
       .sidebar:hover { width:160px; }
@@ -323,6 +347,7 @@ const IconLogout = () => <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.
 const IconEmail = () => <svg viewBox="0 -2 28 28" xmlns="http://www.w3.org/2000/svg"><g transform="translate(-2 -4)"><path d="M30,9.947V6a2,2,0,0,0-2-2H4A2,2,0,0,0,2,6V26a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V9.947ZM26,23a1,1,0,0,1-1,1H7a1,1,0,0,1-1-1V14.67l9.182,5.118a1.677,1.677,0,0,0,1.636,0L26,14.67Zm0-12.857L16,15.717,6,10.143V9A1,1,0,0,1,7,8H25a1,1,0,0,1,1,1Z" fill="currentColor"/></g></svg>;
 const IconPhone = () => <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><g transform="translate(-258 -309)" fill="currentColor"><path d="M289.073,313.433 L286.195,310.563 C285.401,309.77 284.112,309.77 283.317,310.563 L279,316.303 C278.341,317.274 278.206,318.38 279,319.173 L280.762,320.93 C279.456,322.68 277.888,324.588 276.123,326.348 C274.127,328.338 271.907,330.147 269.911,331.633 L268.208,329.936 C267.414,329.143 266.305,329.277 265.33,329.936 L259.574,334.241 C258.609,334.906 258.779,336.318 259.574,337.111 L262.452,339.98 C264.042,341.566 266.109,341.058 268.208,339.98 C268.208,339.98 274.561,336.424 280,331 C285.116,325.898 289.073,319.173 289.073,319.173 C289.898,316.91 290.663,315.018 289.073,313.433"/></g></svg>;
 const IconRecycleBin = () => <svg fill="var(--muted)" opacity="0.35" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" style={{width:'48px',height:'48px'}}><g transform="translate(0.000000,511.000000) scale(0.100000,-0.100000)"><path d="M860,4761.7c-341.1-83.7-643.4-379.9-731.2-716.9c-34.7-138.9-38.8-386-8.2-520.8c53.1-234.9,232.8-480,451.4-620.9c112.3-71.5,273.7-134.8,345.2-134.8c22.5,0,44.9-12.3,49-24.5c6.1-22.5,279.8-2175.3,716.9-5653.7c61.3-488.2,124.6-933.4,143-990.6c87.8-283.9,381.9-553.5,690.4-635.2c85.8-22.5,537.2-28.6,2506.2-28.6c2614.4,0,2481.7-6.1,2714.5,112.3c206.3,104.2,410.5,343.1,478,553.5c18.4,55.2,212.4,1525.8,431,3266c220.6,1742.3,406.5,3214.9,414.6,3276.2l14.3,108.3l112.3,34.7c328.8,102.1,602.5,388.1,686.3,719c44.9,175.7,30.6,473.9-30.6,635.2c-96,251.2-332.9,488.2-590.3,592.3l-116.4,47l-4085.1,4.1C1828.2,4786.2,943.8,4782.1,860,4761.7z M9144.5,4140.7c112.3-59.2,145-145,145-371.7s-32.7-312.5-145-371.7c-65.4-34.7-236.9-36.8-4140.2-36.8c-3995.2,0-4072.8,0-4148.4,40.8c-112.3,57.2-145,138.9-145,371.7c0,222.6,32.7,308.4,145,367.7c65.4,34.7,236.9,36.8,4144.3,36.8C8907.6,4177.5,9079.2,4175.4,9144.5,4140.7z M4242.5,2672.1c-36.8-42.9-300.2-328.8-586.2-635.2l-520.8-557.6l-55.2,57.2c-30.6,30.6-228.8,241-439.1,465.7c-212.4,224.7-459.6,484.1-549.4,578l-165.4,167.5h1192.8h1190.8L4242.5,2672.1z M8051.8,2702.8c-20.4-24.5-290-310.5-594.4-633.2l-557.6-586.2l-545.4,586.2c-302.3,322.7-565.8,608.7-586.2,633.2l-38.8,44.9H6910h1180.6L8051.8,2702.8z M5753.9,1822.5c396.2-424.9,716.9-780.3,712.8-790.5C6456.6,1005.4,5035-489.7,5018.6-489.7c-26.5,0-1448.2,1511.5-1444.1,1533.9c8.2,28.6,1431.8,1560.5,1448.2,1554.4C5028.8,2596.6,5357.7,2247.3,5753.9,1822.5z M2210.2,1573.3c275.7-292.1,500.4-537.2,498.4-545.4c-8.2-18.4-780.2-849.7-792.5-851.7c-6.1-2-65.4,426.9-130.7,953.9c-65.4,524.9-122.6,972.2-128.7,994.7C1644.4,2175.8,1595.3,2224.8,2210.2,1573.3z M8262.2,1158.6c-69.5-541.3-130.7-982.5-140.9-980.4c-20.4,8.2-792.5,841.5-792.5,857.9c0,16.3,1045.8,1123.4,1053.9,1115.2C8384.7,2147.2,8331.6,1701.9,8262.2,1158.6z M3874.8-183.3c394.2-414.6,716.9-759.8,716.9-765.9c-2-14.3-1409.4-1499.2-1429.8-1507.4c-12.3-4.1-224.7,216.5-966.1,1009l-96,104.2l-40.8,304.3c-22.5,167.5-40.8,332.9-40.8,365.6c0,53.1,79.7,149.1,555.6,659.7c304.3,328.8,561.7,594.4,569.9,592.3C3151.8,574.5,3482.7,233.4,3874.8-183.3z M7469.7-19.9c633.2-680.2,573.9-561.7,514.7-1029.4c-38.8-292.1-38.8-292.1-118.5-377.9c-44.9-44.9-281.9-298.2-527-559.6c-245.1-261.5-451.4-471.8-461.6-469.8c-20.4,8.2-1427.7,1493.1-1427.7,1509.4c0,22.5,1435.9,1531.9,1452.2,1525.8C6910,574.5,7165.3,306.9,7469.7-19.9z M5753.9-2162.5l714.9-755.7l-149.1-157.3c-81.7-85.8-298.2-318.7-484.1-516.8l-335-359.5h-480l-480,2l-475.9,508.6c-261.4,279.8-475.9,514.7-478,522.9c-2,20.4,1419.6,1521.7,1437.9,1515.6C5032.9-1406.8,5359.7-1747.9,5753.9-2162.5z M2485.9-2644.6l251.2-265.5l-190-204.2c-104.2-112.3-192-202.2-194-198.1c-4.1,2.1-30.6,194-59.2,422.8c-28.6,230.8-57.2,439.1-61.3,465.7c-6.1,24.5-8.2,44.9-4.1,44.9C2232.6-2379,2349-2497.5,2485.9-2644.6z M7755.6-2838.6c-32.7-247.1-61.3-457.5-65.4-465.7c-2.1-10.2-89.9,75.6-196.1,187.9l-190,206.3l251.2,265.5c138.9,145,253.3,261.4,255.3,259.4C7812.8-2387.2,7788.3-2591.5,7755.6-2838.6z M3693-3935.4c0-10.2-245.1-16.3-543.3-16.3c-426.9,0-539.2,6.1-527,26.6c8.2,12.3,130.7,147.1,271.7,296.2l257.4,269.6l269.6-279.8C3570.5-3794.5,3691-3927.3,3693-3935.4z M7416.6-3923.2c14.3-24.5-73.5-28.6-527-28.6c-428.9,0-541.3,6.1-529,26.6c8.2,12.3,130.7,147.1,271.7,294.1l255.3,271.7l255.3-269.6C7283.8-3776.1,7408.4-3908.9,7416.6-3923.2z"/></g></svg>;
+const IconTodo = () => <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 
 /* ══════════════════ DB CLASS ══════════════════ */
 class DB {
@@ -442,10 +467,17 @@ function OppFormFields({d,set,firms,onCreateFirm}){
   </>);
 }
 
-/* ══════════════════ TAB 1: OVERVIEW ══════════════════ */
+/* ══════════════════ TAB 2: OVERVIEW ══════════════════ */
 function OverviewTab(){
-  const {firms,contacts,opps,db,toast,reload,setModal} = useContext(Ctx);
-  const sorted = useMemo(()=>[...firms].sort((a,b)=>(a.order_position||0)-(b.order_position||0)),[firms]);
+  const {firms,contacts,opps,todos,db,toast,reload,setModal,setTab} = useContext(Ctx);
+  const sorted = useMemo(()=>{
+    const openTodos = [...todos.filter(t=>!t.done)].sort((a,b)=>a.priority-b.priority);
+    const seen = [];
+    openTodos.forEach(t=>{if(t.firm_id&&!seen.includes(t.firm_id))seen.push(t.firm_id);});
+    const withTodos = seen.map(id=>firms.find(f=>f.id===id)).filter(Boolean);
+    const withoutTodos = [...firms].filter(f=>!seen.includes(f.id)).sort((a,b)=>(a.order_position||0)-(b.order_position||0));
+    return [...withTodos,...withoutTodos];
+  },[firms,todos]);
   const dragRef = useRef(null);
 
   function onDragStart(e,i){dragRef.current=i;e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
@@ -465,7 +497,9 @@ function OverviewTab(){
 
   return(
     <div className="overview">
-      {sorted.map((f,i)=>(
+      {sorted.map((f,i)=>{
+        const fTodos=todos.filter(t=>t.firm_id===f.id&&!t.done).sort((a,b)=>a.priority-b.priority);
+        return(
         <div key={f.id} className="firm-col" draggable onDragStart={e=>onDragStart(e,i)} onDragEnd={onDragEnd} onDragOver={e=>onDragOver(e,i)} onDragLeave={onDragLeave} onDrop={e=>onDrop(e,i)}>
           <div className="fc-head">
             <div className="fc-name">
@@ -479,7 +513,17 @@ function OverviewTab(){
               {f.type&&<span className="tag">{f.type}</span>}
             </div>
           </div>
-          {f.next_steps&&<div className="fc-next">⚡ {f.next_steps}</div>}
+          {fTodos.length>0?(
+            <div className="fc-section">
+              <div className="fc-section-head"><span>Tasks ({fTodos.length})</span></div>
+              {fTodos.slice(0,3).map(t=>(
+                <div key={t.id} className="firm-todo-item" onClick={e=>{e.stopPropagation();setTab('todo');}}>
+                  <span className="todo-dot"/><span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis'}}>{t.title}</span>
+                </div>
+              ))}
+              {fTodos.length>3&&<div className="firm-todo-item" style={{color:'var(--accent)',fontStyle:'italic'}} onClick={e=>{e.stopPropagation();setTab('todo');}}>+{fTodos.length-3} more</div>}
+            </div>
+          ):f.next_steps?<div className="fc-next">⚡ {f.next_steps}</div>:null}
           <div className="fc-section">
             <div className="fc-section-head"><span>Contacts ({firmContacts(f.id).length})</span><button className="btn btn-sm btn-s" onClick={()=>setModal({type:'add-contact',firmId:f.id})}>+</button></div>
             {firmContacts(f.id).length?firmContacts(f.id).map(c=>(
@@ -493,7 +537,8 @@ function OverviewTab(){
             )):<div className="fc-empty">No opportunities</div>}
           </div>
         </div>
-      ))}
+        );
+      })}
       <div className="add-firm-col" onClick={()=>setModal({type:'add-firm'})}>+ Add Firm</div>
     </div>
   );
@@ -837,6 +882,161 @@ function OppsTab(){
   );
 }
 
+/* ══════════════════ TAB 0: TODO ══════════════════ */
+function TaskRow({task,firms,onToggle,onEdit,onDelete,dragHandlers,isDragOver,isDragging}){
+  const firm = firms.find(f=>f.id===task.firm_id);
+  return(
+    <>
+      {isDragOver&&<div className="task-drop-indicator"/>}
+      <div className={`task-row${task.done?' done-row':''}${isDragging?' dragging':''}`} {...dragHandlers}>
+        <span className="task-drag-handle" title="Drag to reorder">⠿</span>
+        <input type="checkbox" className="task-checkbox" checked={task.done} onChange={()=>onToggle(task)} onClick={e=>e.stopPropagation()}/>
+        <div className="task-main">
+          <div className="task-title">{task.title}</div>
+          <div className="task-meta">
+            {firm&&<span className="tag" style={{fontSize:10,padding:'1px 7px'}}>{firm.name}</span>}
+            {task.notes&&<span className="task-notes">{task.notes}</span>}
+          </div>
+        </div>
+        <div className="task-actions">
+          <button className="btn-icon" style={{fontSize:13}} onClick={e=>{e.stopPropagation();onEdit(task);}}>✎</button>
+          <button className="btn-icon" style={{fontSize:13,color:'var(--danger)'}} onClick={e=>{e.stopPropagation();onDelete(task);}}>✕</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function TodoTab(){
+  const {firms,todos,db,toast,reload,shortcutAction} = useContext(Ctx);
+  const [formOpen,setFormOpen] = useState(false);
+  const [form,setForm] = useState({title:'',firm_id:'',notes:''});
+  const [saving,setSaving] = useState(false);
+  const [showDone,setShowDone] = useState(false);
+  const [editTodo,setEditTodo] = useState(null);
+  const [editForm,setEditForm] = useState({});
+  const [dragSrc,setDragSrc] = useState(null);
+  const [dragOver,setDragOver] = useState(null);
+
+  useEffect(()=>{
+    if(!shortcutAction) return;
+    if(shortcutAction.type==='new-todo') setFormOpen(true);
+  },[shortcutAction]);
+
+  const open = useMemo(()=>[...todos.filter(t=>!t.done)].sort((a,b)=>a.priority-b.priority),[todos]);
+  const done = useMemo(()=>[...todos.filter(t=>t.done)].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)),[todos]);
+
+  async function createTodo(){
+    if(!form.title.trim()){toast('Title required','e');return;}
+    setSaving(true);
+    try{
+      await db.ins('todos',{title:form.title,firm_id:form.firm_id||null,notes:form.notes||null,priority:open.length,done:false});
+      reload();toast('Task created','s');
+      setForm({title:'',firm_id:'',notes:''});setFormOpen(false);
+    }catch(e){toast('Error: '+e.message,'e');}
+    setSaving(false);
+  }
+
+  async function toggleDone(task){
+    try{await db.upd('todos',task.id,{done:!task.done});reload();}
+    catch(e){toast('Error: '+e.message,'e');}
+  }
+
+  async function deleteTodo(task){
+    try{await db.del('todos',task.id);reload();toast('Task deleted','s');}
+    catch(e){toast('Error: '+e.message,'e');}
+  }
+
+  async function saveEdit(){
+    if(!editForm.title?.trim()){toast('Title required','e');return;}
+    try{
+      await db.upd('todos',editTodo.id,{title:editForm.title,notes:editForm.notes||null,firm_id:editForm.firm_id||null});
+      reload();toast('Task updated','s');setEditTodo(null);
+    }catch(e){toast('Error: '+e.message,'e');}
+  }
+
+  function onDragStart(e,task){setDragSrc(task);e.dataTransfer.effectAllowed='move';}
+  function onDragEnd(){setDragSrc(null);setDragOver(null);}
+  function onDragOver(e,task){e.preventDefault();if(dragSrc&&dragSrc.id!==task.id)setDragOver(task.id);}
+  function onDragLeave(){setDragOver(null);}
+  async function onDrop(e,task){
+    e.preventDefault();setDragOver(null);
+    if(!dragSrc||dragSrc.id===task.id)return;
+    const arr=[...open];
+    const srcIdx=arr.findIndex(t=>t.id===dragSrc.id);
+    const tgtIdx=arr.findIndex(t=>t.id===task.id);
+    arr.splice(srcIdx,1);arr.splice(tgtIdx,0,dragSrc);
+    try{
+      await Promise.all(arr.map((t,i)=>db.upd('todos',t.id,{priority:i})));
+      reload();
+    }catch(e){toast('Reorder failed','e');reload();}
+  }
+
+  return(
+    <div className="todo-page">
+      <div className="create-card">
+        <div className="create-card-head" onClick={()=>setFormOpen(!formOpen)}>
+          <span style={{fontSize:18}}>{formOpen?'−':'+'}</span> New Task
+        </div>
+        {formOpen&&<div className="create-card-body">
+          <div className="field"><label>Title</label><input value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="What needs to be done?" onKeyDown={e=>e.key==='Enter'&&createTodo()}/></div>
+          <div className="field"><label>Company (optional)</label>
+            <select value={form.firm_id} onChange={e=>setForm({...form,firm_id:e.target.value})}>
+              <option value="">— none —</option>
+              {firms.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}
+            </select>
+          </div>
+          <div className="field"><label>Notes (optional)</label><textarea value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Any details..."/></div>
+          <button className="btn btn-p" onClick={createTodo} disabled={saving} style={{marginTop:8}}>{saving?'Saving…':'Add Task'}</button>
+        </div>}
+      </div>
+
+      {!open.length&&!done.length&&<div className="empty-state">No tasks yet. Press <strong>N</strong> to add one.</div>}
+
+      {open.map(task=>(
+        <TaskRow key={task.id} task={task} firms={firms}
+          onToggle={toggleDone}
+          onEdit={t=>{setEditTodo(t);setEditForm({title:t.title,notes:t.notes||'',firm_id:t.firm_id||''}); }}
+          onDelete={deleteTodo}
+          isDragOver={dragOver===task.id}
+          isDragging={dragSrc?.id===task.id}
+          dragHandlers={{draggable:true,onDragStart:e=>onDragStart(e,task),onDragEnd:onDragEnd,onDragOver:e=>onDragOver(e,task),onDragLeave:onDragLeave,onDrop:e=>onDrop(e,task)}}
+        />
+      ))}
+
+      {done.length>0&&(
+        <>
+          <div className="done-section-header" onClick={()=>setShowDone(!showDone)}>
+            <span>{showDone?'▾':'▸'}</span>
+            <span>Completed ({done.length})</span>
+          </div>
+          {showDone&&done.map(task=>(
+            <TaskRow key={task.id} task={task} firms={firms}
+              onToggle={toggleDone}
+              onEdit={t=>{setEditTodo(t);setEditForm({title:t.title,notes:t.notes||'',firm_id:t.firm_id||''}); }}
+              onDelete={deleteTodo}
+              isDragOver={false} isDragging={false} dragHandlers={{}}
+            />
+          ))}
+        </>
+      )}
+
+      {editTodo&&(
+        <Modal title="Edit Task" onClose={()=>setEditTodo(null)} onSave={saveEdit} saveLabel="Update">
+          <div className="field"><label>Title</label><input value={editForm.title} onChange={e=>setEditForm({...editForm,title:e.target.value})}/></div>
+          <div className="field"><label>Company</label>
+            <select value={editForm.firm_id} onChange={e=>setEditForm({...editForm,firm_id:e.target.value})}>
+              <option value="">— none —</option>
+              {firms.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}
+            </select>
+          </div>
+          <div className="field"><label>Notes</label><textarea value={editForm.notes} onChange={e=>setEditForm({...editForm,notes:e.target.value})}/></div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
 /* ══════════════════ GLOBAL MODAL HANDLER ══════════════════ */
 function GlobalModals(){
   const {modal,setModal,db,toast,reload,firms} = useContext(Ctx);
@@ -909,7 +1109,8 @@ function Dashboard({db:dbInstance}){
   const [firms,setFirms] = useState([]);
   const [contacts,setContacts] = useState([]);
   const [opps,setOpps] = useState([]);
-  const [tab,setTab] = useState('overview');
+  const [todos,setTodos] = useState([]);
+  const [tab,setTab] = useState('todo');
   const [modal,setModal] = useState(null);
   const [toasts,setToasts] = useState([]);
   const [loading,setLoading] = useState(true);
@@ -925,15 +1126,15 @@ function Dashboard({db:dbInstance}){
 
   const loadData = useCallback(async()=>{
     try{
-      const [f,c,o] = await Promise.all([dbInstance.get('firms','order=order_position.asc.nullsfirst'),dbInstance.get('contacts'),dbInstance.get('opportunities')]);
-      setFirms(Array.isArray(f)?f:[]);setContacts(Array.isArray(c)?c:[]);setOpps(Array.isArray(o)?o:[]);
+      const [f,c,o,td] = await Promise.all([dbInstance.get('firms','order=order_position.asc.nullsfirst'),dbInstance.get('contacts'),dbInstance.get('opportunities'),dbInstance.get('todos')]);
+      setFirms(Array.isArray(f)?f:[]);setContacts(Array.isArray(c)?c:[]);setOpps(Array.isArray(o)?o:[]);setTodos(Array.isArray(td)?td:[]);
     }catch(e){toast('Failed to load data: '+e.message,'e');}
     setLoading(false);
   },[dbInstance,toast]);
 
   useEffect(()=>{loadData();},[loadData]);
 
-  const TABS_ORDER = ['overview','pipeline','contacts','opportunities'];
+  const TABS_ORDER = ['todo','overview','pipeline','contacts','opportunities'];
 
   useEffect(()=>{
     function isInputFocused(){const el=document.activeElement;return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA'||el.tagName==='SELECT'||el.isContentEditable);}
@@ -944,16 +1145,18 @@ function Dashboard({db:dbInstance}){
       if(isInputFocused()) return;
       const k=e.key;
       const idx=TABS_ORDER.indexOf(tab);
-      if(k==='1'){setTab('overview');}
-      else if(k==='2'){setTab('pipeline');}
-      else if(k==='3'){setTab('contacts');}
-      else if(k==='4'){setTab('opportunities');}
+      if(k==='1'){setTab('todo');}
+      else if(k==='2'){setTab('overview');}
+      else if(k==='3'){setTab('pipeline');}
+      else if(k==='4'){setTab('contacts');}
+      else if(k==='5'){setTab('opportunities');}
       else if((k==='ArrowLeft'||k==='['||k==='PageUp')&&idx>0){e.preventDefault();setTab(TABS_ORDER[idx-1]);}
       else if((k==='ArrowRight'||k===']'||k==='PageDown')&&idx<TABS_ORDER.length-1){e.preventDefault();setTab(TABS_ORDER[idx+1]);}
       else if(k==='r'||k==='R'){loadData();toast('Refreshed','s');}
       else if(k==='/'){ e.preventDefault();setShortcutAction({type:'focus-search',ts:Date.now()});}
       else if(k==='n'||k==='N'){
-        if(tab==='overview') setModal({type:'add-firm'});
+        if(tab==='todo') setShortcutAction({type:'new-todo',ts:Date.now()});
+        else if(tab==='overview') setModal({type:'add-firm'});
         else if(tab==='contacts') setShortcutAction({type:'new-contact',ts:Date.now()});
         else if(tab==='opportunities') setShortcutAction({type:'new-opp',ts:Date.now()});
       }
@@ -962,13 +1165,14 @@ function Dashboard({db:dbInstance}){
     return()=>window.removeEventListener('keydown',handle);
   },[tab,modal,showHelp,loadData,toast]);
 
-  const ctx = useMemo(()=>({firms,contacts,opps,db:dbInstance,toast,reload:loadData,modal,setModal,toasts,shortcutAction,setShortcutAction}),[firms,contacts,opps,dbInstance,toast,loadData,modal,toasts,shortcutAction]);
+  const ctx = useMemo(()=>({firms,contacts,opps,todos,db:dbInstance,toast,reload:loadData,modal,setModal,toasts,shortcutAction,setShortcutAction,setTab}),[firms,contacts,opps,todos,dbInstance,toast,loadData,modal,toasts,shortcutAction,setTab]);
 
   function logout(){localStorage.removeItem('hfcrm_auth');window.location.reload();}
 
   if(loading)return <div className="empty-state" style={{paddingTop:100}}>Loading...</div>;
 
   const tabs=[
+    {k:'todo',label:'Todo',Icon:IconTodo},
     {k:'overview',label:'Overview',Icon:IconOverview},
     {k:'pipeline',label:'Pipeline',Icon:IconPipeline},
     {k:'contacts',label:'Contacts',Icon:IconContacts},
@@ -994,6 +1198,7 @@ function Dashboard({db:dbInstance}){
         <div className="main-area">
           <div className="topbar"><h1>Job Search Tracker</h1><div className="topbar-r"><button className="btn-icon" onClick={()=>setShowHelp(true)} title="Keyboard shortcuts (?)">⌨</button></div></div>
           <div className="tab-content">
+            {tab==='todo'&&<TodoTab/>}
             {tab==='overview'&&<OverviewTab/>}
             {tab==='pipeline'&&<PipelineTab/>}
             {tab==='contacts'&&<ContactsTab/>}
@@ -1008,10 +1213,11 @@ function Dashboard({db:dbInstance}){
               <h2>⌨ Keyboard Shortcuts <kbd>?</kbd></h2>
               <div className="kb-section">
                 <div className="kb-section-title">Tab Navigation</div>
-                <div className="kb-row"><span className="kb-desc">Overview</span><div className="kb-keys"><span className="kb-key">1</span></div></div>
-                <div className="kb-row"><span className="kb-desc">Pipeline</span><div className="kb-keys"><span className="kb-key">2</span></div></div>
-                <div className="kb-row"><span className="kb-desc">Contacts</span><div className="kb-keys"><span className="kb-key">3</span></div></div>
-                <div className="kb-row"><span className="kb-desc">Opportunities</span><div className="kb-keys"><span className="kb-key">4</span></div></div>
+                <div className="kb-row"><span className="kb-desc">Todo</span><div className="kb-keys"><span className="kb-key">1</span></div></div>
+                <div className="kb-row"><span className="kb-desc">Overview</span><div className="kb-keys"><span className="kb-key">2</span></div></div>
+                <div className="kb-row"><span className="kb-desc">Pipeline</span><div className="kb-keys"><span className="kb-key">3</span></div></div>
+                <div className="kb-row"><span className="kb-desc">Contacts</span><div className="kb-keys"><span className="kb-key">4</span></div></div>
+                <div className="kb-row"><span className="kb-desc">Opportunities</span><div className="kb-keys"><span className="kb-key">5</span></div></div>
                 <div className="kb-row"><span className="kb-desc">Previous tab</span><div className="kb-keys"><span className="kb-key">←</span><span className="kb-key">[</span><span className="kb-key">PgUp</span></div></div>
                 <div className="kb-row"><span className="kb-desc">Next tab</span><div className="kb-keys"><span className="kb-key">→</span><span className="kb-key">]</span><span className="kb-key">PgDn</span></div></div>
               </div>
@@ -1023,7 +1229,7 @@ function Dashboard({db:dbInstance}){
               </div>
               <div className="kb-section">
                 <div className="kb-section-title">Context-Sensitive Actions</div>
-                <div className="kb-row"><span className="kb-desc">New firm (Overview) / new contact (Contacts) / new opportunity (Opportunities)</span><div className="kb-keys"><span className="kb-key">N</span></div></div>
+                <div className="kb-row"><span className="kb-desc">New task (Todo) / new firm (Overview) / new contact (Contacts) / new opp (Opportunities)</span><div className="kb-keys"><span className="kb-key">N</span></div></div>
                 <div className="kb-row"><span className="kb-desc">Focus search bar (Contacts / Opportunities)</span><div className="kb-keys"><span className="kb-key">/</span></div></div>
               </div>
               <div className="kb-section">

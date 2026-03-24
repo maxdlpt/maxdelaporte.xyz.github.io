@@ -18,7 +18,7 @@ body {
     line-height: 1.6;
     color: #161616;
     background-image: url('../3_images/paysage2.png');
-    background-attachment: fixed;
+    background-attachment: scroll;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

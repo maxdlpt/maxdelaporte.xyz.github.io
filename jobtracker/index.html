@@ -749,6 +749,7 @@ function ContactsTab(){
                 <div className={`c-row ${detail===c.id?'expanded':''}`} onClick={()=>setDetail(detail===c.id?null:c.id)}>
                   <div className="c-row-name">{c.name}</div>
                   <div className="c-row-role">{c.role}</div>
+                  <div className="c-row-firm">{firms.find(f=>f.id===c.firm_id)?.name||'?'}</div>
                   <Badge v={c.status} arr={C_ST}/>
                   <div className="c-row-links">
                     {c.email&&<button className="c-row-link c-row-copy" onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(c.email).then(()=>toast('Email copied','s'))}} title={`Copy: ${c.email}`}><IconEmail/></button>}

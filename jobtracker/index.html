@@ -200,6 +200,18 @@
     .c-row-copy svg { width:13px; height:13px; fill:currentColor; display:block; }
     .c-row-actions { display:flex; gap:4px; opacity:0; transition:opacity .15s; }
     .c-row:hover .c-row-actions { opacity:1; }
+    .contact-row { --contact-action-size:28px; display:grid; grid-template-columns:minmax(132px,1.15fr) 128px minmax(0,1fr) minmax(0,1fr) 100px 64px; column-gap:10px; }
+    .contact-col-name { min-width:0; text-align:left; }
+    .contact-col-status, .contact-col-role, .contact-col-firm { min-width:0; width:100%; text-align:center; justify-self:center; }
+    .contact-col-status { display:flex; justify-content:center; }
+    .contact-col-role, .contact-col-firm { color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .contact-col-links { width:100px; display:flex; justify-content:center; gap:4px; }
+    .contact-col-links .c-row-link, .contact-col-actions .btn-icon { width:var(--contact-action-size); height:var(--contact-action-size); padding:0; display:inline-flex; align-items:center; justify-content:center; }
+    .contact-col-links .c-row-copy svg { width:13px; height:13px; }
+    .contact-linkedin { font-size:12px; font-weight:700; line-height:1; }
+    .contact-btn-placeholder { width:var(--contact-action-size); height:var(--contact-action-size); border:1px solid transparent; border-radius:4px; display:block; }
+    .contact-col-actions { width:64px; display:flex; justify-content:center; gap:8px; opacity:0; transition:opacity .15s; }
+    .contact-row:hover .contact-col-actions { opacity:1; }
 
     /* ── Keyboard shortcuts overlay ── */
     .kb-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; display:flex; align-items:center; justify-content:center; animation:fadeIn .15s ease-out; }
@@ -300,6 +312,9 @@
       .itv-grid { flex-wrap:nowrap; }
       .itv-grid .pl-col { min-width:160px; flex:none; }
       .filter-bar { flex-direction:column; }
+      .contact-row {  grid-template-columns: minmax(132px,1.15fr) 128px minmax(0,1fr) minmax(0,1fr) 92px 56px; column-gap: 8px; }
+      .contact-col-links { width:92px; gap:3px; }
+      .contact-col-actions { width:56px; gap:6px; }
     }
   </style>
 </head>
@@ -746,17 +761,17 @@ function ContactsTab(){
             </div>
             {isOpen&&list.map(c=>(
               <React.Fragment key={c.id}>
-                <div className={`c-row ${detail===c.id?'expanded':''}`} onClick={()=>setDetail(detail===c.id?null:c.id)}>
-                  <div className="c-row-name">{c.name}</div>
-                  <div className="c-row-role">{c.role}</div>
-                  <div className="c-row-firm">{firms.find(f=>f.id===c.firm_id)?.name||'?'}</div>
-                  <Badge v={c.status} arr={C_ST}/>
-                  <div className="c-row-links">
-                    {c.email&&<button className="c-row-link c-row-copy" onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(c.email).then(()=>toast('Email copied','s'))}} title={`Copy: ${c.email}`}><IconEmail/></button>}
-                    {c.linkedin&&<a className="c-row-link" href={c.linkedin} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()}>🔗</a>}
-                    {c.phone&&<button className="c-row-link c-row-copy" onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(c.phone).then(()=>toast('Phone copied','s'))}} title={`Copy: ${c.phone}`}><IconPhone/></button>}
+                <div className={`c-row contact-row ${detail===c.id?'expanded':''}`} onClick={()=>setDetail(detail===c.id?null:c.id)}>
+                  <div className="c-row-name contact-col-name">{c.name}</div>
+                  <div className="contact-col-status"><Badge v={c.status} arr={C_ST}/></div>
+                  <div className="c-row-firm contact-col-firm">{firms.find(f=>f.id===c.firm_id)?.name||'?'}</div>
+                  <div className="c-row-role contact-col-role">{c.role||'-'}</div>
+                  <div className="contact-col-links">
+                    {c.email?<button className="c-row-link c-row-copy" onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(c.email).then(()=>toast('Email copied','s'))}} title={`Copy: ${c.email}`}><IconEmail/></button>:<span className="contact-btn-placeholder" />}
+                    {c.linkedin?<a className="c-row-link contact-linkedin" href={c.linkedin} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} title="Open LinkedIn">in</a>:<span className="contact-btn-placeholder" />}
+                    {c.phone?<button className="c-row-link c-row-copy" onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(c.phone).then(()=>toast('Phone copied','s'))}} title={`Copy: ${c.phone}`}><IconPhone/></button>:<span className="contact-btn-placeholder" />}
                   </div>
-                  <div className="c-row-actions">
+                  <div className="contact-col-actions">
                     <button className="btn-icon" onClick={e=>{e.stopPropagation();setModal({type:'edit-contact',data:c})}}>✎</button>
                     <button className="btn-icon" style={{color:'var(--danger)'}} onClick={e=>{e.stopPropagation();setModal({type:'del-contact',data:c})}}>✕</button>
                   </div>

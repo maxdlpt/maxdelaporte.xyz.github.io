@@ -682,7 +682,7 @@ function PipelineTab(){
 /* ══════════════════ TAB 3: CONTACTS ══════════════════ */
 function ContactsTab(){
   const {firms,contacts,db,toast,reload,setModal,shortcutAction} = useContext(Ctx);
-  const [sortBy,setSortBy] = useState('company');
+  const [sortBy,setSortBy] = useState('status');
   const [search,setSearch] = useState('');
   const [expanded,setExpanded] = useState({});
   const [detail,setDetail] = useState(null);
@@ -801,7 +801,7 @@ function ContactsTab(){
 /* ══════════════════ TAB 4: OPPORTUNITIES ══════════════════ */
 function OppsTab(){
   const {firms,opps,db,toast,reload,setModal,shortcutAction} = useContext(Ctx);
-  const [sortBy,setSortBy] = useState('company');
+  const [sortBy,setSortBy] = useState('stage');
   const [search,setSearch] = useState('');
   const [expanded,setExpanded] = useState({});
   const [formOpen,setFormOpen] = useState(false);

@@ -1682,7 +1682,7 @@ function SignInScreen(){
   const [loading,setLoading]=useState(false);
 
   async function go(){
-    const u=username.trim();
+    const u=username.trim().toLowerCase();
     if(!u||!password){setErr('Username and password required.');return;}
     if(mode==='create'){
       if(!/^[a-zA-Z0-9_]{3,20}$/.test(u)){setErr('Username: 3–20 chars, alphanumeric + underscores.');return;}
@@ -1697,6 +1697,9 @@ function SignInScreen(){
         const rows=await db.rpc('check_password',{p_username:u,p_password:password});
         if(Array.isArray(rows)&&rows.length>0){
           localStorage.setItem('hfcrm_auth',JSON.stringify({userId:rows[0].id,username:rows[0].username,ts:Date.now()}));
+          if(rows[0].username==='demo'){
+            await fetch(`${cfg.url}/rest/v1/matchmaker?user_id=eq.${rows[0].id}`,{method:'PATCH',headers:{'apikey':cfg.key,'Authorization':'Bearer '+cfg.key,'Content-Type':'application/json'},body:JSON.stringify({pipeline_decision:'pending'})});
+          }
           window.location.reload();
         } else {setErr('Invalid username or password.');}
       } else {

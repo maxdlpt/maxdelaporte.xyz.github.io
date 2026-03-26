@@ -89,10 +89,12 @@
     .sidebar-top { padding:14px 0 10px; display:flex; align-items:center; justify-content:center; }
     .sidebar-top svg { width:28px; height:28px; fill:var(--accent); flex-shrink:0; }
     .sidebar-nav { flex:1; display:flex; flex-direction:column; padding:8px 0; }
-    .sidebar-item { display:flex; align-items:center; gap:12px; padding:12px 18px; cursor:pointer; color:var(--muted); transition:all .15s; white-space:nowrap; border-left:3px solid transparent; }
+    .sidebar-item { display:flex; align-items:center; gap:12px; padding:12px 0; cursor:pointer; color:var(--muted); transition:all .15s; white-space:nowrap; box-shadow:inset 3px 0 0 transparent; }
+    .sidebar-icon-slot { width:59px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
     .sidebar-item:hover { color:var(--text); background:rgba(255,255,255,.04); }
-    .sidebar-item.active { color:var(--accent); background:rgba(129,211,26,.08); border-left-color:var(--accent); }
+    .sidebar-item.active { color:var(--accent); background:rgba(129,211,26,.08); box-shadow:inset 3px 0 0 var(--accent); }
     .sidebar-item svg { width:22px; height:22px; flex-shrink:0; }
+    .sidebar-item[data-k="matchmaker"] svg { width:28px; height:28px; }
     .sidebar-item svg path, .sidebar-item svg rect, .sidebar-item svg circle { transition:fill .15s, stroke .15s; }
     .sidebar-item.active svg path { fill:var(--accent); }
     .sidebar-item.active svg path[stroke] { stroke:var(--accent); fill:none; }
@@ -102,7 +104,7 @@
     .sidebar-item:not(.active) svg circle { fill:var(--muted); }
     .sidebar-item:not(.active) svg circle[stroke] { stroke:var(--muted); fill:none; }
     .sidebar-item:not(.active) svg rect { fill:none; }
-    .sidebar-label { font-size:13px; font-weight:600; opacity:0; transition:opacity .2s; }
+    .sidebar-label { font-size:13px; font-weight:600; opacity:0; transition:opacity .2s; white-space:nowrap; }
     .sidebar:hover .sidebar-label { opacity:1; }
     .sidebar-bottom { border-top:1px solid var(--bdr); padding:8px 0; }
 
@@ -323,8 +325,10 @@
     .mm-actions { display:flex; align-items:center; justify-content:center; gap:32px; }
     .mm-action-btn { width:64px; height:64px; border-radius:50%; border:2px solid; background:transparent; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .15s; font-size:24px; line-height:1; }
     .mm-btn-reject { border-color:var(--danger); color:var(--danger); }
+    .mm-btn-reject svg { width:24px; height:24px; }
     .mm-btn-reject:hover { background:rgba(255,99,72,.12); transform:scale(1.1); box-shadow:0 0 20px rgba(255,99,72,.25); }
     .mm-btn-accept { border-color:var(--accent); color:var(--accent); }
+    .mm-btn-accept svg { width:28px; height:28px; }
     .mm-btn-accept:hover { background:rgba(129,211,26,.12); transform:scale(1.1); box-shadow:0 0 20px rgba(129,211,26,.25); }
 
     .mm-keys-hint { display:flex; justify-content:center; gap:20px; margin-top:16px; font-size:11px; color:var(--muted); }
@@ -440,13 +444,24 @@ const IconUniverse = () => (
   </svg>
 );
 
+const IconReject = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fillRule="evenodd" clipRule="evenodd" d="M5.29289 5.29289C5.68342 4.90237 6.31658 4.90237 6.70711 5.29289L12 10.5858L17.2929 5.29289C17.6834 4.90237 18.3166 4.90237 18.7071 5.29289C19.0976 5.68342 19.0976 6.31658 18.7071 6.70711L13.4142 12L18.7071 17.2929C19.0976 17.6834 19.0976 18.3166 18.7071 18.7071C18.3166 19.0976 17.6834 19.0976 17.2929 18.7071L12 13.4142L6.70711 18.7071C6.31658 19.0976 5.68342 19.0976 5.29289 18.7071C4.90237 18.3166 4.90237 17.6834 5.29289 17.2929L10.5858 12L5.29289 6.70711C4.90237 6.31658 4.90237 5.68342 5.29289 5.29289Z" fill="currentColor"/>
+  </svg>
+);
+const IconHeart = () => (
+  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M23.7839 10.372C18.6739 5.81244 12.6448 4.14705 8.25809 6.67968C2.04029 10.2695 1.47691 20.9343 6.99976 30.5002C10.6308 36.7893 15.9885 41.0376 21 42.19" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M18.2581 17.5002C12.7353 27.066 13.2986 37.7308 19.5164 41.3207C25.7342 44.9105 35.2519 40.066 40.7748 30.5002C46.2976 20.9343 45.7342 10.2695 39.5164 6.67968C33.2986 3.08983 23.7809 7.93434 18.2581 17.5002Z" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
 const IconMatchmaker = () => (
   <svg viewBox="0 0 54 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="4" y="12" width="46" height="32" rx="4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-    <rect x="17" y="6" width="20" height="6" rx="2.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+    <rect x="4" y="12" width="46" height="32" rx="4" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
+    <rect x="17" y="6" width="20" height="6" rx="2.5" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
     <g transform="translate(17.5, 16.5) scale(0.4)">
-      <path d="M23.78 10.37C18.67 5.81 12.64 4.15 8.26 6.68C2.04 10.27 1.48 20.93 7 30.5C10.63 36.79 15.99 41.04 21 42.19" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M18.26 17.5C12.74 27.07 13.3 37.73 19.52 41.32C25.73 44.91 35.25 40.07 40.77 30.5C46.3 20.93 45.73 10.27 39.52 6.68C33.3 3.09 23.78 7.93 18.26 17.5Z" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M23.78 10.37C18.67 5.81 12.64 4.15 8.26 6.68C2.04 10.27 1.48 20.93 7 30.5C10.63 36.79 15.99 41.04 21 42.19" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M18.26 17.5C12.74 27.07 13.3 37.73 19.52 41.32C25.73 44.91 35.25 40.07 40.77 30.5C46.3 20.93 45.73 10.27 39.52 6.68C33.3 3.09 23.78 7.93 18.26 17.5Z" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
     </g>
   </svg>
 );
@@ -1444,15 +1459,10 @@ function MatchmakerTab(){
           </div>
 
           <div className="mm-actions">
-            <button className="mm-action-btn mm-btn-reject" onClick={reject} title="Reject">✕</button>
-            <button className="mm-action-btn mm-btn-accept" onClick={accept} title="Accept">♥</button>
+            <button className="mm-action-btn mm-btn-reject" onClick={reject} title="Reject"><IconReject/></button>
+            <button className="mm-action-btn mm-btn-accept" onClick={accept} title="Accept"><IconHeart/></button>
           </div>
 
-          <div className="mm-keys-hint">
-            <span><kbd>←</kbd> reject</span>
-            <span><kbd>→</kbd> accept</span>
-            <span><kbd>O</kbd> open link</span>
-          </div>
         </>
       ) : !exitDir ? (
         <div className="empty-state" style={{paddingTop:60}}>
@@ -1473,7 +1483,7 @@ function MatchmakerTab(){
               {reviewed.map(s=>(
                 <div key={s.id} className="mm-history-row">
                   <Badge v={s.pipeline_decision} arr={[
-                    {v:'accepted',label:'Accepted',cls:'b-green'},
+                    {v:'accepted',label:'In Pipeline',cls:'b-green'},
                     {v:'rejected',label:'Rejected',cls:'b-red'},
                   ]}/>
                   <span className="h-firm">{firmName(s.firm_id)}</span>
@@ -1592,17 +1602,17 @@ function Dashboard({db:dbInstance}){
           <div className="sidebar-top"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="var(--accent)"/></svg></div>
           <div className="sidebar-nav">
             {tabs.map(({k,label,Icon})=>(
-              <div key={k} className={`sidebar-item ${tab===k?'active':''}`} onClick={()=>setTab(k)}>
-                <Icon/><span className="sidebar-label">{label}</span>
+              <div key={k} data-k={k} className={`sidebar-item ${tab===k?'active':''}`} onClick={()=>setTab(k)}>
+                <span className="sidebar-icon-slot"><Icon/></span><span className="sidebar-label">{label}</span>
               </div>
             ))}
           </div>
           <div className="sidebar-bottom">
-            <div className="sidebar-item" onClick={logout}><IconLogout/><span className="sidebar-label">Logout</span></div>
+            <div className="sidebar-item" onClick={logout}><span className="sidebar-icon-slot"><IconLogout/></span><span className="sidebar-label">Logout</span></div>
           </div>
         </div>
         <div className="main-area">
-          <div className={`topbar${tab==='universe'?' no-bdr':''}`}><h1>{{todo:'Todo',universe:'Universe',pipeline:'Pipeline',matchmaker:'Matchmaker'}[tab]}</h1><div className="topbar-r"><button className="btn-icon" onClick={()=>setShowHelp(true)} title="Keyboard shortcuts (?)">⌨</button></div></div>
+          <div className={`topbar${tab==='universe'?' no-bdr':''}`}><h1>{({todo:'Todo',universe:'Universe',pipeline:'Pipeline',matchmaker:'Matchmaker'})[tab]}</h1><div className="topbar-r"><button className="btn-icon" onClick={()=>setShowHelp(true)} title="Keyboard shortcuts (?)">⌨</button></div></div>
           <div className="tab-content">
             {tab==='todo'&&<TodoTab/>}
             {tab==='universe'&&<UniverseTab/>}

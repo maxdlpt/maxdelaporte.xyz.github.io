@@ -115,12 +115,13 @@
     .tab-content { flex:1; overflow:auto; }
 
     /* ── Overview ── */
-    .overview { display:flex; gap:16px; padding:20px; overflow-x:auto; min-height:0; align-items:flex-start; }
-    .overview::-webkit-scrollbar { height:8px; }
+    .overview { display:flex; gap:16px; padding:20px; overflow-y:auto; align-items:flex-start; }
+    .overview::-webkit-scrollbar { width:6px; }
     .overview::-webkit-scrollbar-track { background:var(--bg); }
     .overview::-webkit-scrollbar-thumb { background:var(--bdr2); border-radius:4px; }
+    .overview-col { flex:1; display:flex; flex-direction:column; gap:16px; min-width:0; }
 
-    .firm-col { min-width:300px; max-width:300px; background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); flex-shrink:0; cursor:grab; transition:transform .35s, opacity .35s, border-color .28s, box-shadow .28s; animation:fadeIn .5s ease-out; }
+    .firm-col { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); cursor:grab; transition:transform .35s, opacity .35s, border-color .28s, box-shadow .28s; animation:fadeIn .5s ease-out; }
     .firm-col:hover { border-color:rgba(129,211,26,.4); box-shadow:var(--sh-sm); }
     .firm-col.dragging { opacity:.4; cursor:grabbing; transform:scale(.97); }
     .firm-col.drag-over { border-color:var(--accent); box-shadow:0 0 16px rgba(129,211,26,.2); }
@@ -133,6 +134,8 @@
     .firm-col:hover .fc-actions { opacity:1; }
 
     .fc-section { border-top:1px solid var(--bdr); }
+    .fc-section.fc-tasks { border-top:1px solid var(--bdr); border-left:3px solid var(--accent); background:rgba(129,211,26,.04); }
+    .fc-task-badge { display:inline-flex; align-items:center; justify-content:center; background:var(--accent); color:#000; font-size:10px; font-weight:800; min-width:18px; height:18px; padding:0 5px; border-radius:var(--r-pill); line-height:1; }
     .fc-section-head { padding:8px 16px; font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:600; display:flex; align-items:center; justify-content:space-between; }
     .fc-item { padding:6px 16px; font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; transition:background .1s; display:flex; align-items:center; gap:6px; }
     .fc-item:hover { background:rgba(255,255,255,.03); color:var(--text); }
@@ -375,7 +378,6 @@
       .sidebar { width:50px; }
       .sidebar:hover { width:160px; }
       .overview { padding:12px; gap:12px; }
-      .firm-col, .add-firm-col { min-width:260px; max-width:260px; }
       .pipeline { padding:12px; gap:8px; overflow-x:auto; }
       .pl-col { min-width:180px; flex:none; }
       .itv-group { flex:none; }
@@ -597,6 +599,16 @@ function OverviewTab(){
     return [...withTodos,...withoutTodos];
   },[firms,todos]);
   const dragRef = useRef(null);
+  const containerRef = useRef(null);
+  const [colCount, setColCount] = useState(3);
+
+  useEffect(()=>{
+    const el = containerRef.current; if(!el) return;
+    const update = ()=>setColCount(Math.max(1, Math.floor((el.offsetWidth - 40) / 316)));
+    update();
+    const ro = new ResizeObserver(update); ro.observe(el);
+    return ()=>ro.disconnect();
+  }, []);
 
   function onDragStart(e,i){dragRef.current=i;e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
   function onDragEnd(e){e.currentTarget.classList.remove('dragging');dragRef.current=null;}
@@ -613,51 +625,61 @@ function OverviewTab(){
   function firmContacts(fid){return contacts.filter(c=>c.firm_id===fid);}
   function firmOpps(fid){return opps.filter(o=>o.firm_id===fid);}
 
-  return(
-    <div className="overview">
-      {sorted.map((f,i)=>{
-        const fTodos=todos.filter(t=>t.firm_id===f.id&&!t.done).sort((a,b)=>a.priority-b.priority);
-        return(
-        <div key={f.id} className="firm-col" draggable onDragStart={e=>onDragStart(e,i)} onDragEnd={onDragEnd} onDragOver={e=>onDragOver(e,i)} onDragLeave={onDragLeave} onDrop={e=>onDrop(e,i)}>
-          <div className="fc-head">
-            <div className="fc-name">
-              {f.name}
-              <div className="fc-actions">
-                <button className="btn-icon" onClick={()=>setModal({type:'edit-firm',data:f})}>✎</button>
-                <button className="btn-icon" style={{color:'var(--danger)'}} onClick={()=>setModal({type:'del-firm',data:f})}>✕</button>
-              </div>
-            </div>
-            <div className="fc-meta">
-              {f.type&&<span className="tag">{f.type}</span>}
+  const columns = Array.from({length:colCount}, ()=>[]);
+  sorted.forEach((f,i)=>columns[i%colCount].push({f,i}));
+
+  function renderCard(f,i){
+    const fTodos=todos.filter(t=>t.firm_id===f.id&&!t.done).sort((a,b)=>a.priority-b.priority);
+    return(
+      <div key={f.id} className="firm-col" draggable onDragStart={e=>onDragStart(e,i)} onDragEnd={onDragEnd} onDragOver={e=>onDragOver(e,i)} onDragLeave={onDragLeave} onDrop={e=>onDrop(e,i)}>
+        <div className="fc-head">
+          <div className="fc-name">
+            {f.name}
+            <div className="fc-actions">
+              <button className="btn-icon" onClick={()=>setModal({type:'edit-firm',data:f})}>✎</button>
+              <button className="btn-icon" style={{color:'var(--danger)'}} onClick={()=>setModal({type:'del-firm',data:f})}>✕</button>
             </div>
           </div>
-          {fTodos.length>0?(
-            <div className="fc-section">
-              <div className="fc-section-head"><span>Tasks ({fTodos.length})</span></div>
-              {fTodos.slice(0,3).map(t=>(
-                <div key={t.id} className="firm-todo-item" onClick={e=>{e.stopPropagation();setTab('todo');}}>
-                  <span className="todo-dot"/><span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis'}}>{t.title}</span>
-                </div>
-              ))}
-              {fTodos.length>3&&<div className="firm-todo-item" style={{color:'var(--accent)',fontStyle:'italic'}} onClick={e=>{e.stopPropagation();setTab('todo');}}>+{fTodos.length-3} more</div>}
-            </div>
-          ):f.next_steps?<div className="fc-next">⚡ {f.next_steps}</div>:null}
-          <div className="fc-section">
-            <div className="fc-section-head"><span>Contacts ({firmContacts(f.id).length})</span><button className="btn btn-sm btn-s" onClick={()=>setModal({type:'add-contact',firmId:f.id})}>+</button></div>
-            {firmContacts(f.id).length?firmContacts(f.id).map(c=>(
-              <div key={c.id} className="fc-item" onClick={()=>setModal({type:'edit-contact',data:c})}><Badge v={c.status} arr={C_ST}/><span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis'}}>{c.name}{c.role?' · '+c.role:''}</span></div>
-            )):<div className="fc-empty">No contacts</div>}
-          </div>
-          <div className="fc-section">
-            <div className="fc-section-head"><span>Opportunities ({firmOpps(f.id).length})</span><button className="btn btn-sm btn-s" onClick={()=>setModal({type:'add-opp',firmId:f.id})}>+</button></div>
-            {firmOpps(f.id).length?firmOpps(f.id).map(o=>(
-              <div key={o.id} className="fc-item" onClick={()=>setModal({type:'edit-opp',data:o})}><Badge v={o.stage} arr={STAGES}/><span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis'}}>{o.role}</span></div>
-            )):<div className="fc-empty">No opportunities</div>}
+          <div className="fc-meta">
+            {f.type&&<span className="tag">{f.type}</span>}
           </div>
         </div>
-        );
-      })}
-      <div className="add-firm-col" onClick={()=>setModal({type:'add-firm'})}>+ Add Firm</div>
+        {fTodos.length>0?(
+          <div className="fc-section fc-tasks">
+            <div className="fc-section-head"><span>Tasks</span><span className="fc-task-badge">{fTodos.length}</span></div>
+            {fTodos.slice(0,3).map(t=>(
+              <div key={t.id} className="firm-todo-item" onClick={e=>{e.stopPropagation();setTab('todo');}}>
+                <span className="todo-dot"/><span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis'}}>{t.title}</span>
+              </div>
+            ))}
+            {fTodos.length>3&&<div className="firm-todo-item" style={{color:'var(--accent)',fontStyle:'italic'}} onClick={e=>{e.stopPropagation();setTab('todo');}}>+{fTodos.length-3} more</div>}
+          </div>
+        ):f.next_steps?<div className="fc-next">⚡ {f.next_steps}</div>:null}
+        <div className="fc-section">
+          <div className="fc-section-head"><span>Contacts ({firmContacts(f.id).length})</span><button className="btn btn-sm btn-s" onClick={()=>setModal({type:'add-contact',firmId:f.id})}>+</button></div>
+          {firmContacts(f.id).length?firmContacts(f.id).map(c=>(
+            <div key={c.id} className="fc-item" onClick={()=>setModal({type:'edit-contact',data:c})}><Badge v={c.status} arr={C_ST}/><span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis'}}>{c.name}{c.role?' · '+c.role:''}</span></div>
+          )):<div className="fc-empty">No contacts</div>}
+        </div>
+        <div className="fc-section">
+          <div className="fc-section-head"><span>Opportunities ({firmOpps(f.id).length})</span><button className="btn btn-sm btn-s" onClick={()=>setModal({type:'add-opp',firmId:f.id})}>+</button></div>
+          {firmOpps(f.id).length?firmOpps(f.id).map(o=>(
+            <div key={o.id} className="fc-item" onClick={()=>setModal({type:'edit-opp',data:o})}><Badge v={o.stage} arr={STAGES}/><span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis'}}>{o.role}</span></div>
+          )):<div className="fc-empty">No opportunities</div>}
+        </div>
+      </div>
+    );
+  }
+
+  return(
+    <div ref={containerRef} className="overview">
+      {columns.map((col,ci)=>(
+        <div key={ci} className="overview-col">
+          {col.map(({f,i})=>renderCard(f,i))}
+          {ci===columns.length-1&&<div className="add-firm-col" onClick={()=>setModal({type:'add-firm'})}>+ Add Firm</div>}
+        </div>
+      ))}
+      {sorted.length===0&&<div className="add-firm-col" onClick={()=>setModal({type:'add-firm'})}>+ Add Firm</div>}
     </div>
   );
 }

@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio Allocation Model · Maximilien Delaporte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.getElementById('technical'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+  <style>
+    :root {
+      --bg:         #07101e;
+      --surface:    #0d1a2d;
+      --surface-2:  #122136;
+      --border:     #1a2e45;
+      --border-2:   #243d58;
+      --accent:     #3b82f6;
+      --accent-dim: rgba(59,130,246,0.12);
+      --green:      #10b981;
+      --amber:      #f59e0b;
+      --red:        #ef4444;
+      --text:       #e2e8f0;
+      --text-dim:   #94a3b8;
+      --text-muted: #4d6480;
+      --font:       'Inter', system-ui, -apple-system, sans-serif;
+      --mono:       'JetBrains Mono', 'Fira Code', monospace;
+      --radius:     10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── NAV ─────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(7,16,30,0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1120px; margin: 0 auto;
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 54px;
+    }
+    .nav-brand {
+      font-size: 12px; font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      font-size: 12px; color: var(--text-muted);
+      text-decoration: none;
+      transition: color .18s;
+    }
+    .nav-links a:hover { color: var(--text-dim); }
+    .nav-links a.active { color: var(--text); }
+
+    /* ─── CONTAINER ───────────────────────────────────── */
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 2rem; }
+
+    /* ─── HERO ────────────────────────────────────────── */
+    #hero {
+      padding: 7rem 2rem 5.5rem;
+      position: relative; overflow: hidden;
+    }
+    #hero::before {
+      content: '';
+      position: absolute; top: -280px; left: -180px;
+      width: 640px; height: 640px;
+      background: radial-gradient(circle, rgba(59,130,246,0.07) 0%, transparent 68%);
+      pointer-events: none;
+    }
+    #hero::after {
+      content: '';
+      position: absolute; bottom: -100px; right: -100px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-inner { max-width: 1120px; margin: 0 auto; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(59,130,246,0.22);
+      color: #60a5fa;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 4px 14px; border-radius: 100px;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: clamp(2.6rem, 5.5vw, 3.75rem);
+      font-weight: 700; line-height: 1.06;
+      letter-spacing: -0.025em;
+      color: #f0f6ff;
+      margin-bottom: 1.25rem;
+    }
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--text-dim);
+      max-width: 560px;
+      line-height: 1.75;
+      margin-bottom: 3rem;
+    }
+    .hero-stats {
+      display: flex; flex-wrap: wrap;
+      gap: 0; align-items: stretch;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      width: fit-content;
+      overflow: hidden;
+    }
+    .stat-item {
+      padding: 1.1rem 1.75rem;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-val {
+      font-size: 1.6rem; font-weight: 700;
+      color: #f0f6ff; line-height: 1; margin-bottom: 4px;
+    }
+    .stat-val span { color: var(--accent); }
+    .stat-lbl {
+      font-size: 10px; font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    /* ─── SECTION ─────────────────────────────────────── */
+    section { padding: 5.5rem 2rem; }
+    section:not(#hero) { border-top: 1px solid var(--border); }
+    .section-label {
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    h2 {
+      font-size: clamp(1.55rem, 3vw, 2.1rem);
+      font-weight: 700; line-height: 1.15;
+      letter-spacing: -0.018em; color: #f0f6ff;
+      margin-bottom: 0.9rem;
+    }
+    h3 { font-size: 1rem; font-weight: 600; color: #f0f6ff; margin-bottom: 0.45rem; }
+    p   { color: var(--text-dim); line-height: 1.75; }
+
+    /* ─── METHODS ─────────────────────────────────────── */
+    .methods-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem; margin-top: 2.5rem;
+    }
+    .method-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+      transition: border-color .2s, transform .2s;
+    }
+    .method-card:hover {
+      border-color: var(--border-2);
+      transform: translateY(-2px);
+    }
+    .method-badge {
+      display: inline-block;
+      background: var(--accent-dim);
+      color: #60a5fa;
+      font-family: var(--mono);
+      font-size: 10.5px; font-weight: 600;
+      padding: 3px 10px; border-radius: 6px;
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.04em;
+    }
+    .method-card p { font-size: 12.5px; color: var(--text-muted); margin-top: 0.35rem; }
+
+    /* ─── WORKFLOW ────────────────────────────────────── */
+    .workflow-steps { display: flex; flex-direction: column; gap: 5rem; margin-top: 3.5rem; }
+    .step {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 4rem; align-items: center;
+    }
+    .step:nth-child(even) .step-content { order: 2; }
+    .step:nth-child(even) .step-visual  { order: 1; }
+
+    .step-num {
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 0.5rem;
+    }
+    .step-content p { font-size: 13.5px; margin-top: 0.7rem; }
+    .step-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 1.1rem; }
+    .tag {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      padding: 3px 10px; border-radius: 6px;
+    }
+
+    /* ─── SCREENSHOT SLOTS ────────────────────────────── */
+    /*
+      HOW TO ADD YOUR SCREENSHOTS:
+      Replace each <div class="screenshot-slot" id="screenshot-N"> block
+      with: <img src="your-screenshot.png" alt="..." style="width:100%;border-radius:10px;display:block;">
+    */
+    .screenshot-slot {
+      background: var(--surface);
+      border: 1.5px dashed var(--border-2);
+      border-radius: var(--radius);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 0.6rem;
+      padding: 3.5rem 2rem;
+      min-height: 300px;
+      text-align: center;
+      aspect-ratio: 16/10;
+    }
+    .slot-icon { font-size: 2rem; opacity: 0.2; line-height: 1; }
+    .slot-title {
+      font-size: 11px; font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .slot-hint { font-size: 11px; color: var(--text-muted); opacity: 0.55; }
+
+
+    /* ─── MATH SECTION ───────────────────────────────── */
+    .math-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1.25rem; margin-top: 2.5rem;
+    }
+    .math-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.6rem;
+    }
+    .math-card h3 { font-size: 13.5px; font-weight: 600; color: #f0f6ff; margin-bottom: 0.35rem; }
+    .math-card .math-sub { font-size: 12px; color: var(--accent); margin-bottom: 1rem; font-weight: 500; }
+    .math-card p { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+    .math-card p + p { margin-top: 0.7rem; }
+    .eq-block {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem 1.25rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+    .eq-block .katex { color: #c7d9f0; font-size: 1.05em; }
+    .eq-block .katex-display { margin: 0; }
+    .param-list { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .param-item { display: flex; gap: 0.75rem; align-items: baseline; }
+    .param-sym {
+      font-family: var(--mono); font-size: 11.5px;
+      color: #60a5fa; min-width: 48px;
+      flex-shrink: 0;
+    }
+    .param-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+
+    /* ─── DOWNLOAD ────────────────────────────────────── */
+    #download { text-align: center; }
+    .dl-card {
+      max-width: 500px; margin: 2.5rem auto 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 2.5rem;
+    }
+    .dl-card p { font-size: 13.5px; margin: 0.7rem 0 2rem; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13.5px; font-weight: 600;
+      padding: 0.75rem 1.75rem;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background .18s, transform .15s;
+    }
+    .btn-primary { cursor: pointer; border: none; }
+    .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+    .btn-primary:disabled { background: #1e3a6e; cursor: default; transform: none; opacity: 0.7; }
+    .dl-note { font-size: 11.5px; color: var(--text-muted); margin-top: 1rem; }
+
+    /* ─── FOOTER ──────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.75rem 2rem;
+      text-align: center;
+    }
+    footer p { font-size: 11.5px; color: var(--text-muted); }
+
+    /* ─── RESPONSIVE ──────────────────────────────────── */
+    @media (max-width: 900px) {
+      .methods-grid { grid-template-columns: repeat(2, 1fr); }
+      .math-grid    { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 720px) {
+      .step { grid-template-columns: 1fr; gap: 2rem; }
+      .step:nth-child(even) .step-content { order: 1; }
+      .step:nth-child(even) .step-visual  { order: 2; }
+      .nav-links    { display: none; }
+      .hero-stats   { flex-direction: column; width: auto; }
+      .stat-item    { border-right: none; border-bottom: 1px solid var(--border); }
+      .stat-item:last-child { border-bottom: none; }
+    }
+    @media (max-width: 480px) {
+      .methods-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="#">Portfolio Allocation Model</a>
+    <ul class="nav-links">
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#workflow">How It Works</a></li>
+      <li><a href="#technical">The Math</a></li>
+      <li><a href="#download">Download</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section id="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">▸&nbsp; Personal Project</div>
+    <h1>Portfolio<br>Allocation Model</h1>
+    <p class="hero-sub">
+      A self-directed attempt to understand how allocators think about risk -
+      built from scratch in Excel, VBA, and Python to explore four portfolio
+      construction methodologies and the mechanics behind them.
+    </p>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-val">30</div>
+        <div class="stat-lbl">Max Assets</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">4</div>
+        <div class="stat-lbl">Methods</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">GJR<span>-GARCH</span></div>
+        <div class="stat-lbl">Vol Model</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">3<span>yr</span></div>
+        <div class="stat-lbl">Price History</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ OVERVIEW ═══════════ -->
+<section id="overview">
+  <div class="container">
+    <p class="section-label">Overview</p>
+    <h2>Four ways to think<br>about risk</h2>
+    <p style="max-width:580px;">
+      The model dynamically adapts to any portfolio of up to 30 public equities
+      and computes optimal weights under four distinct allocation philosophies -
+      from naïve equal-weighting to fully optimised risk parity.
+    </p>
+    <div class="methods-grid">
+      <div class="method-card">
+        <span class="method-badge">EW</span>
+        <h3>Equal Weight</h3>
+        <p>Equal capital to every security. The simplest benchmark - no assumptions about risk or correlation.</p>
+      </div>
+      <div class="method-card">
+        <span class="method-badge">IV</span>
+        <h3>Inverse Volatility</h3>
+        <p>Weights inversely proportional to each asset's GARCH-estimated conditional volatility. Lower-risk names receive higher allocation.</p>
+      </div>
+      <div class="method-card">
+        <span class="method-badge">ERC</span>
+        <h3>Equal Risk Contribution</h3>
+        <p>True risk parity. Every asset contributes equally to total portfolio variance - requires full covariance matrix and Python optimisation.</p>
+      </div>
+      <div class="method-card">
+        <span class="method-badge">MinVol</span>
+        <h3>Minimum Volatility</h3>
+        <p>Minimises total portfolio variance subject to weight constraints. Naturally concentrates in the lowest-vol, least-correlated names.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ WORKFLOW ═══════════ -->
+<section id="workflow">
+  <div class="container">
+    <p class="section-label">Workflow</p>
+    <h2>Input to output<br>in four automated steps</h2>
+
+    <div class="workflow-steps">
+
+      <!-- STEP 1 -->
+      <div class="step">
+        <div class="step-content">
+          <p class="step-num">Step 01 - Security Entry</p>
+          <h3>Define the universe</h3>
+          <p>Enter Bloomberg tickers for up to 30 equities. The sheet uses BDP and BDH functions to auto-populate security names, live market capitalisations, and YTD performance in real time.</p>
+          <div class="step-tags">
+            <span class="tag">Bloomberg BDP / BDH</span>
+            <span class="tag">Live market data</span>
+            <span class="tag">Up to 30 assets</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          <!--
+            SCREENSHOT 1: Security Entry tab
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            Capture: The full Security Entry worksheet with all 30 tickers entered
+            and Bloomberg data populated (Security Name, Market Cap, YTD Perf columns).
+            Crop to the table area. Suggested width: ~1200px.
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            To replace: swap the <div> below for:
+            -->
+            <img src="screenshots\tab1.png" alt="Security Entry worksheet" style="width:100%;border-radius:10px;display:block;">
+
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step">
+        <div class="step-content">
+          <p class="step-num">Step 02 - Price Data</p>
+          <h3>Pull 3 years of history</h3>
+          <p>Bloomberg fetches daily closing prices for each security going back 750 trading days. Daily returns are calculated alongside - these are the raw inputs that feed every downstream calculation.</p>
+          <div class="step-tags">
+            <span class="tag">BDH historical data</span>
+            <span class="tag">~750 observations</span>
+            <span class="tag">Daily log returns</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          <!--
+            SCREENSHOT: PX Data tab
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            Capture: The PX Data worksheet showing the date column, a few tickers
+            with their price columns and daily return columns side by side.
+            Zoom in to show ~15 rows clearly so the structure is readable.
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            To replace: swap the <div> below for:
+            <img src="screenshot-px-data.png" alt="PX Data worksheet" style="width:100%;border-radius:10px;display:block;">
+          -->
+            <img src="screenshots\tab2.png" alt="PX Data worksheet" style="width:100%;border-radius:10px;display:block;">
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step">
+        <div class="step-content">
+          <p class="step-num">Step 03 - GARCH Volatility</p>
+          <h3>Estimate dynamic volatility</h3>
+          <p>A GJR-GARCH(1,1) model estimates conditional volatility for each security using 3 years of daily returns. Parameters α, β, and γ are optimised per asset by maximising the log-likelihood function via the Excel Solver.</p>
+          <div class="step-tags">
+            <span class="tag">GJR-GARCH(1,1)</span>
+            <span class="tag">Max log-likelihood</span>
+            <span class="tag">Per-asset calibration</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          <!--
+            SCREENSHOT 2: GARCH Vol tab
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            Capture: The GARCH Vol worksheet, zoomed into one security's block.
+            Show: the security header, the parameters block (α, β, γ, ω, Log-L,
+            current daily vol), and the top ~12 rows of the time-series table.
+            Suggested width: ~1200px.
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            To replace: swap the <div> below for:
+            <img src="screenshot-2-garch.png" alt="GARCH volatility worksheet" style="width:100%;border-radius:10px;display:block;">
+          -->
+          <img src="screenshots\tab3.png" alt="GARCH volatility worksheet" style="width:100%;border-radius:10px;display:block;">
+
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step">
+        <div class="step-content">
+          <p class="step-num">Step 04 - Matrix Construction</p>
+          <h3>Build the covariance structure</h3>
+          <p>Three matrices are computed: the correlation matrix, the variance-covariance matrix (Ω), and the Ω × Weights matrix. All are dynamically linked and update whenever the allocation method or underlying weights change.</p>
+          <div class="step-tags">
+            <span class="tag">Correlation matrix</span>
+            <span class="tag">Var-Covar (Ω)</span>
+            <span class="tag">Dynamic linking</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          <!--
+            SCREENSHOT 3: Matrixes tab
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            Capture: The Matrixes worksheet showing the correlation matrix.
+            If conditional formatting is applied, show the coloured heatmap view.
+            Crop to show at least 15×15 of the matrix with ticker labels.
+            Suggested width: ~1100px.
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            To replace: swap the <div> below for:
+            <img src="screenshot-3-matrices.png" alt="Correlation matrix worksheet" style="width:100%;border-radius:10px;display:block;">
+          -->
+            <img src="screenshots\tab4.png" alt="Matrixes worksheet" style="width:100%;border-radius:10px;display:block;">
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="step">
+        <div class="step-content">
+          <p class="step-num">Step 05 - Portfolio Output</p>
+          <h3>Optimised weights, instantly</h3>
+          <p>Select the desired method from the <em>DistMeth</em> dropdown. EW and IV weights recalculate instantly. ERC and MinVol trigger standalone Python solvers - bundled as compiled executables, so no Python install is needed on the recipient machine.</p>
+          <div class="step-tags">
+            <span class="tag">ERC_Solver.exe</span>
+            <span class="tag">MinVol_Solver.exe</span>
+            <span class="tag">VBA macro trigger</span>
+            <span class="tag">No Python required</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          <!--
+            SCREENSHOT 4: Portfolio tab
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            Capture: The Portfolio worksheet after running Python (ERC weights populated).
+            Show: all four weight columns (EW, IV, ERC, MinVol), the DistMeth dropdown
+            in the top-right, and the portfolio volatility metric.
+            Suggested width: ~1200px.
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            To replace: swap the <div> below for:
+            <img src="screenshot-4-portfolio.png" alt="Portfolio output worksheet" style="width:100%;border-radius:10px;display:block;">
+          -->
+            <img src="screenshots\tab5.png" alt="Portfolio output worksheet" style="width:100%;border-radius:10px;display:block;">
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ TECHNICAL ═══════════ -->
+<section id="technical">
+  <div class="container">
+    <p class="section-label">The Math</p>
+    <h2>Under the hood</h2>
+    <p style="max-width:580px;">
+      Two ideas sit at the core of the model: a time-varying estimate of each
+      asset's risk, and an allocation rule that does something sensible with it.
+    </p>
+    <div class="math-grid">
+
+      <!-- GARCH -->
+      <div class="math-card">
+        <h3>Volatility - GJR-GARCH(1,1)</h3>
+        <div class="math-sub">Why not just use a rolling standard deviation?</div>
+        <p>
+          Historical vol treats every past return equally. GARCH assumes
+          volatility is persistent - a big shock today makes tomorrow riskier -
+          and lets recent observations matter more. The GJR variant adds an
+          asymmetric term to capture the leverage effect: bad news (negative
+          returns) tends to spike vol more than equivalent good news.
+        </p>
+        <div class="eq-block">
+          $$\omega^2_t = \omega + \alpha\,\varepsilon^2_{t-1} + \beta\,\omega^2_{t-1} + \gamma\,\mathbf{1}_{t-1}\,\varepsilon^2_{t-1}$$
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:-0.4rem;margin-bottom:0.9rem;">
+          where $\mathbf{1}_{t-1} = 1$ if $\varepsilon_{t-1} < 0$ (leverage indicator)
+        </p>
+        <div class="param-list">
+          <div class="param-item">
+            <span class="param-sym">$\omega$</span>
+            <span class="param-desc">Long-run variance floor - keeps $\omega^2$ strictly positive</span>
+          </div>
+          <div class="param-item">
+            <span class="param-sym">$\alpha$</span>
+            <span class="param-desc">ARCH term - sensitivity of variance to last period's shock</span>
+          </div>
+          <div class="param-item">
+            <span class="param-sym">$\beta$</span>
+            <span class="param-desc">GARCH term - persistence of yesterday's variance estimate</span>
+          </div>
+          <div class="param-item">
+            <span class="param-sym">$\gamma$</span>
+            <span class="param-desc">Asymmetry term - extra weight on negative return shocks</span>
+          </div>
+        </div>
+        <p style="margin-top:1rem;">
+          $\alpha + \beta + \gamma/2 < 1$ is the stationarity condition. Parameters are
+          calibrated per asset by maximising the log-likelihood over 3 years
+          of daily returns using the Excel Solver.
+        </p>
+      </div>
+
+      <!-- Risk Parity -->
+      <div class="math-card">
+        <h3>Allocation - Risk Parity</h3>
+        <div class="math-sub">What does it mean to "equalise risk"?</div>
+        <p>
+          Portfolio volatility is not just a weighted average of individual vols -
+          it depends on how assets co-move. Given a weight vector $\mathbf{w}$
+          and variance-covariance matrix $\boldsymbol{\Omega}$, portfolio volatility is:
+        </p>
+        <div class="eq-block">
+          $$\omega_p = \sqrt{\mathbf{w}^\top \boldsymbol{\Omega}\,\mathbf{w}}$$
+        </div>
+        <p>
+          The risk contribution $\text{RC}_i$ of asset $i$ is its marginal contribution to
+          $\omega_p$, scaled by its weight:
+        </p>
+        <div class="eq-block">
+          $$\text{RC}_i = \frac{w_i \cdot (\boldsymbol{\Omega}\mathbf{w})_i}{\omega_p}$$
+        </div>
+        <p>
+          By Euler's theorem, $\sum_i \text{RC}_i = \omega_p$. The three
+          allocation methods each define a different target for these contributions:
+        </p>
+        <div class="param-list" style="margin-top:0.9rem;">
+          <div class="param-item">
+            <span class="param-sym">IV</span>
+            <span class="param-desc">$w_i \propto 1/\omega_i$ - ignores correlations, fast to compute</span>
+          </div>
+          <div class="param-item">
+            <span class="param-sym">ERC</span>
+            <span class="param-desc">$\text{RC}_i = \text{RC}_j \;\forall\, i,j$ - true risk parity, requires numerical optimisation</span>
+          </div>
+          <div class="param-item">
+            <span class="param-sym">MinVol</span>
+            <span class="param-desc">$\min_{\mathbf{w}}\;\mathbf{w}^\top\boldsymbol{\Omega}\mathbf{w}$ s.t. $\textstyle\sum w_i=1,\; w_i\geq 0$</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ DOWNLOAD ═══════════ -->
+<section id="download">
+  <div class="container">
+    <p class="section-label">Download</p>
+    <h2>Try the model</h2>
+    <div class="dl-card">
+      <h3>Full Package (.zip)</h3>
+      <p>Includes the Excel workbook, both solver executables, and a README. Requires Microsoft Excel with macros enabled and Bloomberg Terminal access for live data.</p>
+      <button class="btn-primary" id="dl-btn" onclick="buildZip()">
+        <svg id="dl-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span id="dl-label">Download (.zip)</span>
+      </button>
+      <p class="dl-note" id="dl-note">~160 MB · assembled in your browser on click</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Portfolio Allocation Model &middot; Maximilien Delaporte</p>
+</footer>
+
+<script>
+  // ── Files to bundle. Paths are relative to this page. ──────────────────
+  // Update these names if your filenames differ.
+  const FILES = [
+    { path: 'PORTFOLIO ALLOCATION MODEL.xlsm', name: 'PORTFOLIO ALLOCATION MODEL.xlsm' },
+    { path: 'ERC_Solver.exe',                  name: 'ERC_Solver.exe'                  },
+    { path: 'MinVol_Solver.exe',               name: 'MinVol_Solver.exe'               },
+    { path: 'README.md',                       name: 'README.md'                       },
+  ];
+
+  async function buildZip() {
+    const btn   = document.getElementById('dl-btn');
+    const label = document.getElementById('dl-label');
+    const note  = document.getElementById('dl-note');
+
+    btn.disabled = true;
+    label.textContent = 'Assembling…';
+    note.textContent  = 'Fetching files — this may take a moment on a slow connection.';
+
+    try {
+      const zip = new JSZip();
+      const folder = zip.folder('portfolio-allocation-model');
+
+      await Promise.all(FILES.map(async f => {
+        const res = await fetch(f.path);
+        if (!res.ok) throw new Error(`Could not fetch ${f.path} (${res.status})`);
+        folder.file(f.name, await res.arrayBuffer());
+      }));
+
+      label.textContent = 'Compressing…';
+      const blob = await zip.generateAsync(
+        { type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 1 } },
+        meta => { label.textContent = `Compressing… ${meta.percent.toFixed(0)}%`; }
+      );
+
+      // Trigger browser download
+      const url = URL.createObjectURL(blob);
+      Object.assign(document.createElement('a'), { href: url, download: 'portfolio-allocation-model.zip' }).click();
+      URL.revokeObjectURL(url);
+
+      label.textContent = 'Download (.zip)';
+      note.textContent  = '~150 MB · assembled in your browser from three files';
+    } catch (err) {
+      label.textContent = 'Download (.zip)';
+      note.textContent  = `Error: ${err.message}`;
+      console.error(err);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+</script>
+
+</body>
+</html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 

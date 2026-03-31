@@ -48,6 +48,22 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 const headerEl = document.querySelector('.header');
 const navToggle = document.querySelector('.nav-toggle');
 const navTogglePath = document.querySelector('.nav-toggle-icon path');
+const portfolioSection = document.querySelector('.portfolio');
+const footerSection = document.querySelector('.footer');
+
+const getViewportHeight = () => {
+    if (window.visualViewport && typeof window.visualViewport.height === 'number') {
+        return window.visualViewport.height;
+    }
+
+    return window.innerHeight;
+};
+
+const getRootPxVar = (variableName) => {
+    const rawValue = getComputedStyle(document.documentElement).getPropertyValue(variableName);
+    const parsedValue = Number.parseFloat(rawValue);
+    return Number.isFinite(parsedValue) ? parsedValue : 0;
+};
 
 const syncHeaderHeightVar = () => {
     const header = document.querySelector('.header');
@@ -56,21 +72,55 @@ const syncHeaderHeightVar = () => {
 };
 
 const syncSectionGapVar = () => {
-    const heroContent = document.querySelector('.hero-content');
-    const aboutSection = document.querySelector('.about');
-    if (!heroContent || !aboutSection) return;
+    if (!portfolioSection || !footerSection) return;
 
-    const heroContentBottom = heroContent.offsetTop + heroContent.offsetHeight;
-    const heroToAboutGap = Math.max(aboutSection.offsetTop - heroContentBottom, 0);
-    document.documentElement.style.setProperty('--section-gap', `${heroToAboutGap}px`);
+    const headerHeight = headerEl ? headerEl.offsetHeight : 0;
+    const availableHeight = Math.max(getViewportHeight() - headerHeight, 0);
+    const portfolioHeight = portfolioSection.offsetHeight;
+    const footerHeight = footerSection.offsetHeight;
+    const minSectionGap = getRootPxVar('--section-gap-min');
+    const portfolioBottomBias = getRootPxVar('--portfolio-bottom-bias');
+
+    // Keep the footer below the portfolio while letting the portfolio settle
+    // just above the visible center line, so the portfolio is dominant at
+    // page bottom while the footer still reads as the page ending.
+    const centeredGap = (availableHeight / 2) - footerHeight - (portfolioHeight / 2);
+    const bottomFocusedGap = centeredGap + (footerHeight / 2) + portfolioBottomBias;
+    const sectionGap = Math.max(Math.round(bottomFocusedGap), Math.round(minSectionGap));
+
+    document.documentElement.style.setProperty('--section-gap', `${sectionGap}px`);
 };
 
-syncHeaderHeightVar();
-syncSectionGapVar();
-window.addEventListener('load', syncHeaderHeightVar);
-window.addEventListener('load', syncSectionGapVar);
-window.addEventListener('resize', syncHeaderHeightVar);
-window.addEventListener('resize', syncSectionGapVar);
+let layoutSyncFrame = null;
+const requestLayoutSync = () => {
+    if (layoutSyncFrame !== null) {
+        cancelAnimationFrame(layoutSyncFrame);
+    }
+
+    layoutSyncFrame = requestAnimationFrame(() => {
+        layoutSyncFrame = null;
+        syncHeaderHeightVar();
+        syncSectionGapVar();
+    });
+};
+
+requestLayoutSync();
+window.addEventListener('load', requestLayoutSync);
+window.addEventListener('resize', requestLayoutSync);
+
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', requestLayoutSync);
+}
+
+if (typeof ResizeObserver !== 'undefined') {
+    const layoutObserver = new ResizeObserver(() => {
+        requestLayoutSync();
+    });
+
+    [headerEl, portfolioSection, footerSection].filter(Boolean).forEach((element) => {
+        layoutObserver.observe(element);
+    });
+}
 
 if (headerEl && navToggle && navTogglePath) {
     const closedPath = 'M5 9H13H19M5 15H19';
@@ -80,8 +130,7 @@ if (headerEl && navToggle && navTogglePath) {
         const isOpen = headerEl.classList.toggle('menu-open');
         navToggle.setAttribute('aria-expanded', String(isOpen));
         navTogglePath.setAttribute('d', isOpen ? openPath : closedPath);
-        syncHeaderHeightVar();
-        syncSectionGapVar();
+        requestLayoutSync();
     });
 
     window.addEventListener('resize', () => {
@@ -89,8 +138,7 @@ if (headerEl && navToggle && navTogglePath) {
             headerEl.classList.remove('menu-open');
             navToggle.setAttribute('aria-expanded', 'false');
             navTogglePath.setAttribute('d', closedPath);
-            syncHeaderHeightVar();
-            syncSectionGapVar();
+            requestLayoutSync();
         }
     });
 }
@@ -326,7 +374,10 @@ if (typeof Swiper !== "undefined" && document.querySelector(".mySwiper")) {
     });
 
     const refreshCardHeights = () => {
-        requestAnimationFrame(() => syncPortfolioCardHeights(swiper));
+        requestAnimationFrame(() => {
+            syncPortfolioCardHeights(swiper);
+            requestLayoutSync();
+        });
     };
 
     refreshCardHeights();
@@ -385,5 +436,3 @@ if (emailCopyBtn) {
         }
     });
 }
-
-

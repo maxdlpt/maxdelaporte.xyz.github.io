@@ -11,19 +11,31 @@
 :root {
     --header-height: 105px;
     --section-gap: 60px;
-    --footersection-gap: 60px 0 0 0;
+    --footersection-gap: 60px;
+
+    /* Palette */
+    --accent: #81D31A ;
+    --accent-hover: #a9ee54;
+    --accent-subtle: rgba(110, 227, 90, 0.12);
+    --surface: rgba(18, 18, 22, 0.55);
+    --surface-border: rgba(255, 255, 255, 0.10);
+    --text-primary: #f0f0f0;
+    --text-secondary: #a8a8b3;
+    --text-muted: #6e6e7a;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
     line-height: 1.6;
-    color: #161616;
+    color: var(--text-primary);
     background-image: url('../3_images/paysage1.JPG');
     background-attachment: fixed;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     padding-top: var(--header-height);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
@@ -35,9 +47,9 @@ body {
 a {
     display: inline-block;
     position: relative;
-    color: #81D31A;
+    color: var(--accent);
     text-decoration: none;
-    font-weight: bold;
+    font-weight: 600;
     transition: color 0.3s ease;
 }
 
@@ -53,7 +65,7 @@ a::after {
 }
 
 a:hover {
-    color: #FF5532;
+    color: #fff;
 }
 
 a:hover::after {
@@ -61,17 +73,13 @@ a:hover::after {
 }
 
 h2 {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: rgba(255, 255, 255, 0.452);
-    -webkit-text-fill-color: rgba(255, 255, 255, 0.6);
-    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.6);
-    text-shadow:
-        0 -1px 0 rgba(255, 255, 255, 0.3),
-        0 1px 1px rgba(255, 255, 255, 0.24),
-        0 0 10px rgba(255, 255, 255, 0.24),
-        0 0 22px rgba(255, 255, 255, 0.2);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #fff;
+    -webkit-text-fill-color: unset;
+    -webkit-text-stroke: unset;
+    text-shadow: none;
 }
 
 
@@ -81,11 +89,11 @@ h2 {
    ==================== */
 
 .header {
-    background-color: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    background-color: rgba(10, 10, 14, 0.75);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
     padding: 10px 0;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.6);
+    border-bottom: 1px solid var(--surface-border);
     position: fixed;
     top: 0;
     left: 0;
@@ -145,7 +153,7 @@ h2 {
 }
 
 .nav a:hover {
-    color: #81D31A;
+    color: var(--accent);
 }
 
 .nav-toggle {
@@ -194,26 +202,28 @@ h2 {
     text-align: center;
     width: min(800px, calc(100% - 100px));
     margin: 0 auto;
-    background-color: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background-color: var(--surface);
+    backdrop-filter: blur(24px) saturate(1.3);
+    -webkit-backdrop-filter: blur(24px) saturate(1.3);
     padding: 60px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    border: 1px solid var(--surface-border);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
 }
 
 .hero-text h2 {
-    font-size: 48px;
+    font-size: 44px;
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.15;
     margin-bottom: 20px;
     padding: 16px 24px;
+    letter-spacing: -0.03em;
 }
 
 .hero-text p {
     font-size: 16px;
     line-height: 1.8;
-    color: #ffffff;
+    color: var(--text-secondary);
     margin-bottom: 30px;
 }
 
@@ -222,21 +232,24 @@ h2 {
    ==================== */
 
 .cta-button {
-    background-color: #81D31A;
-    color: white;
-    padding: 15px 30px;
+    background-color: var(--accent);
+    color: #111;
+    padding: 14px 32px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     font-size: 12px;
     letter-spacing: 2px;
     text-transform: uppercase;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-    font-weight: 600;
+    transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(110, 227, 90, 0.25);
 }
 
 .cta-button:hover {
-    background-color: #FF5532;
+    background-color: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(110, 227, 90, 0.3);
 }
 
 .cv-link,
@@ -259,22 +272,23 @@ h2 {
    ==================== */
 
 .about {
-    padding: 40px 0;
-    background-color: #2a2a2a;
+    padding: 48px 0;
+    background-color: rgba(18, 18, 22, 0.85);
     text-align: center;
 }
 
 .about h2 {
-    font-size: 36px;
-    margin-bottom: 20px;
+    font-size: 32px;
+    margin-bottom: 16px;
     color: #fff;
 }
 
 .about p {
     font-size: 16px;
-    color: #fff;
+    color: var(--text-secondary);
     max-width: 600px;
     margin: 0 auto;
+    line-height: 1.7;
 }
 
 
@@ -284,12 +298,13 @@ h2 {
 
 .portfolio {
     padding: 80px 0;
-    background-color: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
+    background-color: var(--surface);
+    backdrop-filter: blur(24px) saturate(1.3);
+    -webkit-backdrop-filter: blur(24px) saturate(1.3);
+    border: 1px solid var(--surface-border);
+    border-radius: 16px;
     margin: var(--section-gap) 50px 0;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25);
 }
 
 .portfolio h2 {
@@ -370,13 +385,15 @@ h2 {
 }
 
 .swiper-slide {
-  background: white;
-  border-radius: 12px;
+  background: rgba(28, 28, 34);
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+  border: 1px solid var(--surface-border);
   display: flex;
   flex-direction: column;
   height: auto;
+  transition: box-shadow 0.3s ease;
 }
 
 .swiper-slide img {
@@ -388,18 +405,23 @@ h2 {
 }
 
 .swiper-slide h3 {
-  padding: 15px 15px 5px;
+  padding: 16px 18px 6px;
   font-size: 16px;
+  font-weight: 600;
+  color: #fff;
 }
 
 .swiper-slide p {
-  padding: 0 15px 15px;
+  padding: 0 18px 18px;
   font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
 }
 
 .project-card-link {
   color: inherit;
   text-decoration: none;
+  transition: transform 0.3s ease;
 }
 
 .project-card-link::after {
@@ -408,6 +430,7 @@ h2 {
 
 .project-card-link:hover {
   color: inherit;
+  transform: translateY(-4px);
 }
 
 .project-card-link p {
@@ -421,18 +444,20 @@ h2 {
   z-index: 5;
   width: var(--nav-btn-size);
   height: var(--nav-btn-size);
-  border: none;
+  border: 1px solid var(--surface-border);
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.9);
-  color: #2D4B09;
+  background-color: rgba(28, 28, 34, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #fff;
   font-size: 26px;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .portfolio-prev {
@@ -444,9 +469,10 @@ h2 {
 }
 
 .portfolio-nav:hover {
-  transform: translateY(calc(-50% - 1px));
-  background-color: #81D31A;
-  color: #fff;
+  transform: translateY(calc(-50% - 2px));
+  background-color: var(--accent);
+  color: #111;
+  border-color: var(--accent);
 }
 
 /* ==================== 
@@ -562,12 +588,12 @@ h2 {
    ==================== */
 
 .footer {
-    background-color: #2a2a2a;
-    color: white;
+    background-color: rgba(18, 18, 22, 0.85);
+    color: var(--text-secondary);
     text-align: center;
-    margin: var(--footersection-gap);
-    padding: 10px 0;
-    font-size: 14px;
+    margin: var(--footersection-gap) 0 0 0;
+    padding: 14px 0;
+    font-size: 13px;
 }
 
 .footer-content {
@@ -598,7 +624,7 @@ h2 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #81D31A;
+    color: var(--text-secondary);
     transition: all 0.3s ease;
     text-decoration: none;
 }
@@ -614,8 +640,8 @@ h2 {
 }
 
 .social-links-footer .social-link:hover svg {
-    color: #FF5532;
-    transform: scale(1.2);
+    color: var(--accent);
+    transform: scale(1.15);
 }
 .email-btn {
     background: none;

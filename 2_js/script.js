@@ -152,13 +152,75 @@ window.addEventListener('scroll', function () {
     });
 });
 
-// ==================== 
+// ====================
 // Page Load Animation
 // ====================
 
 window.addEventListener('load', function () {
     document.body.style.opacity = '1';
 });
+
+// ====================
+// GSAP Scroll Animations
+// ====================
+
+if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Hero content — fade up on load
+    gsap.from('.hero-content', {
+        opacity: 0,
+        y: 40,
+        duration: 1,
+        ease: 'power3.out',
+        delay: 0.2,
+    });
+
+    // About section — fade up on scroll
+    gsap.from('.about h2', {
+        scrollTrigger: { trigger: '.about', start: 'top 85%', toggleActions: 'play none none none' },
+        opacity: 0,
+        y: 30,
+        duration: 0.7,
+        ease: 'power2.out',
+    });
+
+    gsap.from('.about p', {
+        scrollTrigger: { trigger: '.about', start: 'top 80%', toggleActions: 'play none none none' },
+        opacity: 0,
+        y: 30,
+        duration: 0.7,
+        delay: 0.15,
+        ease: 'power2.out',
+    });
+
+    // Portfolio section — fade up heading, then carousel
+    gsap.from('.portfolio h2', {
+        scrollTrigger: { trigger: '.portfolio', start: 'top 85%', toggleActions: 'play none none none' },
+        opacity: 0,
+        y: 30,
+        duration: 0.7,
+        ease: 'power2.out',
+    });
+
+    gsap.from('.portfolio-carousel', {
+        scrollTrigger: { trigger: '.portfolio', start: 'top 75%', toggleActions: 'play none none none' },
+        opacity: 0,
+        y: 40,
+        duration: 0.8,
+        delay: 0.2,
+        ease: 'power2.out',
+    });
+
+    // Footer — subtle fade in
+    gsap.from('.footer-content', {
+        scrollTrigger: { trigger: '.footer', start: 'top 95%', toggleActions: 'play none none none' },
+        opacity: 0,
+        y: 20,
+        duration: 0.6,
+        ease: 'power2.out',
+    });
+}
 
 // ==================== 
 // Carousel Navigation

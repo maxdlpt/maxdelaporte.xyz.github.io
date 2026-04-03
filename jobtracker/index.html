@@ -2,9 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Job Search Tracker</title>
   <link rel="icon" href="/logo3.svg" type="image/svg+xml">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="JobTracker">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="theme-color" content="#1a1d27">
+  <!-- Splash screens -->
+  <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" href="icons/splash-1290x2796.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" href="icons/splash-1179x2556.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" href="icons/splash-1170x2532.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="icons/splash-750x1334.png">
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}</script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -34,9 +47,26 @@
       --col-red: #ef4444;
       --col-green: #10b981;
       --col-lgreen: #6ee7b7;
+      --accent-bg: rgba(129,211,26,.12);
+      --accent-bg2: rgba(129,211,26,.06);
+      --danger-bg: rgba(255,99,72,.15);
+      --danger-bg2: rgba(255,99,72,.08);
+      --sp-sm: 8px;
+      --sp-md: 16px;
+      --sp-lg: 24px;
+      --sp-xl: 40px;
+      --content-max: 700px;
+      --card-min: 300px;
     }
 
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.6; -webkit-touch-callout:none; padding-left:env(safe-area-inset-left); padding-right:env(safe-area-inset-right); }
+    html, body { overscroll-behavior:none; }
+    .field textarea, .field input { -webkit-touch-callout:default; }
+    .sidebar, .bottom-nav, .btn, .mm-card, .pl-card, .firm-col { -webkit-user-select:none; user-select:none; }
+    .truncate { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .flex-center { display:flex; align-items:center; }
+    :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+    button:focus-visible, .btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; box-shadow:0 0 0 4px rgba(129,211,26,.2); }
 
     @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
     @keyframes popIn { from { opacity:0; transform:scale(.95); } to { opacity:1; transform:scale(1); } }
@@ -72,26 +102,20 @@
     /* ── Buttons ── */
     .btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:var(--r); border:none; cursor:pointer; font-size:13px; font-weight:600; transition:all .15s; font-family:inherit; }
     .btn-p { background:var(--accent); color:#111; }
-    .btn-p:hover { background:var(--accent-h); box-shadow:0 4px 16px rgba(129,211,26,.3); }
     .btn-s { background:transparent; color:var(--muted); border:1px solid var(--bdr2); }
-    .btn-s:hover { color:var(--text); border-color:var(--muted); }
-    .btn-d { background:rgba(255,99,72,.15); color:var(--danger); border:1px solid rgba(255,99,72,.3); }
-    .btn-d:hover { background:rgba(255,99,72,.25); }
+    .btn-d { background:var(--danger-bg); color:var(--danger); border:1px solid rgba(255,99,72,.3); }
     .btn-sm { padding:6px 12px; font-size:12px; }
     .btn:disabled { opacity:.4; cursor:not-allowed; }
     .btn-icon { padding:6px; background:transparent; border:none; cursor:pointer; color:var(--muted); border-radius:var(--r); transition:all .15s; font-size:16px; line-height:1; }
-    .btn-icon:hover { color:var(--accent); background:rgba(129,211,26,.08); }
 
     /* ── Layout: Sidebar ── */
     .app { display:flex; height:100vh; }
     .sidebar { width:60px; background:var(--card); border-right:1px solid var(--bdr); display:flex; flex-direction:column; flex-shrink:0; overflow:hidden; transition:width .35s ease; z-index:10; }
-    .sidebar:hover { width:180px; }
     .sidebar-top { padding:14px 0 10px; display:flex; align-items:center; justify-content:center; }
     .sidebar-top svg { width:28px; height:28px; fill:var(--accent); flex-shrink:0; }
     .sidebar-nav { flex:1; display:flex; flex-direction:column; padding:8px 0; }
     .sidebar-item { display:flex; align-items:center; gap:12px; padding:12px 0; cursor:pointer; color:var(--muted); transition:all .15s; white-space:nowrap; box-shadow:inset 3px 0 0 transparent; }
     .sidebar-icon-slot { width:59px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-    .sidebar-item:hover { color:var(--text); background:rgba(255,255,255,.04); }
     .sidebar-item.active { color:var(--accent); background:rgba(129,211,26,.08); box-shadow:inset 3px 0 0 var(--accent); }
     .sidebar-item svg { width:22px; height:22px; flex-shrink:0; }
     .sidebar-item[data-k="matchmaker"] svg { width:28px; height:28px; }
@@ -105,7 +129,6 @@
     .sidebar-item:not(.active) svg circle[stroke] { stroke:var(--muted); fill:none; }
     .sidebar-item:not(.active) svg rect { fill:none; }
     .sidebar-label { font-size:13px; font-weight:600; opacity:0; transition:opacity .2s; white-space:nowrap; }
-    .sidebar:hover .sidebar-label { opacity:1; }
     .sidebar-bottom { border-top:1px solid var(--bdr); padding:8px 0; }
 
     .main-area { flex:1; display:flex; flex-direction:column; min-width:0; }
@@ -122,7 +145,6 @@
     .overview-col { flex:1; display:flex; flex-direction:column; gap:16px; min-width:0; }
 
     .firm-col { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); cursor:grab; transition:transform .35s, opacity .35s, border-color .28s, box-shadow .28s; animation:fadeIn .5s ease-out; }
-    .firm-col:hover { border-color:rgba(129,211,26,.4); box-shadow:var(--sh-sm); }
     .firm-col.dragging { opacity:.4; cursor:grabbing; transform:scale(.97); }
     .firm-col.drag-over { border-color:var(--accent); box-shadow:0 0 16px rgba(129,211,26,.2); }
 
@@ -131,18 +153,15 @@
     .fc-meta { display:flex; align-items:center; gap:6px; margin-top:6px; flex-wrap:wrap; }
     .fc-next { padding:0 16px 10px; font-size:12px; color:var(--warning); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .fc-actions { display:flex; gap:4px; margin-left:auto; opacity:0; transition:opacity .15s; }
-    .firm-col:hover .fc-actions { opacity:1; }
 
     .fc-section { border-top:1px solid var(--bdr); }
     .fc-section.fc-tasks { border-top:1px solid var(--bdr); border-left:3px solid var(--accent); background:rgba(129,211,26,.04); }
     .fc-task-badge { display:inline-flex; align-items:center; justify-content:center; background:var(--accent); color:#000; font-size:10px; font-weight:800; min-width:18px; height:18px; padding:0 5px; border-radius:var(--r-pill); line-height:1; }
     .fc-section-head { padding:8px 16px; font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:600; display:flex; align-items:center; justify-content:space-between; }
     .fc-item { padding:6px 16px; font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; transition:background .1s; display:flex; align-items:center; gap:6px; }
-    .fc-item:hover { background:rgba(255,255,255,.03); color:var(--text); }
     .fc-empty { padding:10px 16px; font-size:12px; color:var(--muted); font-style:italic; }
 
-    .add-firm-col { min-width:300px; max-width:300px; background:transparent; border:2px dashed var(--bdr2); border-radius:var(--r); display:flex; align-items:center; justify-content:center; min-height:200px; cursor:pointer; transition:all .15s; flex-shrink:0; color:var(--muted); font-size:14px; font-weight:600; }
-    .add-firm-col:hover { border-color:var(--accent); color:var(--accent); }
+    .add-firm-col { min-width:var(--card-min); max-width:var(--card-min); background:transparent; border:2px dashed var(--bdr2); border-radius:var(--r); display:flex; align-items:center; justify-content:center; min-height:200px; cursor:pointer; transition:all .15s; flex-shrink:0; color:var(--muted); font-size:14px; font-weight:600; }
 
     /* ── Pipeline ── */
     .pipeline { display:flex; gap:10px; padding:16px; min-height:0; align-items:stretch; }
@@ -162,7 +181,6 @@
     .pl-drop { min-height:120px; padding:8px; flex:1; display:flex; flex-direction:column; gap:6px; transition:padding-bottom .3s ease; }
     .pl-col.drag-over .pl-drop { padding-bottom:80px; }
     .pl-card { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); padding:10px 12px; cursor:grab; transition:transform .28s, opacity .28s, border-color .15s, box-shadow .15s; animation:slideIn .35s ease-out; }
-    .pl-card:hover { border-color:rgba(129,211,26,.4); transform:translateY(-1px); box-shadow:var(--sh-sm); }
     .pl-card.dragging { opacity:.4; cursor:grabbing; transform:scale(.95); }
     .pl-card-firm { font-size:12px; font-weight:700; color:var(--accent); margin-bottom:2px; }
     .pl-card-role { font-size:13px; font-weight:500; margin-bottom:2px; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
@@ -287,7 +305,6 @@
     /* ── Create form card ── */
     .create-card { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r); margin-bottom:24px; overflow:hidden; }
     .create-card-head { padding:14px 16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; transition:background .1s; user-select:none; color:var(--accent); }
-    .create-card-head:hover { background:rgba(129,211,26,.05); }
     .create-card-body { padding:16px; border-top:1px solid var(--bdr); }
 
     /* ── Matchmaker ── */
@@ -323,22 +340,18 @@
     .mm-score.low { background:rgba(107,114,128,.15); color:var(--col-neutral); }
 
     .mm-link-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:var(--bg); border:1px solid var(--bdr2); border-radius:var(--r); color:var(--accent); text-decoration:none; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; transition:all .15s; }
-    .mm-link-btn:hover { border-color:var(--accent); background:rgba(129,211,26,.06); }
 
     .mm-actions { display:flex; align-items:center; justify-content:center; gap:32px; }
     .mm-action-btn { width:64px; height:64px; border-radius:50%; border:2px solid; background:transparent; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .15s; font-size:24px; line-height:1; }
     .mm-btn-reject { border-color:var(--danger); color:var(--danger); }
     .mm-btn-reject svg { width:24px; height:24px; }
-    .mm-btn-reject:hover { background:rgba(255,99,72,.12); transform:scale(1.1); box-shadow:0 0 20px rgba(255,99,72,.25); }
     .mm-btn-accept { border-color:var(--accent); color:var(--accent); }
     .mm-btn-accept svg { width:28px; height:28px; }
-    .mm-btn-accept:hover { background:rgba(129,211,26,.12); transform:scale(1.1); box-shadow:0 0 20px rgba(129,211,26,.25); }
 
     .mm-keys-hint { display:flex; justify-content:center; gap:20px; margin-top:16px; font-size:11px; color:var(--muted); }
     .mm-keys-hint kbd { background:var(--bg2); border:1px solid var(--bdr2); border-radius:4px; padding:1px 6px; font-size:11px; font-weight:600; margin-right:3px; }
 
     .mm-history-toggle { margin-top:20px; background:transparent; border:none; cursor:pointer; font-family:inherit; font-size:13px; color:var(--muted); font-weight:500; transition:color .15s; }
-    .mm-history-toggle:hover { color:var(--text); }
     .mm-history { width:100%; max-width:400px; margin-top:10px; animation:fadeIn .2s ease-out; }
     .mm-history-row { display:flex; align-items:center; gap:10px; padding:8px 12px; border:1px solid var(--bdr); border-radius:var(--r); background:var(--card); margin-bottom:4px; font-size:12px; }
     .mm-history-row .h-title { flex:1; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -353,40 +366,184 @@
     /* ── Todo ── */
     .todo-page { padding:20px; max-width:700px; margin:0 auto; width:100%; }
     .task-row { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border:1px solid var(--bdr); border-radius:var(--r); background:var(--card); margin-bottom:6px; cursor:default; transition:border-color .15s, box-shadow .15s; animation:fadeIn .2s ease-out; position:relative; }
-    .task-row:hover { border-color:rgba(129,211,26,.3); box-shadow:var(--sh-sm); }
+    .task-row.reorderable { cursor:grab; }
+    .task-row.reorderable:active { cursor:grabbing; }
     .task-row.dragging { opacity:.4; }
     .task-row.drag-over { border-color:var(--accent); box-shadow:0 0 10px rgba(129,211,26,.2); }
     .task-row.done-row { opacity:.5; }
-    .task-drag-handle { color:var(--muted); cursor:grab; font-size:16px; padding:2px 0; flex-shrink:0; user-select:none; line-height:1.2; }
-    .task-drag-handle:active { cursor:grabbing; }
-    .task-checkbox { width:16px; height:16px; accent-color:var(--accent); cursor:pointer; flex-shrink:0; margin-top:3px; }
+    .task-checkbox {
+      appearance:none;
+      -webkit-appearance:none;
+      width:18px;
+      height:18px;
+      border:none;
+      border-radius:7px;
+      background:linear-gradient(180deg, rgba(22,26,35,.98), rgba(14,17,24,.98));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04), inset 0 0 0 1px rgba(176,179,186,.14), 0 1px 2px rgba(0,0,0,.22);
+      cursor:pointer;
+      align-self:center;
+      flex-shrink:0;
+      margin-top:0;
+      position:relative;
+      transition:background .15s, box-shadow .15s, transform .15s;
+    }
+    .task-checkbox::after {
+      content:'';
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:5px;
+      height:9px;
+      border-right:2px solid rgba(129,211,26,.95);
+      border-bottom:2px solid rgba(129,211,26,.95);
+      transform:translate(-50%,-58%) rotate(45deg) scale(.72);
+      opacity:0;
+      transition:opacity .15s, transform .15s;
+    }
+    .task-checkbox:checked {
+      background:linear-gradient(180deg, rgba(30,41,20,.98), rgba(20,28,14,.98));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03), inset 0 0 0 1px rgba(129,211,26,.34), 0 0 0 1px rgba(129,211,26,.08);
+    }
+    .task-checkbox:checked::after { opacity:1; transform:translate(-50%,-58%) rotate(45deg) scale(1); }
+    .task-checkbox:focus-visible {
+      outline:none;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04), inset 0 0 0 1px rgba(129,211,26,.4), 0 0 0 2px rgba(129,211,26,.18);
+    }
+    .task-checkbox:active { transform:scale(.94); }
     .task-main { flex:1; min-width:0; }
     .task-title { font-size:13px; font-weight:600; color:var(--text); }
     .task-row.done-row .task-title { text-decoration:line-through; color:var(--muted); }
     .task-meta { display:flex; align-items:center; gap:6px; margin-top:4px; flex-wrap:wrap; }
     .task-notes { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:300px; }
     .task-actions { display:flex; gap:4px; opacity:0; transition:opacity .15s; flex-shrink:0; }
-    .task-row:hover .task-actions { opacity:1; }
     .task-drop-indicator { height:2px; background:var(--accent); border-radius:2px; margin-bottom:4px; }
     .done-section-header { display:flex; align-items:center; gap:6px; padding:10px 0 6px; font-size:12px; color:var(--muted); font-weight:600; cursor:pointer; user-select:none; border-top:1px solid var(--bdr); margin-top:8px; }
-    .done-section-header:hover { color:var(--text); }
     .firm-todo-item { padding:5px 16px; font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; cursor:pointer; transition:background .1s; }
-    .firm-todo-item:hover { background:rgba(255,255,255,.03); color:var(--text); }
     .firm-todo-item .todo-dot { width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
 
+    /* ── Hover: only on devices that support it ── */
+    @media (hover: hover) {
+      .btn-p:hover { background:var(--accent-h); box-shadow:0 4px 16px rgba(129,211,26,.3); }
+      .btn-s:hover { color:var(--text); border-color:var(--muted); }
+      .btn-d:hover { background:rgba(255,99,72,.25); }
+      .btn-icon:hover { color:var(--accent); background:rgba(129,211,26,.08); }
+      .sidebar:hover { width:180px; }
+      .sidebar:hover .sidebar-label { opacity:1; }
+      .sidebar-item:hover { color:var(--text); background:rgba(255,255,255,.04); }
+      .firm-col:hover { border-color:rgba(129,211,26,.4); box-shadow:var(--sh-sm); }
+      .firm-col:hover .fc-actions { opacity:1; }
+      .fc-item:hover { background:rgba(255,255,255,.03); color:var(--text); }
+      .add-firm-col:hover { border-color:var(--accent); color:var(--accent); }
+      .pl-card:hover { border-color:rgba(129,211,26,.4); transform:translateY(-1px); box-shadow:var(--sh-sm); }
+      .task-row:hover { border-color:rgba(129,211,26,.3); box-shadow:var(--sh-sm); }
+      .task-checkbox:hover { box-shadow:inset 0 1px 0 rgba(255,255,255,.05), inset 0 0 0 1px rgba(176,179,186,.22), 0 0 0 1px rgba(129,211,26,.12); }
+      .task-row:hover .task-actions { opacity:1; }
+      .firm-todo-item:hover { background:rgba(255,255,255,.03); color:var(--text); }
+      .create-card-head:hover { background:var(--accent-bg2); }
+      .mm-link-btn:hover { border-color:var(--accent); background:var(--accent-bg2); }
+      .mm-btn-reject:hover { background:rgba(255,99,72,.12); transform:scale(1.1); box-shadow:0 0 20px rgba(255,99,72,.25); }
+      .mm-btn-accept:hover { background:var(--accent-bg); transform:scale(1.1); box-shadow:0 0 20px rgba(129,211,26,.25); }
+      .mm-history-toggle:hover { color:var(--text); }
+      .done-section-header:hover { color:var(--text); }
+    }
+
+    /* ── Touch: always show action buttons ── */
+    @media (hover: none) {
+      .fc-actions { opacity:1; }
+      .task-actions { opacity:1; }
+      .pl-card-actions { opacity:1; }
+    }
+
+    /* ── Active/pressed states for touch feedback ── */
+    .btn:active { transform:scale(0.97); opacity:0.8; }
+    .btn-icon:active { transform:scale(0.9); opacity:0.7; }
+    .sidebar-item:active, .bottom-nav-item:active { opacity:0.7; }
+    .task-row:active { background:var(--accent-bg2); }
+    .pl-card:active { transform:scale(0.98); }
+    .firm-col:active { transform:scale(0.99); }
+    .mm-action-btn:active { transform:scale(0.9); }
+
+    /* ── Bottom nav (mobile) ── */
+    .bottom-nav { display:none; }
+
+    /* ── Tab slide animation ── */
+    .tab-slide { animation: tabFadeIn .15s ease-out; }
+    @keyframes tabFadeIn { from { opacity:0; } to { opacity:1; } }
+
+    /* ── Pull-to-refresh indicator ── */
+    .pull-indicator { display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; overflow:hidden; transition:color .15s; }
+
+    /* ── Touch: task move buttons ── */
+    .task-move-btns { display:flex; flex-direction:column; gap:2px; }
+    .task-move-btns .btn-icon { padding:2px 6px; font-size:12px; min-width:unset; min-height:unset; }
+
+    /* ── Stage picker (touch pipeline) ── */
+    .stage-picker-grid { display:flex; flex-direction:column; gap:6px; }
+    .stage-picker-grid .btn { width:100%; justify-content:center; }
+
+    /* ── Tablet ── */
+    @media (max-width:1024px) {
+      .overview { padding:var(--sp-md); gap:12px; }
+      .mm-stack { max-width:360px; }
+    }
+
+    /* ── Mobile ── */
     @media (max-width:768px) {
-      .sidebar { width:50px; }
-      .sidebar:hover { width:160px; }
-      .overview { padding:12px; gap:12px; }
-      .pipeline { padding:12px; gap:8px; overflow-x:auto; }
-      .pl-col { min-width:180px; flex:none; }
+      .sidebar { display:none; }
+      .bottom-nav {
+        display:flex;
+        position:fixed;
+        bottom:0; left:0; right:0;
+        background:var(--card);
+        border-top:1px solid var(--bdr);
+        z-index:50;
+        padding-bottom:env(safe-area-inset-bottom);
+      }
+      .bottom-nav-item {
+        flex:1;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:2px;
+        padding:8px 0 6px;
+        color:var(--muted);
+        font-size:10px;
+        font-weight:600;
+        cursor:pointer;
+        transition:color .15s;
+        -webkit-tap-highlight-color:transparent;
+      }
+      .bottom-nav-item.active { color:var(--accent); }
+      .bottom-nav-item svg { width:22px; height:22px; }
+      .main-area { padding-bottom:64px; }
+      .topbar { padding-top:max(12px, env(safe-area-inset-top)); }
+      .overview { flex-direction:column; padding:12px; gap:12px; }
+      .overview-col { width:100%; }
+      .firm-col { max-width:100%; }
+      .add-firm-col { min-width:unset; max-width:100%; min-height:80px; }
+      .pipeline { overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:12px; gap:8px; }
+      .pl-col { min-width:85vw; scroll-snap-align:start; flex:none; }
       .itv-group { flex:none; }
       .itv-grid { flex-wrap:nowrap; }
-      .itv-grid .pl-col { min-width:160px; flex:none; }
+      .itv-grid .pl-col { min-width:75vw; flex:none; }
       .filter-bar { flex-direction:column; }
-      .contact-row {  grid-template-columns: minmax(132px,1.15fr) 128px minmax(0,1fr) minmax(0,1fr) 92px 56px; column-gap: 8px; }
+      .contact-row { grid-template-columns: minmax(132px,1.15fr) 128px minmax(0,1fr) minmax(0,1fr) 92px 56px; column-gap:8px; }
       .contact-col-links { width:92px; gap:3px; }
       .contact-col-actions { width:56px; gap:6px; }
+      .modal { max-width:100%; max-height:100%; height:100%; border-radius:0; animation:slideUp .3s ease-out; }
+      .modal-ov { align-items:flex-end; padding:0; }
+      @keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+      .btn { padding:12px 20px; min-height:44px; }
+      .btn-sm { padding:10px 14px; min-height:44px; }
+      .btn-icon { padding:10px; min-width:44px; min-height:44px; }
+      .combo-opt { padding:12px 14px; min-height:44px; }
+      .task-checkbox { width:20px; height:20px; }
+      input, select, textarea { font-size:16px !important; }
+      .task-title { font-size:15px; }
+      .pl-card-firm { font-size:13px; }
+      .pl-card-role { font-size:14px; }
+      .fc-item { font-size:13px; }
+      .field label { font-size:13px; }
     }
   </style>
 </head>
@@ -424,6 +581,123 @@ const ITV_STAGES = STAGES.filter(s=>s.group==='interview');
 const F_TYPES = ["Quant HF","Multi-strat HF","Macro HF","L/S Equity HF","Credit HF","PE","IB","Asset Manager","Other"];
 const si = (v,a) => a.find(s=>s.v===v)||a[0];
 const COLOR_MAP = {'c-neutral':'var(--col-neutral)','c-amber':'var(--col-amber)','c-lgreen':'var(--col-lgreen)','c-red':'var(--col-red)','c-green':'var(--col-green)'};
+
+/* ══════════════════ UTILITIES ══════════════════ */
+/* Detect touch devices for conditional UX (DnD vs tap-to-pick) */
+const isTouchDevice = () => 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+/* Map raw API errors to user-friendly messages */
+function friendlyError(msg) {
+  if (!msg) return 'Something went wrong. Please try again.';
+  if (msg.includes('duplicate key') || msg.includes('unique')) return 'That already exists.';
+  if (msg.includes('violates foreign key')) return 'Related record not found.';
+  if (msg.includes('JWT') || msg.includes('token')) return 'Session expired. Please log in again.';
+  if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) return 'Network error. Check your connection.';
+  return 'Something went wrong. Please try again.';
+}
+
+/* Validation helpers */
+function isValidEmail(s) { return !s || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
+function isValidUrl(s) { if (!s) return true; try { new URL(s); return true; } catch { return false; } }
+function isValidPhone(s) { return !s || /^[+\d\s\-()]{7,20}$/.test(s); }
+function isValidDate(s) { return !s || !isNaN(Date.parse(s)); }
+
+/* Retry wrapper with exponential backoff */
+async function fetchWithRetry(fn, retries = 2, delay = 1000) {
+  for (let i = 0; i <= retries; i++) {
+    try { return await fn(); }
+    catch(e) { if (i === retries) throw e; await new Promise(r => setTimeout(r, delay * (i + 1))); }
+  }
+}
+
+/* Wrap any DB operation with toast feedback + optional reload */
+async function dbOp(operation, successMsg, toast, reloadFn) {
+  try { const r = await operation(); toast(successMsg, 's'); if (reloadFn) reloadFn(); return r; }
+  catch(e) { toast(friendlyError(e.message), 'e'); }
+}
+
+/* ══════════════════ ERROR BOUNDARY ══════════════════ */
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(e) { return { error: e }; }
+  render() {
+    if (this.state.error) return (
+      React.createElement('div', { className: 'empty-state', style: { paddingTop: 60 } },
+        React.createElement('p', null, 'Something went wrong in this section.'),
+        React.createElement('button', { className: 'btn btn-s', onClick: () => this.setState({ error: null }), style: { marginTop: 12 } }, 'Try again')
+      )
+    );
+    return this.props.children;
+  }
+}
+
+/* ══════════════════ PULL-TO-REFRESH HOOK ══════════════════ */
+function usePullToRefresh(onRefresh) {
+  const [pulling, setPulling] = useState(false);
+  const [pullDist, setPullDist] = useState(0);
+  const startY = useRef(0);
+  const scrollEl = useRef(null);
+  const THRESHOLD = 80;
+
+  function onTouchStart(e) {
+    /* Only activate when scrolled to top */
+    const el = scrollEl.current || e.currentTarget;
+    if (el.scrollTop === 0) startY.current = e.touches[0].clientY;
+    else startY.current = 0;
+  }
+  function onTouchMove(e) {
+    if (!startY.current) return;
+    const dy = e.touches[0].clientY - startY.current;
+    if (dy > 0 && dy < 150) { setPullDist(dy); setPulling(dy > THRESHOLD); }
+  }
+  async function onTouchEnd() {
+    if (pulling) { await onRefresh(); }
+    setPullDist(0); setPulling(false); startY.current = 0;
+  }
+  return { onTouchStart, onTouchMove, onTouchEnd, pullDist, pulling, scrollEl };
+}
+
+/* ══════════════════ DRAG-REORDER HOOK ══════════════════ */
+/* Consolidates duplicated drag-and-drop logic used by OverviewTab, PipelineTab, TodoTab.
+   Returns a function that, given an index, produces draggable event handlers. */
+function useDragReorder(onReorder) {
+  const dragRef = useRef(null);
+  const handlers = (i) => ({
+    draggable: true,
+    onDragStart: (e) => { dragRef.current = i; e.currentTarget.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; },
+    onDragEnd: (e) => { e.currentTarget.classList.remove('dragging'); dragRef.current = null; },
+    onDragOver: (e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); },
+    onDragLeave: (e) => { e.currentTarget.classList.remove('drag-over'); },
+    onDrop: (e) => {
+      e.currentTarget.classList.remove('drag-over');
+      if (dragRef.current !== null && dragRef.current !== i) onReorder(dragRef.current, i);
+    },
+  });
+  return { handlers, dragRef };
+}
+
+/* ══════════════════ VIRTUAL LIST ══════════════════ */
+/* Simple windowed renderer for long lists — only renders visible rows.
+   Use when a list may exceed ~100 items (contacts, opportunities). */
+function VirtualList({ items, rowHeight, renderItem, style }) {
+  const [scrollTop, setScrollTop] = useState(0);
+  const containerRef = useRef(null);
+  const visibleCount = Math.ceil((containerRef.current?.clientHeight || 600) / rowHeight) + 2;
+  const startIdx = Math.floor(scrollTop / rowHeight);
+  const endIdx = Math.min(items.length, startIdx + visibleCount);
+  return (
+    <div ref={containerRef} onScroll={e => setScrollTop(e.target.scrollTop)}
+      style={{ overflow: 'auto', height: '100%', ...style }}>
+      <div style={{ height: items.length * rowHeight, position: 'relative' }}>
+        {items.slice(startIdx, endIdx).map((item, i) => (
+          <div key={startIdx + i} style={{ position: 'absolute', top: (startIdx + i) * rowHeight, width: '100%' }}>
+            {renderItem(item, startIdx + i)}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /* ══════════════════ SVG ICONS ══════════════════ */
 const IconOverview = () => <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M352.329143 79.286857c35.474286 0 64.146286 28.525714 64.146286 63.853714v190.902858a64 64 0 0 1-64.146286 63.853714H180.955429a63.926857 63.926857 0 0 1-64.073143-63.853714v-190.902858c0-35.254857 28.672-63.853714 64.073143-63.853714h171.373714z m0 510.244572c35.474286 0 64.146286 28.525714 64.146286 63.853714v190.902857a64 64 0 0 1-64.146286 63.853714H180.955429a63.926857 63.926857 0 0 1-64.073143-63.853714v-190.902857c0-35.328 28.672-63.853714 64.073143-63.853714h171.373714z m490.715428-510.244572c35.401143 0 64.073143 28.525714 64.073143 63.853714v190.902858a64 64 0 0 1-64.073143 63.853714H671.670857a63.926857 63.926857 0 0 1-64.146286-63.853714v-190.902858c0-35.254857 28.745143-63.853714 64.146286-63.853714h171.373714z m-669.988571 379.611429h187.172571c64.512 0 116.736-51.931429 116.736-116.077715v-208.457142A116.297143 116.297143 0 0 0 360.228571 18.285714H173.129143C108.617143 18.285714 56.32 70.217143 56.32 134.436571v208.384a116.297143 116.297143 0 0 0 116.736 116.077715z m0 510.244571h187.172571c64.512 0 116.736-51.931429 116.736-116.150857V644.608a116.297143 116.297143 0 0 0-116.736-116.077714H173.129143c-64.512 0-116.736 51.931429-116.736 116.077714v208.457143a116.297143 116.297143 0 0 0 116.736 116.077714z m490.788571-510.244571h187.026286c64.512 0 116.736-51.931429 116.736-116.077715v-208.457142A116.297143 116.297143 0 0 0 850.870857 18.285714H663.771429C599.259429 18.285714 547.108571 70.217143 547.108571 134.436571v208.384a116.297143 116.297143 0 0 0 116.736 116.077715z m178.980572 448.877714H663.698286c-38.619429 0-55.296-16.091429-55.296-54.784V644.608c0-38.546286 16.749714-55.369143 55.369143-55.369143h187.099428c38.765714 0 56.173714 16.749714 56.173714 55.296V853.138286c0 12.8 13.677714 27.501714 31.524572 27.501714s29.037714-14.701714 29.037714-27.501714V644.534857a116.297143 116.297143 0 0 0-116.736-116.004571H663.771429c-64.512 0-116.736 51.931429-116.736 116.077714v208.457143a116.297143 116.297143 0 0 0 116.662857 116.077714H850.285714c13.458286 0 30.72-10.971429 30.72-30.793143a30.72 30.72 0 0 0-30.134857-30.573714h-7.972571z"/></svg>;
@@ -502,14 +776,26 @@ function getDbConfig(){
   if(SUPABASE_URL&&SUPABASE_KEY)return{url:SUPABASE_URL,key:SUPABASE_KEY};
   try{return JSON.parse(localStorage.getItem('hfcrm_config')||'null');}catch{return null;}
 }
-function getAuth(){try{return JSON.parse(localStorage.getItem('hfcrm_auth')||'null');}catch{return null;}}
+function getAuth(){
+  try{
+    const auth=JSON.parse(localStorage.getItem('hfcrm_auth')||'null');
+    /* Expire sessions after 7 days of inactivity */
+    if(auth && Date.now()-auth.ts > 7*24*60*60*1000){
+      localStorage.removeItem('hfcrm_auth');
+      return null;
+    }
+    return auth;
+  }catch{return null;}
+}
 
-/* ══════════════════ CONTEXT ══════════════════ */
-const Ctx = createContext();
+/* ══════════════════ CONTEXTS (split for performance) ══════════════════ */
+const DataCtx = createContext();
+const UICtx = createContext();
+const NotifyCtx = createContext();
 
 /* ══════════════════ TOAST ══════════════════ */
 function ToastContainer(){
-  const {toasts} = useContext(Ctx);
+  const {toasts} = useContext(NotifyCtx);
   return <div className="toast-container">{toasts.map(t=><div key={t.id} className={`toast toast-${t.type} ${t.out?'out':''}`}>{t.msg}</div>)}</div>;
 }
 
@@ -518,11 +804,19 @@ function Badge({v,arr}){const info=si(v,arr);return <span className={`badge ${in
 
 /* ══════════════════ MODAL ══════════════════ */
 function Modal({title,onClose,onSave,saveLabel='Save',children,saving,danger}){
-  useEffect(()=>{const h=e=>{if(e.key==='Escape')onClose();};window.addEventListener('keydown',h);return()=>window.removeEventListener('keydown',h);},[onClose]);
+  const modalRef = useRef(null);
+  useEffect(()=>{
+    const h=e=>{if(e.key==='Escape')onClose();};
+    window.addEventListener('keydown',h);
+    /* Auto-focus first input inside modal for accessibility */
+    const first = modalRef.current?.querySelector('input, select, textarea');
+    if(first) setTimeout(()=>first.focus(), 50);
+    return()=>window.removeEventListener('keydown',h);
+  },[onClose]);
   return(
-    <div className="modal-ov" onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div className="modal">
-        <div className="modal-h"><h3>{title}</h3><button className="btn-icon" onClick={onClose}>✕</button></div>
+    <div className="modal-ov" onClick={e=>e.target===e.currentTarget&&onClose()} role="presentation">
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" ref={modalRef}>
+        <div className="modal-h"><h3 id="modal-title">{title}</h3><button className="btn-icon" onClick={onClose} aria-label="Close modal">✕</button></div>
         <div className="modal-b">{children}</div>
         <div className="modal-f">
           <button className="btn btn-s" onClick={onClose}>Cancel</button>
@@ -573,11 +867,12 @@ function CompanyCombo({value,onChange,firms,onCreateNew}){
 /* ══════════════════ FORMS ══════════════════ */
 function FirmForm({d,set}){
   const ch=(k,v)=>set({...d,[k]:v});
+  /* htmlFor + id bindings make labels clickable and accessible to screen readers */
   return(<>
-    <div className="field"><label>Firm Name</label><input value={d.name} onChange={e=>ch('name',e.target.value)} placeholder="e.g. Citadel"/></div>
-    <div className="field"><label>Type</label><select value={d.type} onChange={e=>ch('type',e.target.value)}><option value="">— select —</option>{F_TYPES.map(t=><option key={t}>{t}</option>)}</select></div>
-    <div className="field"><label>Next Steps</label><input value={d.next_steps} onChange={e=>ch('next_steps',e.target.value)} placeholder="Follow up with..."/></div>
-    <div className="field"><label>Notes</label><textarea value={d.notes} onChange={e=>ch('notes',e.target.value)} placeholder="Context..."/></div>
+    <div className="field"><label htmlFor="firm-name">Firm Name</label><input id="firm-name" value={d.name} onChange={e=>ch('name',e.target.value)} placeholder="e.g. Citadel"/></div>
+    <div className="field"><label htmlFor="firm-type">Type</label><select id="firm-type" value={d.type} onChange={e=>ch('type',e.target.value)}><option value="">— select —</option>{F_TYPES.map(t=><option key={t}>{t}</option>)}</select></div>
+    <div className="field"><label htmlFor="firm-next">Next Steps</label><input id="firm-next" value={d.next_steps} onChange={e=>ch('next_steps',e.target.value)} placeholder="Follow up with..."/></div>
+    <div className="field"><label htmlFor="firm-notes">Notes</label><textarea id="firm-notes" value={d.notes} onChange={e=>ch('notes',e.target.value)} placeholder="Context..."/></div>
   </>);
 }
 
@@ -585,14 +880,14 @@ function ContactFormFields({d,set,firms,onCreateFirm}){
   const ch=(k,v)=>set({...d,[k]:v});
   return(<>
     <CompanyCombo value={d.firm_id||''} onChange={v=>ch('firm_id',v)} firms={firms} onCreateNew={onCreateFirm}/>
-    <div className="field"><label>Name</label><input value={d.name} onChange={e=>ch('name',e.target.value)} placeholder="Full name"/></div>
-    <div className="field"><label>Role / Title</label><input value={d.role} onChange={e=>ch('role',e.target.value)} placeholder="VP, Investor Relations"/></div>
-    <div className="field"><label>Email</label><input value={d.email} onChange={e=>ch('email',e.target.value)} placeholder="name@firm.com"/></div>
-    <div className="field"><label>LinkedIn</label><input value={d.linkedin} onChange={e=>ch('linkedin',e.target.value)} placeholder="https://linkedin.com/in/..."/></div>
-    <div className="field"><label>Phone</label><input value={d.phone} onChange={e=>ch('phone',e.target.value)} placeholder="+1 ..."/></div>
-    <div className="field"><label>Status</label><select value={d.status} onChange={e=>ch('status',e.target.value)}>{C_ST.map(s=><option key={s.v} value={s.v}>{s.label}</option>)}</select></div>
-    <div className="field"><label>Notes</label><textarea value={d.notes} onChange={e=>ch('notes',e.target.value)} placeholder="Context..."/></div>
-    <div className="field"><label>Advice Given</label><textarea value={d.advice} onChange={e=>ch('advice',e.target.value)} placeholder="What did they tell you?"/></div>
+    <div className="field"><label htmlFor="ct-name">Name</label><input id="ct-name" value={d.name} onChange={e=>ch('name',e.target.value)} placeholder="Full name"/></div>
+    <div className="field"><label htmlFor="ct-role">Role / Title</label><input id="ct-role" value={d.role} onChange={e=>ch('role',e.target.value)} placeholder="VP, Investor Relations"/></div>
+    <div className="field"><label htmlFor="ct-email">Email</label><input id="ct-email" value={d.email} onChange={e=>ch('email',e.target.value)} placeholder="name@firm.com"/></div>
+    <div className="field"><label htmlFor="ct-linkedin">LinkedIn</label><input id="ct-linkedin" value={d.linkedin} onChange={e=>ch('linkedin',e.target.value)} placeholder="https://linkedin.com/in/..."/></div>
+    <div className="field"><label htmlFor="ct-phone">Phone</label><input id="ct-phone" value={d.phone} onChange={e=>ch('phone',e.target.value)} placeholder="+1 ..."/></div>
+    <div className="field"><label htmlFor="ct-status">Status</label><select id="ct-status" value={d.status} onChange={e=>ch('status',e.target.value)}>{C_ST.map(s=><option key={s.v} value={s.v}>{s.label}</option>)}</select></div>
+    <div className="field"><label htmlFor="ct-notes">Notes</label><textarea id="ct-notes" value={d.notes} onChange={e=>ch('notes',e.target.value)} placeholder="Context..."/></div>
+    <div className="field"><label htmlFor="ct-advice">Advice Given</label><textarea id="ct-advice" value={d.advice} onChange={e=>ch('advice',e.target.value)} placeholder="What did they tell you?"/></div>
   </>);
 }
 
@@ -600,17 +895,19 @@ function OppFormFields({d,set,firms,onCreateFirm}){
   const ch=(k,v)=>set({...d,[k]:v});
   return(<>
     <CompanyCombo value={d.firm_id||''} onChange={v=>ch('firm_id',v)} firms={firms} onCreateNew={onCreateFirm}/>
-    <div className="field"><label>Role Title</label><input value={d.role} onChange={e=>ch('role',e.target.value)} placeholder="Quantitative Researcher"/></div>
-    <div className="field"><label>Location</label><input value={d.location} onChange={e=>ch('location',e.target.value)} placeholder="New York"/></div>
-    <div className="field"><label>Job Link</label><input value={d.link} onChange={e=>ch('link',e.target.value)} placeholder="https://..."/></div>
-    <div className="field"><label>Referral</label><select value={d.referral} onChange={e=>ch('referral',e.target.value)}><option value="">None</option><option>Pending</option><option>Yes</option><option>No</option></select></div>
-    <div className="field"><label>Notes</label><textarea value={d.notes} onChange={e=>ch('notes',e.target.value)} placeholder="Interview prep, skills needed..."/></div>
+    <div className="field"><label htmlFor="opp-role">Role Title</label><input id="opp-role" value={d.role} onChange={e=>ch('role',e.target.value)} placeholder="Quantitative Researcher"/></div>
+    <div className="field"><label htmlFor="opp-loc">Location</label><input id="opp-loc" value={d.location} onChange={e=>ch('location',e.target.value)} placeholder="New York"/></div>
+    <div className="field"><label htmlFor="opp-link">Job Link</label><input id="opp-link" value={d.link} onChange={e=>ch('link',e.target.value)} placeholder="https://..."/></div>
+    <div className="field"><label htmlFor="opp-ref">Referral</label><select id="opp-ref" value={d.referral} onChange={e=>ch('referral',e.target.value)}><option value="">None</option><option>Pending</option><option>Yes</option><option>No</option></select></div>
+    <div className="field"><label htmlFor="opp-notes">Notes</label><textarea id="opp-notes" value={d.notes} onChange={e=>ch('notes',e.target.value)} placeholder="Interview prep, skills needed..."/></div>
   </>);
 }
 
 /* ══════════════════ TAB 2: OVERVIEW ══════════════════ */
 function OverviewTab(){
-  const {firms,contacts,opps,todos,db,toast,reload,setModal,setTab} = useContext(Ctx);
+  const {firms,contacts,opps,todos,db,reload} = useContext(DataCtx);
+  const {setModal,setTab} = useContext(UICtx);
+  const {toast} = useContext(NotifyCtx);
   const sorted = useMemo(()=>{
     const openTodos = [...todos.filter(t=>!t.done)].sort((a,b)=>a.priority-b.priority);
     const seen = [];
@@ -625,10 +922,11 @@ function OverviewTab(){
 
   useEffect(()=>{
     const el = containerRef.current; if(!el) return;
-    const update = ()=>setColCount(Math.max(1, Math.floor((el.offsetWidth - 40) / 316)));
+    let timeout;
+    const update = ()=>{ clearTimeout(timeout); timeout=setTimeout(()=>setColCount(Math.max(1, Math.floor((el.offsetWidth - 40) / 316))),100); };
     update();
     const ro = new ResizeObserver(update); ro.observe(el);
-    return ()=>ro.disconnect();
+    return ()=>{ ro.disconnect(); clearTimeout(timeout); };
   }, []);
 
   function onDragStart(e,i){dragRef.current=i;e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
@@ -638,9 +936,15 @@ function OverviewTab(){
   async function onDrop(e,i){
     e.currentTarget.classList.remove('drag-over');
     const from=dragRef.current;if(from===null||from===i)return;
+    /* Store previous order so we can roll back if the batch update partially fails */
+    const prevOrder = sorted.map(f=>({id:f.id,order_position:f.order_position}));
     const arr=[...sorted];const [moved]=arr.splice(from,1);arr.splice(i,0,moved);
     try{await Promise.all(arr.map((f,idx)=>db.upd('firms',f.id,{order_position:idx})));reload();toast('Order saved','s');}
-    catch(err){toast('Failed to save order','e');reload();}
+    catch(err){
+      toast('Failed to save order, reverting','e');
+      try{await Promise.all(prevOrder.map(p=>db.upd('firms',p.id,{order_position:p.order_position})));}catch(_){}
+      reload();
+    }
   }
 
   function firmContacts(fid){return contacts.filter(c=>c.firm_id===fid);}
@@ -652,13 +956,13 @@ function OverviewTab(){
   function renderCard(f,i){
     const fTodos=todos.filter(t=>t.firm_id===f.id&&!t.done).sort((a,b)=>a.priority-b.priority);
     return(
-      <div key={f.id} className="firm-col" draggable onDragStart={e=>onDragStart(e,i)} onDragEnd={onDragEnd} onDragOver={e=>onDragOver(e,i)} onDragLeave={onDragLeave} onDrop={e=>onDrop(e,i)}>
+      <div key={f.id} className="firm-col" {...(!isTouchDevice()?{draggable:true,onDragStart:e=>onDragStart(e,i),onDragEnd,onDragOver:e=>onDragOver(e,i),onDragLeave,onDrop:e=>onDrop(e,i)}:{})}>
         <div className="fc-head">
           <div className="fc-name">
             {f.name}
             <div className="fc-actions">
-              <button className="btn-icon" onClick={()=>setModal({type:'edit-firm',data:f})}>✎</button>
-              <button className="btn-icon" style={{color:'var(--danger)'}} onClick={()=>setModal({type:'del-firm',data:f})}>✕</button>
+              <button className="btn-icon" onClick={()=>setModal({type:'edit-firm',data:f})} aria-label="Edit firm">✎</button>
+              <button className="btn-icon" style={{color:'var(--danger)'}} onClick={()=>setModal({type:'del-firm',data:f})} aria-label="Delete firm">✕</button>
             </div>
           </div>
           <div className="fc-meta">
@@ -707,11 +1011,15 @@ function OverviewTab(){
 
 /* ══════════════════ TAB 2: PIPELINE ══════════════════ */
 function PipelineTab(){
-  const {firms,opps,contacts,db,toast,reload,setModal} = useContext(Ctx);
+  const {firms,opps,contacts,db,reload} = useContext(DataCtx);
+  const {setModal} = useContext(UICtx);
+  const {toast} = useContext(NotifyCtx);
   const dragRef = useRef(null);
   const [localOpps,setLocalOpps] = useState([]);
   const [dragOverStage,setDragOverStage] = useState(null);
   const dragCounter = useRef({});
+  const [stagePicker,setStagePicker] = useState(null); /* touch: {opp} */
+  const touch = isTouchDevice();
 
   useEffect(()=>{setLocalOpps(opps);},[opps]);
 
@@ -757,6 +1065,12 @@ function PipelineTab(){
   }
   function colDragOver(e){e.preventDefault();}
 
+  /* Touch: change stage via picker */
+  async function touchChangeStage(oppId, newStage){
+    try{await db.upd('opportunities',oppId,{stage:newStage});reload();toast(`Moved to ${si(newStage,STAGES).label}`,'s');setStagePicker(null);}
+    catch(err){toast(friendlyError(err.message),'e');}
+  }
+
   async function colDrop(e,stage){
     e.preventDefault();
     dragCounter.current[stage]=0;
@@ -764,7 +1078,7 @@ function PipelineTab(){
     const opp=dragRef.current;if(!opp)return;
     if(opp.stage!==stage){
       try{await db.upd('opportunities',opp.id,{stage});reload();toast(`Moved to ${si(stage,STAGES).label}`,'s');}
-      catch(err){toast('Stage update failed: '+err.message,'e');reload();}
+      catch(err){toast(friendlyError(err.message),'e');reload();}
     }
   }
 
@@ -784,17 +1098,16 @@ function PipelineTab(){
           {isRejected?(
             <div className="recycle-zone"><IconRecycleBin/></div>
           ):items.length?items.map(o=>(
-            <div key={o.id} className="pl-card" draggable
+            <div key={o.id} className="pl-card"
               style={{borderLeft:`3px solid ${borderColor}`}}
-              onDragStart={e=>onDragStart(e,o)} onDragEnd={onDragEnd}
-              onDragOver={e=>onCardDragOver(e,o,stg.v)}
-              onDrop={e=>{e.stopPropagation();colDrop(e,stg.v);}}>
+              {...(!touch?{draggable:true,onDragStart:e=>onDragStart(e,o),onDragEnd,onDragOver:e=>onCardDragOver(e,o,stg.v),onDrop:e=>{e.stopPropagation();colDrop(e,stg.v);}}:{})}
+              onClick={touch?()=>setStagePicker(o):undefined}>
               <div className="pl-card-firm">{firmName(o.firm_id)}</div>
               <div className="pl-card-role">{o.role}</div>
               {referrer(o)&&<div className="pl-card-ref">↪ {referrer(o)}</div>}
               <div className="pl-card-actions">
-                <button className="btn-icon" style={{fontSize:14}} onClick={()=>setModal({type:'edit-opp',data:o})}>✎</button>
-                <button className="btn-icon" style={{fontSize:14,color:'var(--danger)'}} onClick={()=>setModal({type:'del-opp',data:o})}>✕</button>
+                <button className="btn-icon" style={{fontSize:14}} onClick={()=>setModal({type:'edit-opp',data:o})} aria-label="Edit opportunity">✎</button>
+                <button className="btn-icon" style={{fontSize:14,color:'var(--danger)'}} onClick={()=>setModal({type:'del-opp',data:o})} aria-label="Delete opportunity">✕</button>
               </div>
             </div>
           )):<div className="pl-empty">Drop here</div>}
@@ -816,13 +1129,31 @@ function PipelineTab(){
         </div>
       </div>
       {mainAfter.map(renderCol)}
+      {stagePicker&&(
+        <Modal title={`Move "${stagePicker.role}"`} onClose={()=>setStagePicker(null)} onSave={()=>{}} saveLabel="">
+          <div className="stage-picker-grid">
+            {STAGES.filter(s=>s.v!=='rejected').map(s=>(
+              <button key={s.v} className={`btn ${stagePicker.stage===s.v?'btn-p':'btn-s'}`}
+                onClick={()=>touchChangeStage(stagePicker.id,s.v)}>
+                {s.label}
+              </button>
+            ))}
+          </div>
+          <div style={{marginTop:12,display:'flex',gap:8}}>
+            <button className="btn btn-s" style={{flex:1}} onClick={()=>{setModal({type:'edit-opp',data:stagePicker});setStagePicker(null);}}>Edit</button>
+            <button className="btn btn-d" style={{flex:1}} onClick={()=>{setModal({type:'del-opp',data:stagePicker});setStagePicker(null);}}>Delete</button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
 
 /* ══════════════════ TAB 3: CONTACTS ══════════════════ */
 function ContactsTab(){
-  const {firms,contacts,db,toast,reload,setModal,shortcutAction} = useContext(Ctx);
+  const {firms,contacts,db,reload} = useContext(DataCtx);
+  const {setModal,shortcutAction} = useContext(UICtx);
+  const {toast} = useContext(NotifyCtx);
   const [sortBy,setSortBy] = useState('status');
   const [search,setSearch] = useState('');
   const [expanded,setExpanded] = useState({});
@@ -863,14 +1194,14 @@ function ContactsTab(){
   async function handleCreateFirm(){
     if(!newFirmForm.name.trim()){toast('Firm name required','e');return;}
     try{const f=await db.ins('firms',{...newFirmForm,order_position:firms.length});reload();setForm(prev=>({...prev,firm_id:f.id}));setNewFirmModal(null);toast('Firm created','s');}
-    catch(e){toast('Error: '+e.message,'e');}
+    catch(e){toast(friendlyError(e.message),'e');}
   }
 
   async function createContact(){
     if(!form.name.trim()||!form.firm_id){toast('Name and company required','e');return;}
     setSaving(true);
     try{await db.ins('contacts',form);reload();toast('Contact created','s');setForm({firm_id:'',name:'',role:'',email:'',linkedin:'',phone:'',status:'not_contacted',notes:'',advice:''});setFormOpen(false);}
-    catch(e){toast('Error: '+e.message,'e');}
+    catch(e){toast(friendlyError(e.message),'e');}
     setSaving(false);
   }
 
@@ -917,8 +1248,8 @@ function ContactsTab(){
                     {c.phone?<button className="c-row-link c-row-copy" onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(c.phone).then(()=>toast('Phone copied','s'))}} title={`Copy: ${c.phone}`}><IconPhone/></button>:<span className="contact-btn-placeholder" />}
                   </div>
                   <div className="contact-col-actions">
-                    <button className="btn-icon" onClick={e=>{e.stopPropagation();setModal({type:'edit-contact',data:c})}}>✎</button>
-                    <button className="btn-icon" style={{color:'var(--danger)'}} onClick={e=>{e.stopPropagation();setModal({type:'del-contact',data:c})}}>✕</button>
+                    <button className="btn-icon" onClick={e=>{e.stopPropagation();setModal({type:'edit-contact',data:c})}} aria-label="Edit contact">✎</button>
+                    <button className="btn-icon" style={{color:'var(--danger)'}} onClick={e=>{e.stopPropagation();setModal({type:'del-contact',data:c})}} aria-label="Delete contact">✕</button>
                   </div>
                 </div>
                 {detail===c.id&&(
@@ -941,7 +1272,9 @@ function ContactsTab(){
 
 /* ══════════════════ TAB 4: OPPORTUNITIES ══════════════════ */
 function OppsTab(){
-  const {firms,opps,db,toast,reload,setModal,shortcutAction} = useContext(Ctx);
+  const {firms,opps,db,reload} = useContext(DataCtx);
+  const {setModal,shortcutAction} = useContext(UICtx);
+  const {toast} = useContext(NotifyCtx);
   const [sortBy,setSortBy] = useState('stage');
   const [search,setSearch] = useState('');
   const [expanded,setExpanded] = useState({});
@@ -982,14 +1315,14 @@ function OppsTab(){
   async function handleCreateFirm(){
     if(!newFirmForm.name.trim()){toast('Firm name required','e');return;}
     try{const f=await db.ins('firms',{...newFirmForm,order_position:firms.length});reload();setForm(prev=>({...prev,firm_id:f.id}));setNewFirmModal(null);toast('Firm created','s');}
-    catch(e){toast('Error: '+e.message,'e');}
+    catch(e){toast(friendlyError(e.message),'e');}
   }
 
   async function createOpp(){
     if(!form.firm_id||!form.role.trim()){toast('Company and role required','e');return;}
     setSaving(true);
     try{await db.ins('opportunities',{...form,stage:'not_applied',stage_order:0});reload();toast('Opportunity created — check Pipeline','s');setForm({firm_id:'',role:'',location:'',link:'',referral:'',notes:''});setFormOpen(false);}
-    catch(e){toast('Error: '+e.message,'e');}
+    catch(e){toast(friendlyError(e.message),'e');}
     setSaving(false);
   }
 
@@ -1045,13 +1378,28 @@ function OppsTab(){
 }
 
 /* ══════════════════ TAB 0: TODO ══════════════════ */
-function TaskRow({task,firms,onToggle,onEdit,onDelete,dragHandlers,isDragOver,isDragging}){
+function TaskRow({task,firms,onToggle,onEdit,onDelete,dragHandlers,isDragOver,isDragging,onMoveUp,onMoveDown,isFirst,isLast}){
   const firm = firms.find(f=>f.id===task.firm_id);
+  const touch = isTouchDevice();
   return(
     <>
       {isDragOver&&<div className="task-drop-indicator"/>}
-      <div className={`task-row${task.done?' done-row':''}${isDragging?' dragging':''}`} {...dragHandlers}>
-        <span className="task-drag-handle" title="Drag to reorder">⠿</span>
+      <div className={`task-row${task.done?' done-row':''}${isDragging?' dragging':''}${!touch&&dragHandlers?.draggable?' reorderable':''}`}
+        {...(touch?{}:dragHandlers)}
+        tabIndex={0} role="listitem"
+        aria-label={`${task.title}${isFirst!==undefined?`, position ${isFirst?1:(isLast?'last':'middle')}`:''}`}
+        title={!touch&&dragHandlers?.draggable?'Drag to reorder':undefined}
+        onKeyDown={e=>{
+          /* Arrow keys move the task up/down — works for both keyboard and touch users */
+          if(e.key==='ArrowUp'&&onMoveUp&&!isFirst){e.preventDefault();onMoveUp();}
+          if(e.key==='ArrowDown'&&onMoveDown&&!isLast){e.preventDefault();onMoveDown();}
+        }}>
+        {touch && !task.done ? (
+          <div className="task-move-btns">
+            <button className="btn-icon" aria-label="Move up" onClick={onMoveUp} disabled={isFirst}>&#9650;</button>
+            <button className="btn-icon" aria-label="Move down" onClick={onMoveDown} disabled={isLast}>&#9660;</button>
+          </div>
+        ) : null}
         <input type="checkbox" className="task-checkbox" checked={task.done} onChange={()=>onToggle(task)} onClick={e=>e.stopPropagation()}/>
         <div className="task-main">
           <div className="task-title">{task.title}</div>
@@ -1061,8 +1409,8 @@ function TaskRow({task,firms,onToggle,onEdit,onDelete,dragHandlers,isDragOver,is
           </div>
         </div>
         <div className="task-actions">
-          <button className="btn-icon" style={{fontSize:13}} onClick={e=>{e.stopPropagation();onEdit(task);}}>✎</button>
-          <button className="btn-icon" style={{fontSize:13,color:'var(--danger)'}} onClick={e=>{e.stopPropagation();onDelete(task);}}>✕</button>
+          <button className="btn-icon" style={{fontSize:13}} onClick={e=>{e.stopPropagation();onEdit(task);}} aria-label="Edit task">✎</button>
+          <button className="btn-icon" style={{fontSize:13,color:'var(--danger)'}} onClick={e=>{e.stopPropagation();onDelete(task);}} aria-label="Delete task">✕</button>
         </div>
       </div>
     </>
@@ -1070,7 +1418,9 @@ function TaskRow({task,firms,onToggle,onEdit,onDelete,dragHandlers,isDragOver,is
 }
 
 function TodoTab(){
-  const {firms,todos,db,toast,reload,shortcutAction} = useContext(Ctx);
+  const {firms,todos,db,reload} = useContext(DataCtx);
+  const {shortcutAction} = useContext(UICtx);
+  const {toast} = useContext(NotifyCtx);
   const [formOpen,setFormOpen] = useState(false);
   const [form,setForm] = useState({title:'',firm_id:'',notes:''});
   const [saving,setSaving] = useState(false);
@@ -1079,34 +1429,55 @@ function TodoTab(){
   const [editForm,setEditForm] = useState({});
   const [dragSrc,setDragSrc] = useState(null);
   const [dragOver,setDragOver] = useState(null);
+  /* Local optimistic overlay — mirrors context todos but allows instant UI updates */
+  const [localTodos,setLocalTodos] = useState(todos);
+  useEffect(()=>{setLocalTodos(todos);},[todos]);
 
   useEffect(()=>{
     if(!shortcutAction) return;
     if(shortcutAction.type==='new-todo') setFormOpen(true);
   },[shortcutAction]);
 
-  const open = useMemo(()=>[...todos.filter(t=>!t.done)].sort((a,b)=>a.priority-b.priority),[todos]);
-  const done = useMemo(()=>[...todos.filter(t=>t.done)].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)),[todos]);
+  const open = useMemo(()=>[...localTodos.filter(t=>!t.done)].sort((a,b)=>a.priority-b.priority),[localTodos]);
+  const done = useMemo(()=>[...localTodos.filter(t=>t.done)].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)),[localTodos]);
 
   async function createTodo(){
     if(!form.title.trim()){toast('Title required','e');return;}
     setSaving(true);
+    /* Optimistic: show the new task immediately with a temp ID */
+    const tempId='temp-'+Date.now();
+    const optimistic={id:tempId,title:form.title,firm_id:form.firm_id||null,notes:form.notes||null,priority:open.length,done:false,created_at:new Date().toISOString()};
+    setLocalTodos(prev=>[...prev,optimistic]);
+    setForm({title:'',firm_id:'',notes:''});setFormOpen(false);
     try{
-      await db.ins('todos',{title:form.title,firm_id:form.firm_id||null,notes:form.notes||null,priority:open.length,done:false});
+      const rows=await db.ins('todos',{title:optimistic.title,firm_id:optimistic.firm_id,notes:optimistic.notes,priority:optimistic.priority,done:false});
+      /* Replace temp with real server row */
+      if(Array.isArray(rows)&&rows.length>0){
+        setLocalTodos(prev=>prev.map(t=>t.id===tempId?rows[0]:t));
+      }
       reload();toast('Task created','s');
-      setForm({title:'',firm_id:'',notes:''});setFormOpen(false);
-    }catch(e){toast('Error: '+e.message,'e');}
+    }catch(e){
+      /* Rollback: remove the optimistic item */
+      setLocalTodos(prev=>prev.filter(t=>t.id!==tempId));
+      toast(friendlyError(e.message),'e');
+    }
     setSaving(false);
   }
 
   async function toggleDone(task){
+    /* Optimistic: flip done state immediately */
+    setLocalTodos(prev=>prev.map(t=>t.id===task.id?{...t,done:!t.done}:t));
     try{await db.upd('todos',task.id,{done:!task.done});reload();}
-    catch(e){toast('Error: '+e.message,'e');}
+    catch(e){
+      /* Rollback on failure */
+      setLocalTodos(prev=>prev.map(t=>t.id===task.id?{...t,done:task.done}:t));
+      toast(friendlyError(e.message),'e');
+    }
   }
 
   async function deleteTodo(task){
     try{await db.del('todos',task.id);reload();toast('Task deleted','s');}
-    catch(e){toast('Error: '+e.message,'e');}
+    catch(e){toast(friendlyError(e.message),'e');}
   }
 
   async function saveEdit(){
@@ -1114,7 +1485,19 @@ function TodoTab(){
     try{
       await db.upd('todos',editTodo.id,{title:editForm.title,notes:editForm.notes||null,firm_id:editForm.firm_id||null});
       reload();toast('Task updated','s');setEditTodo(null);
-    }catch(e){toast('Error: '+e.message,'e');}
+    }catch(e){toast(friendlyError(e.message),'e');}
+  }
+
+  /* Touch: move task up/down by swapping priority */
+  async function moveTask(fromIdx, toIdx) {
+    if(toIdx<0||toIdx>=open.length) return;
+    const arr=[...open];
+    const [moved]=arr.splice(fromIdx,1);
+    arr.splice(toIdx,0,moved);
+    try{
+      await Promise.all(arr.map((t,i)=>db.upd('todos',t.id,{priority:i})));
+      reload();
+    }catch(e){toast('Reorder failed','e');reload();}
   }
 
   function onDragStart(e,task){setDragSrc(task);e.dataTransfer.effectAllowed='move';}
@@ -1124,6 +1507,8 @@ function TodoTab(){
   async function onDrop(e,task){
     e.preventDefault();setDragOver(null);
     if(!dragSrc||dragSrc.id===task.id)return;
+    /* Store previous priorities for rollback on partial failure */
+    const prevOrder = open.map(t=>({id:t.id,priority:t.priority}));
     const arr=[...open];
     const srcIdx=arr.findIndex(t=>t.id===dragSrc.id);
     const tgtIdx=arr.findIndex(t=>t.id===task.id);
@@ -1131,7 +1516,11 @@ function TodoTab(){
     try{
       await Promise.all(arr.map((t,i)=>db.upd('todos',t.id,{priority:i})));
       reload();
-    }catch(e){toast('Reorder failed','e');reload();}
+    }catch(err){
+      toast('Reorder failed, reverting','e');
+      try{await Promise.all(prevOrder.map(p=>db.upd('todos',p.id,{priority:p.priority})));}catch(_){}
+      reload();
+    }
   }
 
   return(
@@ -1141,21 +1530,21 @@ function TodoTab(){
           <span style={{fontSize:18}}>{formOpen?'−':'+'}</span> New Task
         </div>
         {formOpen&&<div className="create-card-body">
-          <div className="field"><label>Title</label><input value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="What needs to be done?" onKeyDown={e=>e.key==='Enter'&&createTodo()}/></div>
-          <div className="field"><label>Company (optional)</label>
-            <select value={form.firm_id} onChange={e=>setForm({...form,firm_id:e.target.value})}>
+          <div className="field"><label htmlFor="todo-title">Title</label><input id="todo-title" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="What needs to be done?" onKeyDown={e=>e.key==='Enter'&&createTodo()}/></div>
+          <div className="field"><label htmlFor="todo-firm">Company (optional)</label>
+            <select id="todo-firm" value={form.firm_id} onChange={e=>setForm({...form,firm_id:e.target.value})}>
               <option value="">— none —</option>
               {firms.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}
             </select>
           </div>
-          <div className="field"><label>Notes (optional)</label><textarea value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Any details..."/></div>
+          <div className="field"><label htmlFor="todo-notes">Notes (optional)</label><textarea id="todo-notes" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Any details..."/></div>
           <button className="btn btn-p" onClick={createTodo} disabled={saving} style={{marginTop:8}}>{saving?'Saving…':'Add Task'}</button>
         </div>}
       </div>
 
       {!open.length&&!done.length&&<div className="empty-state">No tasks yet. Press <strong>N</strong> to add one.</div>}
 
-      {open.map(task=>(
+      {open.map((task,idx)=>(
         <TaskRow key={task.id} task={task} firms={firms}
           onToggle={toggleDone}
           onEdit={t=>{setEditTodo(t);setEditForm({title:t.title,notes:t.notes||'',firm_id:t.firm_id||''}); }}
@@ -1163,6 +1552,8 @@ function TodoTab(){
           isDragOver={dragOver===task.id}
           isDragging={dragSrc?.id===task.id}
           dragHandlers={{draggable:true,onDragStart:e=>onDragStart(e,task),onDragEnd:onDragEnd,onDragOver:e=>onDragOver(e,task),onDragLeave:onDragLeave,onDrop:e=>onDrop(e,task)}}
+          onMoveUp={()=>moveTask(idx,idx-1)} onMoveDown={()=>moveTask(idx,idx+1)}
+          isFirst={idx===0} isLast={idx===open.length-1}
         />
       ))}
 
@@ -1201,7 +1592,9 @@ function TodoTab(){
 
 /* ══════════════════ GLOBAL MODAL HANDLER ══════════════════ */
 function GlobalModals(){
-  const {modal,setModal,db,toast,reload,firms} = useContext(Ctx);
+  const {firms,db,reload} = useContext(DataCtx);
+  const {modal,setModal} = useContext(UICtx);
+  const {toast} = useContext(NotifyCtx);
   const [form,setForm] = useState({});
   const [saving,setSaving] = useState(false);
   const [newFirmModal,setNewFirmModal] = useState(null);
@@ -1223,22 +1616,35 @@ function GlobalModals(){
   async function handleCreateFirm(){
     if(!newFirmForm.name.trim()){toast('Firm name required','e');return;}
     try{const f=await db.ins('firms',{...newFirmForm,order_position:firms.length});reload();setForm(prev=>({...prev,firm_id:f.id}));setNewFirmModal(null);toast('Firm created','s');}
-    catch(e){toast('Error: '+e.message,'e');}
+    catch(e){toast(friendlyError(e.message),'e');}
   }
 
   async function save(){
     setSaving(true);
     try{
-      if(modal.type==='add-firm'){if(!form.name.trim()){toast('Name required','e');setSaving(false);return;}await db.ins('firms',{...form,order_position:firms.length});reload();toast('Firm created','s');close();}
-      if(modal.type==='edit-firm'){await db.upd('firms',modal.data.id,form);reload();toast('Firm updated','s');close();}
-      if(modal.type==='add-contact'){if(!form.name.trim()||!form.firm_id){toast('Name and company required','e');setSaving(false);return;}await db.ins('contacts',form);reload();toast('Contact added','s');close();}
-      if(modal.type==='edit-contact'){await db.upd('contacts',modal.data.id,form);reload();toast('Contact updated','s');close();}
-      if(modal.type==='add-opp'){if(!form.role.trim()||!form.firm_id){toast('Role and company required','e');setSaving(false);return;}await db.ins('opportunities',{...form,stage:'not_applied',stage_order:0});reload();toast('Opportunity created','s');close();}
-      if(modal.type==='edit-opp'){await db.upd('opportunities',modal.data.id,form);reload();toast('Opportunity updated','s');close();}
+      /* ── Firm validation ── */
+      if(modal.type==='add-firm'){if(!form.name.trim()){toast('Firm name is required','e');setSaving(false);return;}await db.ins('firms',{...form,order_position:firms.length});reload();toast('Firm created','s');close();}
+      if(modal.type==='edit-firm'){if(!form.name.trim()){toast('Firm name is required','e');setSaving(false);return;}await db.upd('firms',modal.data.id,form);reload();toast('Firm updated','s');close();}
+      /* ── Contact validation (email, LinkedIn URL, phone) ── */
+      if(modal.type==='add-contact'||modal.type==='edit-contact'){
+        if(!form.name.trim()||!form.firm_id){toast('Name and company required','e');setSaving(false);return;}
+        if(!isValidEmail(form.email)){toast('Invalid email format','e');setSaving(false);return;}
+        if(!isValidUrl(form.linkedin)){toast('Invalid LinkedIn URL','e');setSaving(false);return;}
+        if(!isValidPhone(form.phone)){toast('Invalid phone number format','e');setSaving(false);return;}
+        if(modal.type==='add-contact'){await db.ins('contacts',form);reload();toast('Contact added','s');close();}
+        else{await db.upd('contacts',modal.data.id,form);reload();toast('Contact updated','s');close();}
+      }
+      /* ── Opportunity validation (job link URL) ── */
+      if(modal.type==='add-opp'||modal.type==='edit-opp'){
+        if(modal.type==='add-opp'&&(!form.role.trim()||!form.firm_id)){toast('Role and company required','e');setSaving(false);return;}
+        if(!isValidUrl(form.link)){toast('Invalid job link URL','e');setSaving(false);return;}
+        if(modal.type==='add-opp'){await db.ins('opportunities',{...form,stage:'not_applied',stage_order:0});reload();toast('Opportunity created','s');close();}
+        else{await db.upd('opportunities',modal.data.id,form);reload();toast('Opportunity updated','s');close();}
+      }
       if(modal.type==='del-firm'){await db.del('firms',modal.data.id);reload();toast('Firm deleted','s');close();}
       if(modal.type==='del-contact'){await db.del('contacts',modal.data.id);reload();toast('Contact deleted','s');close();}
       if(modal.type==='del-opp'){await db.del('opportunities',modal.data.id);reload();toast('Opportunity deleted','s');close();}
-    }catch(e){toast('Error: '+e.message,'e');}
+    }catch(e){toast(friendlyError(e.message),'e');}
     setSaving(false);
   }
 
@@ -1268,7 +1674,7 @@ function GlobalModals(){
 
 /* ══════════════════ TAB: UNIVERSE (Contacts + Opportunities) ══════════════════ */
 function UniverseTab(){
-  const {universeSubTab, setUniverseSubTab} = useContext(Ctx);
+  const {universeSubTab, setUniverseSubTab} = useContext(UICtx);
   return(
     <div style={{display:'flex', flexDirection:'column', height:'100%'}}>
       <div className="universe-tabbar">
@@ -1293,7 +1699,8 @@ function UniverseTab(){
 
 /* ══════════════════ TAB 4: MATCHMAKER ══════════════════ */
 function MatchmakerTab(){
-  const {firms, matchmaker, db, toast, reload} = useContext(Ctx);
+  const {firms, matchmaker, db, reload} = useContext(DataCtx);
+  const {toast} = useContext(NotifyCtx);
   const [exitDir, setExitDir] = useState(null);
   const [entering, setEntering] = useState(false);
   const [acceptModal, setAcceptModal] = useState(null);
@@ -1339,7 +1746,7 @@ function MatchmakerTab(){
     try{
       await db.upd('matchmaker', current.id, {pipeline_decision:'rejected'});
       reload();
-    }catch(e){ toast('Error: '+e.message,'e'); }
+    }catch(e){ toast(friendlyError(e.message),'e'); }
   }
 
   function doAcceptStart(){
@@ -1374,7 +1781,7 @@ function MatchmakerTab(){
       reload();
       toast('Added to pipeline','s');
       setAcceptModal(null);
-    }catch(e){ toast('Error: '+e.message,'e'); }
+    }catch(e){ toast(friendlyError(e.message),'e'); }
     setSaving(false);
   }
 
@@ -1386,7 +1793,7 @@ function MatchmakerTab(){
       setOppForm(prev=>({...prev, firm_id:f.id}));
       setNewFirmModal(null);
       toast('Firm created','s');
-    }catch(e){ toast('Error: '+e.message,'e'); }
+    }catch(e){ toast(friendlyError(e.message),'e'); }
   }
 
   function onPointerDown(e){
@@ -1576,56 +1983,117 @@ function Dashboard({db:dbInstance}){
   const [shortcutAction,setShortcutAction] = useState(null);
   const [universeSubTab,setUniverseSubTab] = useState('overview');
 
+  /* ── Refs for keyboard handler (avoids re-creating listener on every state change) ── */
+  const tabRef = useRef(tab);
+  const modalRef = useRef(modal);
+  const showHelpRef = useRef(showHelp);
+  const universeSubTabRef = useRef(universeSubTab);
+  useEffect(()=>{tabRef.current=tab;},[tab]);
+  useEffect(()=>{modalRef.current=modal;},[modal]);
+  useEffect(()=>{showHelpRef.current=showHelp;},[showHelp]);
+  useEffect(()=>{universeSubTabRef.current=universeSubTab;},[universeSubTab]);
+
+  /* ── Toast with deduplication (suppress identical messages within 500ms) ── */
+  const lastToastRef = useRef({msg:'',ts:0});
   const toast = useCallback((msg,type='s')=>{
-    const id=Date.now()+Math.random();
+    const now=Date.now();
+    if(msg===lastToastRef.current.msg && now-lastToastRef.current.ts<500) return;
+    lastToastRef.current={msg,ts:now};
+    const id=now+Math.random();
     setToasts(p=>[...p,{id,msg,type}]);
     setTimeout(()=>setToasts(p=>p.map(t=>t.id===id?{...t,out:true}:t)),2500);
     setTimeout(()=>setToasts(p=>p.filter(t=>t.id!==id)),2800);
   },[]);
 
+  /* ── Granular reload functions ── */
+  const reloadFirms = useCallback(async()=>{
+    try{const f=await fetchWithRetry(()=>dbInstance.get('firms','order=order_position.asc.nullsfirst'));setFirms(Array.isArray(f)?f:[]);}
+    catch(e){toast(friendlyError(e.message),'e');}
+  },[dbInstance,toast]);
+  const reloadContacts = useCallback(async()=>{
+    try{const c=await fetchWithRetry(()=>dbInstance.get('contacts'));setContacts(Array.isArray(c)?c:[]);}
+    catch(e){toast(friendlyError(e.message),'e');}
+  },[dbInstance,toast]);
+  const reloadOpps = useCallback(async()=>{
+    try{const o=await fetchWithRetry(()=>dbInstance.get('opportunities'));setOpps(Array.isArray(o)?o:[]);}
+    catch(e){toast(friendlyError(e.message),'e');}
+  },[dbInstance,toast]);
+  const reloadTodos = useCallback(async()=>{
+    try{const td=await fetchWithRetry(()=>dbInstance.get('todos'));setTodos(Array.isArray(td)?td:[]);}
+    catch(e){toast(friendlyError(e.message),'e');}
+  },[dbInstance,toast]);
+  const reloadMatchmaker = useCallback(async()=>{
+    try{const mm=await fetchWithRetry(()=>dbInstance.get('matchmaker','order=match_score.desc.nullslast'));setMatchmaker(Array.isArray(mm)?mm:[]);}
+    catch(e){toast(friendlyError(e.message),'e');}
+  },[dbInstance,toast]);
+
+  /* ── Full load with Promise.allSettled (granular error handling) ── */
   const loadData = useCallback(async()=>{
-    try{
-      const [f,c,o,td,mm] = await Promise.all([dbInstance.get('firms','order=order_position.asc.nullsfirst'),dbInstance.get('contacts'),dbInstance.get('opportunities'),dbInstance.get('todos'),dbInstance.get('matchmaker','order=match_score.desc.nullslast')]);
-      setFirms(Array.isArray(f)?f:[]);setContacts(Array.isArray(c)?c:[]);setOpps(Array.isArray(o)?o:[]);setTodos(Array.isArray(td)?td:[]);setMatchmaker(Array.isArray(mm)?mm:[]);
-    }catch(e){toast('Failed to load data: '+e.message,'e');}
+    const results = await Promise.allSettled([
+      fetchWithRetry(()=>dbInstance.get('firms','order=order_position.asc.nullsfirst')),
+      fetchWithRetry(()=>dbInstance.get('contacts')),
+      fetchWithRetry(()=>dbInstance.get('opportunities')),
+      fetchWithRetry(()=>dbInstance.get('todos')),
+      fetchWithRetry(()=>dbInstance.get('matchmaker','order=match_score.desc.nullslast')),
+    ]);
+    const names=['Firms','Contacts','Opportunities','Todos','Matchmaker'];
+    const setters=[setFirms,setContacts,setOpps,setTodos,setMatchmaker];
+    results.forEach((r,i)=>{
+      if(r.status==='fulfilled') setters[i](Array.isArray(r.value)?r.value:[]);
+      else toast('Failed to load '+names[i]+': '+friendlyError(r.reason?.message||'Unknown error'),'e');
+    });
     setLoading(false);
   },[dbInstance,toast]);
 
   useEffect(()=>{loadData();},[loadData]);
 
+  /* ── Pull-to-refresh for mobile ── */
+  const pullProps = usePullToRefresh(loadData);
+
   const TABS_ORDER = ['todo','universe','pipeline','matchmaker'];
+
+  /* ── Keyboard shortcuts (stable listener via refs) ── */
+  const loadDataRef = useRef(loadData);
+  const toastRef = useRef(toast);
+  useEffect(()=>{loadDataRef.current=loadData;},[loadData]);
+  useEffect(()=>{toastRef.current=toast;},[toast]);
 
   useEffect(()=>{
     function isInputFocused(){const el=document.activeElement;return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA'||el.tagName==='SELECT'||el.isContentEditable);}
     function handle(e){
-      if(showHelp&&e.key==='Escape'){setShowHelp(false);return;}
-      if(modal&&e.key==='Escape') return;
+      if(showHelpRef.current&&e.key==='Escape'){setShowHelp(false);return;}
+      if(modalRef.current&&e.key==='Escape') return;
       if(e.key==='?'&&!isInputFocused()){setShowHelp(p=>!p);return;}
       if(isInputFocused()) return;
       const k=e.key;
-      const idx=TABS_ORDER.indexOf(tab);
+      const curTab=tabRef.current;
+      const idx=TABS_ORDER.indexOf(curTab);
       if(k==='1'){setTab('todo');}
       else if(k==='2'){setTab('universe');}
       else if(k==='3'){setTab('pipeline');}
       else if(k==='4'){setTab('matchmaker');}
-      else if((k==='ArrowLeft'||k==='['||k==='PageUp')&&idx>0&&tab!=='matchmaker'){e.preventDefault();setTab(TABS_ORDER[idx-1]);}
-      else if((k==='ArrowRight'||k===']'||k==='PageDown')&&idx<TABS_ORDER.length-1&&tab!=='matchmaker'){e.preventDefault();setTab(TABS_ORDER[idx+1]);}
-      else if((k==='r'||k==='R')&&tab!=='matchmaker'){loadData();toast('Refreshed','s');}
+      else if((k==='ArrowLeft'||k==='['||k==='PageUp')&&idx>0&&curTab!=='matchmaker'){e.preventDefault();setTab(TABS_ORDER[idx-1]);}
+      else if((k==='ArrowRight'||k===']'||k==='PageDown')&&idx<TABS_ORDER.length-1&&curTab!=='matchmaker'){e.preventDefault();setTab(TABS_ORDER[idx+1]);}
+      else if((k==='r'||k==='R')&&curTab!=='matchmaker'){loadDataRef.current();toastRef.current('Refreshed','s');}
       else if(k==='/'){ e.preventDefault();setShortcutAction({type:'focus-search',ts:Date.now()});}
       else if(k==='n'||k==='N'){
-        if(tab==='todo') setShortcutAction({type:'new-todo',ts:Date.now()});
-        else if(tab==='universe'){
-          if(universeSubTab==='overview') setModal({type:'add-firm'});
-          else if(universeSubTab==='contacts') setShortcutAction({type:'new-contact',ts:Date.now()});
+        if(curTab==='todo') setShortcutAction({type:'new-todo',ts:Date.now()});
+        else if(curTab==='universe'){
+          const sub=universeSubTabRef.current;
+          if(sub==='overview') setModal({type:'add-firm'});
+          else if(sub==='contacts') setShortcutAction({type:'new-contact',ts:Date.now()});
           else setShortcutAction({type:'new-opp',ts:Date.now()});
         }
       }
     }
     window.addEventListener('keydown',handle);
     return()=>window.removeEventListener('keydown',handle);
-  },[tab,modal,showHelp,loadData,toast,universeSubTab]);
+  },[]);
 
-  const ctx = useMemo(()=>({firms,contacts,opps,todos,matchmaker,db:dbInstance,toast,reload:loadData,modal,setModal,toasts,shortcutAction,setShortcutAction,setTab,universeSubTab,setUniverseSubTab}),[firms,contacts,opps,todos,matchmaker,dbInstance,toast,loadData,modal,toasts,shortcutAction,setTab,universeSubTab,setUniverseSubTab]);
+  /* ── Split memoized context values ── */
+  const dataCtx = useMemo(()=>({firms,contacts,opps,todos,matchmaker,db:dbInstance,reload:loadData,reloadFirms,reloadContacts,reloadOpps,reloadTodos,reloadMatchmaker}),[firms,contacts,opps,todos,matchmaker,dbInstance,loadData,reloadFirms,reloadContacts,reloadOpps,reloadTodos,reloadMatchmaker]);
+  const uiCtx = useMemo(()=>({modal,setModal,shortcutAction,setShortcutAction,setTab,universeSubTab,setUniverseSubTab}),[modal,shortcutAction,universeSubTab]);
+  const notifyCtx = useMemo(()=>({toast,toasts}),[toast,toasts]);
 
   function logout(){localStorage.removeItem('hfcrm_auth');window.location.reload();}
 
@@ -1639,7 +2107,9 @@ function Dashboard({db:dbInstance}){
   ];
 
   return(
-    <Ctx.Provider value={ctx}>
+    <DataCtx.Provider value={dataCtx}>
+    <UICtx.Provider value={uiCtx}>
+    <NotifyCtx.Provider value={notifyCtx}>
       <div className="app">
         <div className="sidebar">
           <div className="sidebar-top"><IconJobTracker/></div>
@@ -1654,20 +2124,32 @@ function Dashboard({db:dbInstance}){
             <div className="sidebar-item" onClick={logout}><span className="sidebar-icon-slot"><IconLogout/></span><span className="sidebar-label">Logout</span></div>
           </div>
         </div>
+        {/* ── Bottom navigation bar (mobile only, hidden on desktop via CSS) ── */}
+        <div className="bottom-nav">
+          {tabs.map(({k,label,Icon})=>(
+            <button key={k} className={`bottom-nav-item${tab===k?' active':''}`} onClick={()=>setTab(k)} aria-label={label}>
+              <Icon/><span>{label}</span>
+            </button>
+          ))}
+        </div>
         <div className="main-area">
-          <div className={`topbar${tab==='universe'?' no-bdr':''}`}><h1>{({todo:'Todo',universe:'Universe',pipeline:'Pipeline',matchmaker:'Matchmaker'})[tab]}</h1><div className="topbar-r"><button className="btn-icon" onClick={()=>setShowHelp(true)} title="Keyboard shortcuts (?)">⌨</button></div></div>
-          <div className="tab-content">
-            {tab==='todo'&&<TodoTab/>}
-            {tab==='universe'&&<UniverseTab/>}
-            {tab==='pipeline'&&<PipelineTab/>}
-            {tab==='matchmaker'&&<MatchmakerTab/>}
+          <div className={`topbar${tab==='universe'?' no-bdr':''}`}><h1>{({todo:'Todo',universe:'Universe',pipeline:'Pipeline',matchmaker:'Matchmaker'})[tab]}</h1><div className="topbar-r"><button className="btn-icon" onClick={()=>setShowHelp(true)} title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">⌨</button></div></div>
+          <div className="tab-content" {...pullProps}>
+            <ErrorBoundary key={'eb-'+tab}>
+              <div key={tab} className="tab-slide">
+                {tab==='todo'&&<TodoTab/>}
+                {tab==='universe'&&<UniverseTab/>}
+                {tab==='pipeline'&&<PipelineTab/>}
+                {tab==='matchmaker'&&<MatchmakerTab/>}
+              </div>
+            </ErrorBoundary>
           </div>
         </div>
         <GlobalModals/>
         <ToastContainer/>
         {showHelp&&(
           <div className="kb-overlay" onClick={()=>setShowHelp(false)}>
-            <div className="kb-modal" onClick={e=>e.stopPropagation()}>
+            <div className="kb-modal" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts" onClick={e=>e.stopPropagation()}>
               <h2>⌨ Keyboard Shortcuts <kbd>?</kbd></h2>
               <div className="kb-section">
                 <div className="kb-section-title">Tab Navigation</div>
@@ -1711,7 +2193,9 @@ function Dashboard({db:dbInstance}){
           </div>
         )}
       </div>
-    </Ctx.Provider>
+    </NotifyCtx.Provider>
+    </UICtx.Provider>
+    </DataCtx.Provider>
   );
 }
 
@@ -1797,7 +2281,7 @@ function SetupScreen(){
   password TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-INSERT INTO users (username, password) VALUES ('max_dlpt', 'Mulasasa1');
+-- Create your first user via the Sign Up screen
 
 CREATE TABLE firms (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

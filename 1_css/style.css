@@ -308,7 +308,7 @@ pre.ascii-pre {
     overflow: hidden;
     color: #000000;
     background: transparent;
-    opacity: 0.15;
+    opacity: 0.2;
     font: 13px/13px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     white-space: pre;
     user-select: none;

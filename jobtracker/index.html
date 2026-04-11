@@ -1815,14 +1815,6 @@ function TodoTab(){
     }catch(e){toast('Reorder failed','e');reload();}
   }
 
-    document.addEventListener('touchmove',onMove,{passive:false});
-    document.addEventListener('touchend',onEnd);
-    document.addEventListener('touchcancel',onEnd);
-    return()=>{
-      document.removeEventListener('touchmove',onMove);
-      document.removeEventListener('touchend',onEnd);
-      document.removeEventListener('touchcancel',onEnd);
-    };
 
   return(
     <div className="todo-page">

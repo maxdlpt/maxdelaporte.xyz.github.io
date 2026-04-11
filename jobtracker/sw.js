@@ -1,4 +1,4 @@
-const CACHE = 'jt-v2';
+const CACHE = 'jt-v3';
 const ASSETS = [
   '/logo3.svg',
   'https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js',

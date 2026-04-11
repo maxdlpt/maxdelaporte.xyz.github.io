@@ -1579,6 +1579,8 @@ function useSortableFallback({id,disabled}){
   const _ref=useRef(null);
   return{setNodeRef:el=>{_ref.current=el;},transform:null,transition:null,isDragging:false,isSorting:false,attributes:{tabIndex:0,role:'listitem'},listeners:{}};
 }
+/* useSensorsFallback mirrors real useSensors hook signature (both call useMemo once) */
+function useSensorsFallback(...args){useMemo(()=>[], args);return [];}
 function TaskRowOverlay({task,firms,contacts}){
   if(!task) return null;
   const firm=firms.find(f=>f.id===task.firm_id);
@@ -1601,7 +1603,8 @@ function TaskRowOverlay({task,firms,contacts}){
   );
 }
 function TaskRow({task,firms,contacts,onToggle,onEdit,onDelete,ticking,setRef}){
-  const useSortable=window.DndKitSortable?.useSortable||useSortableFallback;
+  const _useSortableRef=useRef(null);if(!_useSortableRef.current)_useSortableRef.current=window.DndKitSortable?.useSortable||useSortableFallback;
+  const useSortable=_useSortableRef.current;
   const CSS=window.DndKitUtils?.CSS||{Transform:{toString:()=>''}};
   const {setNodeRef,transform,transition,isDragging,attributes,listeners}=useSortable({
     id:String(task.id),
@@ -1662,7 +1665,7 @@ function TodoTab(){
   const SortableContext=_dndSortable.SortableContext||((props)=>React.createElement(React.Fragment,null,props.children));
   const verticalListSortingStrategy=_dndSortable.verticalListSortingStrategy||null;
   const closestCenter=_dndCore.closestCenter||null;
-  const _useSensors=_dndCore.useSensors||(()=>[]);
+  const _useSensors=_dndCore.useSensors||useSensorsFallback;
   const _useSensor=_dndCore.useSensor||(()=>null);
   const sensors=_useSensors(
     _dndCore.MouseSensor?_useSensor(_dndCore.MouseSensor,{activationConstraint:{distance:8}}):null,

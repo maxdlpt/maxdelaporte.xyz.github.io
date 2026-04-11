@@ -1640,43 +1640,6 @@ function TaskRow({task,firms,contacts,onToggle,onEdit,onDelete,ticking,setRef}){
     </div>
   );
 }
-  function handleTouchEnd(){clearTimeout(lpTimer.current);}
-  function handleClick(){if(!didDrag.current) onEdit(task);}
-  return(
-    <>
-      {(isDragOver||isTouchDropTarget)&&<div className="task-drop-indicator"/>}
-      <div ref={setRef} className={`task-row${task.done?' done-row':''}${isDragging||isTouchDragging?' dragging':''}${!touch&&dragHandlers?.draggable?' reorderable':''}${isTouchDragging?' touch-dragging':''}`}
-        {...(touch?{}:dragHandlers)}
-        tabIndex={0} role="listitem"
-        aria-label={`${task.title}${isFirst!==undefined?`, position ${isFirst?1:(isLast?'last':'middle')}`:''}`}
-        title={!touch&&dragHandlers?.draggable?'Drag to reorder':undefined}
-        onClick={handleClick}
-        onTouchStart={touch&&!task.done?handleTouchStart:undefined}
-        onTouchEnd={touch&&!task.done?handleTouchEnd:undefined}
-        onTouchCancel={touch&&!task.done?handleTouchEnd:undefined}
-        onKeyDown={e=>{
-          if(e.key==='ArrowUp'&&onMoveUp&&!isFirst){e.preventDefault();onMoveUp();}
-          if(e.key==='ArrowDown'&&onMoveDown&&!isLast){e.preventDefault();onMoveDown();}
-        }}>
-        <TaskCheckbox checked={task.done} onChange={()=>onToggle(task)} ticking={ticking}/>
-        <div className="task-main">
-          <div className="task-title">
-            <span className={`task-title-text${ticking?' striking':''}${task.done&&!ticking?' struck':''}`}>{task.title}</span>
-          </div>
-          <div className="task-meta">
-            {firm&&<span className="tag" style={{fontSize:10,padding:'1px 7px'}}>{firm.name}</span>}
-            {contact&&<span className="tag" style={{fontSize:10,padding:'1px 7px',color:'var(--accent)'}}>{contact.name}</span>}
-            {task.notes&&<span className="task-notes">{task.notes}</span>}
-          </div>
-        </div>
-        <div className="task-actions">
-          <button className="btn-icon" style={{fontSize:13,color:'var(--danger)'}} onClick={e=>{e.stopPropagation();onDelete(task);}} aria-label="Delete task">✕</button>
-        </div>
-      </div>
-    </>
-  );
-}
-
 function TodoTab(){
   const {firms,contacts,todos,db,reload} = useContext(DataCtx);
   const {shortcutAction} = useContext(UICtx);

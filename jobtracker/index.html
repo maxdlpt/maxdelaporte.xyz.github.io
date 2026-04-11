@@ -1581,6 +1581,8 @@ function useSortableFallback({id,disabled}){
 }
 /* useSensorsFallback mirrors real useSensors hook signature (both call useMemo once) */
 function useSensorsFallback(...args){useMemo(()=>[], args);return [];}
+/* useSensorFallback mirrors real useSensor hook signature (both call useMemo once) */
+function useSensorFallback(sensor,options){useMemo(()=>null,[sensor,options]);return null;}
 function TaskRowOverlay({task,firms,contacts}){
   if(!task) return null;
   const firm=firms.find(f=>f.id===task.firm_id);
@@ -1603,7 +1605,8 @@ function TaskRowOverlay({task,firms,contacts}){
   );
 }
 function TaskRow({task,firms,contacts,onToggle,onEdit,onDelete,ticking,setRef}){
-  const _useSortableRef=useRef(null);if(!_useSortableRef.current)_useSortableRef.current=window.DndKitSortable?.useSortable||useSortableFallback;
+  // Lock useSortable at first render via useRef – prevents hook-count change if CDN loads late
+  const _useSortableRef=useRef(window.DndKitSortable?.useSortable||useSortableFallback);
   const useSortable=_useSortableRef.current;
   const CSS=window.DndKitUtils?.CSS||{Transform:{toString:()=>''}};
   const {setNodeRef,transform,transition,isDragging,attributes,listeners}=useSortable({
@@ -1665,12 +1668,12 @@ function TodoTab(){
   const SortableContext=_dndSortable.SortableContext||((props)=>React.createElement(React.Fragment,null,props.children));
   const verticalListSortingStrategy=_dndSortable.verticalListSortingStrategy||null;
   const closestCenter=_dndCore.closestCenter||null;
+  // Always call _useSensor exactly twice (unconditional) so hook count never changes
   const _useSensors=_dndCore.useSensors||useSensorsFallback;
-  const _useSensor=_dndCore.useSensor||(()=>null);
-  const sensors=_useSensors(
-    _dndCore.MouseSensor?_useSensor(_dndCore.MouseSensor,{activationConstraint:{distance:8}}):null,
-    _dndCore.TouchSensor?_useSensor(_dndCore.TouchSensor,{activationConstraint:{delay:400,tolerance:8}}):null
-  );
+  const _useSensor=_dndCore.useSensor||useSensorFallback;
+  const _msSensor=_useSensor(_dndCore.MouseSensor||null,{activationConstraint:{distance:8}});
+  const _tsSensor=_useSensor(_dndCore.TouchSensor||null,{activationConstraint:{delay:400,tolerance:8}});
+  const sensors=_useSensors(_msSensor,_tsSensor);
   /* Local optimistic overlay — mirrors context todos but allows instant UI updates.
      Don't overwrite if an animation is in progress (would jump the task immediately). */
   const [localTodos,setLocalTodos] = useState(todos);

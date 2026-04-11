@@ -1220,7 +1220,6 @@ function ContactsTab(){
   const {setModal,shortcutAction} = useContext(UICtx);
   const {toast} = useContext(NotifyCtx);
   const [search,setSearch] = useState('');
-  const [detail,setDetail] = useState(null);
   const [formOpen,setFormOpen] = useState(false);
   const [sortCol,setSortCol] = useState('status');
   const [sortDir,setSortDir] = useState('asc');
@@ -1239,7 +1238,7 @@ function ContactsTab(){
 
   const filtered = useMemo(()=>{
     let list = contacts;
-    if(search){const q=search.toLowerCase();list=list.filter(c=>c.name.toLowerCase().includes(q)||c.role?.toLowerCase().includes(q)||c.email?.toLowerCase().includes(q)||c.phone?.toLowerCase().includes(q)||c.linkedin?.toLowerCase().includes(q)||c.notes?.toLowerCase().includes(q)||firms.find(f=>f.id===c.firm_id)?.name?.toLowerCase().includes(q));}
+    if(search){const q=search.toLowerCase();list=list.filter(c=>[c.name,c.role,c.email,c.phone,c.linkedin,c.notes,firms.find(f=>f.id===c.firm_id)?.name].some(v=>v?.toLowerCase().includes(q)));}
     return list;
   },[contacts,search]);
 
@@ -1359,7 +1358,7 @@ function OppsTab(){
 
   const filtered = useMemo(()=>{
     let list = opps;
-    if(search){const q=search.toLowerCase();list=list.filter(o=>o.role?.toLowerCase().includes(q)||firms.find(f=>f.id===o.firm_id)?.name?.toLowerCase().includes(q)||o.location?.toLowerCase().includes(q)||o.notes?.toLowerCase().includes(q)||o.referral?.toLowerCase().includes(q)||o.stage?.toLowerCase().includes(q));}
+    if(search){const q=search.toLowerCase();list=list.filter(o=>[o.role,o.location,o.notes,o.referral,firms.find(f=>f.id===o.firm_id)?.name].some(v=>v?.toLowerCase().includes(q)));}
     return list;
   },[opps,search,firms]);
 
@@ -1418,7 +1417,10 @@ function OppsTab(){
 
       {newFirmModal&&<Modal title="Create Firm" onClose={()=>setNewFirmModal(null)} onSave={handleCreateFirm} saveLabel="Create"><FirmForm d={newFirmForm} set={setNewFirmForm}/></Modal>}
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> website
       <div className="filter-bar" style={{marginBottom:0}}>
         <input ref={searchRef} placeholder="Search opportunities..." value={search} onChange={e=>setSearch(e.target.value)} style={{flex:1}}/>
       </div>

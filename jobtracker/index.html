@@ -244,7 +244,9 @@
 
     /* ── Flat lines table (shared by contacts + opps) ── */
     .lines-table-header { background:var(--bg2); border:1px solid var(--bdr); border-radius:var(--r) var(--r) 0 0; margin-top:12px; padding:0 16px; }
+    .lines-table-header.opp-row { padding-top:0; padding-bottom:0; }
     .lines-th { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); padding:10px 0; user-select:none; -webkit-user-select:none; white-space:nowrap; }
+    div.lines-th { font-size:11px !important; font-weight:700 !important; }
     .lines-th--sortable { cursor:pointer; transition:color .15s; }
     .lines-th--sortable:hover { color:var(--text); }
     .lines-th--active { color:var(--accent); }
@@ -258,7 +260,7 @@
     .opp-row.expanded { background:var(--bg2); border-left:3px solid var(--accent); }
     .opp-col-role { font-weight:600; font-size:13px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .opp-col-stage { display:flex; justify-content:center; }
-    .opp-col-firm, .opp-col-loc { color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+    .opp-col-firm, .opp-col-loc { color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; text-align:center; }
     .opp-col-ref { display:flex; justify-content:center; }
     .opp-col-link { display:flex; justify-content:center; }
     .opp-link-btn { color:var(--muted); text-decoration:none; }
@@ -485,8 +487,15 @@
     .firm-col:active { transform:scale(0.99); }
     .mm-action-btn:active { transform:scale(0.9); }
 
-    /* ── Bottom nav (mobile) ── */
-    .bottom-nav { display:none; }
+    /* ── Mobile navigation menu ── */
+    @keyframes iconBounce {
+      0%,100% { transform:translateY(0); }
+      20%     { transform:translateY(-5px); }
+      40%     { transform:translateY(0); }
+      60%     { transform:translateY(-2px); }
+      80%     { transform:translateY(0); }
+    }
+    .mobile-menu { display:none; }
 
     /* ── Tab slide animation ── */
     .tab-slide { animation: tabFadeIn .15s ease-out; }
@@ -512,7 +521,7 @@
     /* ── Mobile ── */
     @media (max-width:768px) {
       .sidebar { display:none; }
-      .bottom-nav {
+      .mobile-menu {
         display:flex;
         position:fixed;
         bottom:0; left:0; right:0;
@@ -520,23 +529,55 @@
         border-top:1px solid var(--bdr);
         z-index:50;
         padding-bottom:env(safe-area-inset-bottom);
+        height:64px;
+        align-items:stretch;
       }
-      .bottom-nav-item {
+      .mobile-menu__item {
         flex:1;
         display:flex;
         flex-direction:column;
         align-items:center;
-        gap:2px;
-        padding:8px 0 6px;
+        justify-content:center;
+        gap:1px;
+        padding:6px 4px 10px;
+        background:transparent;
+        border:none;
         color:var(--muted);
-        font-size:10px;
-        font-weight:600;
+        font-family:inherit;
         cursor:pointer;
-        transition:color .15s;
+        position:relative;
         -webkit-tap-highlight-color:transparent;
+        transition:color .2s;
       }
-      .bottom-nav-item.active { color:var(--accent); }
-      .bottom-nav-item svg { width:22px; height:22px; }
+      .mobile-menu__item.active { color:var(--accent); }
+      .mobile-menu__icon { width:24px; height:24px; display:flex; align-items:center; justify-content:center; }
+      .mobile-menu__icon svg { width:22px; height:22px; }
+      .mobile-menu__item.active .mobile-menu__icon { animation:iconBounce .5s ease-out; }
+      .mobile-menu__text {
+        font-size:9px;
+        font-weight:700;
+        letter-spacing:.06em;
+        text-transform:uppercase;
+        opacity:0;
+        max-height:0;
+        overflow:hidden;
+        transition:opacity .2s ease, max-height .2s ease;
+        white-space:nowrap;
+        color:var(--accent);
+      }
+      .mobile-menu__text.active { opacity:1; max-height:16px; }
+      .mobile-menu__item::after {
+        content:'';
+        position:absolute;
+        bottom:5px;
+        left:50%;
+        transform:translateX(-50%);
+        width:var(--lineWidth, 0px);
+        height:2px;
+        background:var(--accent);
+        border-radius:2px;
+        transition:width .25s ease;
+      }
       .main-area { padding-bottom:64px; }
       .topbar { padding-top:max(12px, env(safe-area-inset-top)); }
       .overview { flex-direction:column; padding:12px; gap:12px; }
@@ -2302,14 +2343,8 @@ function Dashboard({db:dbInstance}){
             <div className="sidebar-item" onClick={logout}><span className="sidebar-icon-slot"><IconLogout/></span><span className="sidebar-label">Logout</span></div>
           </div>
         </div>
-        {/* ── Bottom navigation bar (mobile only, hidden on desktop via CSS) ── */}
-        <div className="bottom-nav">
-          {tabs.map(({k,label,Icon})=>(
-            <button key={k} className={`bottom-nav-item${tab===k?' active':''}`} onClick={()=>setTab(k)} aria-label={label}>
-              <Icon/><span>{label}</span>
-            </button>
-          ))}
-        </div>
+        {/* ── Mobile navigation ── */}
+        <MobileNav items={tabs} tab={tab} setTab={setTab} />
         <div className="main-area">
           <div className={`topbar${tab==='universe'?' no-bdr':''}`}><h1>{({todo:'Todo',universe:'Universe',pipeline:'Pipeline',matchmaker:'Matchmaker'})[tab]}</h1><div className="topbar-r"><button className="btn-icon" onClick={()=>setShowHelp(true)} title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">⌨</button></div></div>
           <div className="tab-content" {...pullProps}>
@@ -2378,6 +2413,46 @@ function Dashboard({db:dbInstance}){
 }
 
 /* ══════════════════ SIGN-IN SCREEN ══════════════════ */
+/* ══════════════════ MOBILE NAV ══════════════════ */
+function MobileNav({items, tab, setTab}){
+  const itemRefs = React.useRef([]);
+  const textRefs = React.useRef([]);
+  const activeIndex = items.findIndex(item => item.k === tab);
+  React.useEffect(()=>{
+    const update = () => {
+      const el = itemRefs.current[activeIndex];
+      const txt = textRefs.current[activeIndex];
+      if(el && txt) el.style.setProperty('--lineWidth', txt.offsetWidth + 'px');
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [activeIndex, items]);
+  return (
+    <nav className="mobile-menu" role="navigation">
+      {items.map((item, index) => {
+        const isActive = index === activeIndex;
+        const Icon = item.Icon;
+        return (
+          <button
+            key={item.k}
+            className={'mobile-menu__item' + (isActive ? ' active' : '')}
+            onClick={() => setTab(item.k)}
+            ref={el => itemRefs.current[index] = el}
+            style={{'--lineWidth': '0px'}}
+          >
+            <div className="mobile-menu__icon"><Icon /></div>
+            <strong
+              className={'mobile-menu__text' + (isActive ? ' active' : '')}
+              ref={el => textRefs.current[index] = el}
+            >{item.label}</strong>
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
 function SignInScreen(){
   const [mode,setMode]=useState('signin');
   const [username,setUsername]=useState('');

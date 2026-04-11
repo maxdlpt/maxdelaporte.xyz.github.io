@@ -21,19 +21,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-  <!-- dnd-kit drag-and-drop library -->
-  <script type="module">
-    Promise.all([
-      import('https://esm.sh/@dnd-kit/core@6'),
-      import('https://esm.sh/@dnd-kit/sortable@8'),
-      import('https://esm.sh/@dnd-kit/utilities@3')
-    ]).then(([core,sortable,utils])=>{
-      window.DndKitCore=core;
-      window.DndKitSortable=sortable;
-      window.DndKitUtils=utils;
-      document.dispatchEvent(new CustomEvent('dndkit-ready'));
-    }).catch(()=>document.dispatchEvent(new CustomEvent('dndkit-ready')));
-  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1574,74 +1561,58 @@ function TaskCheckbox({checked,onChange,ticking}){
   );
 }
 
-/* Safe fallback for useSortable when dnd-kit CDN is unavailable (e.g. file://) */
-function useSortableFallback({id,disabled}){
-  const _ref=useRef(null);
-  return{setNodeRef:el=>{_ref.current=el;},transform:null,transition:null,isDragging:false,isSorting:false,attributes:{tabIndex:0,role:'listitem'},listeners:{}};
-}
-function TaskRowOverlay({task,firms,contacts}){
-  if(!task) return null;
-  const firm=firms.find(f=>f.id===task.firm_id);
-  const contact=contacts&&task.contact_id?contacts.find(x=>x.id===task.contact_id):null;
+function TaskRow({task,firms,contacts,onToggle,onEdit,onDelete,dragHandlers,isDragOver,isDragging,onMoveUp,onMoveDown,isFirst,isLast,ticking,setRef,onLongPressStart,isTouchDragging,isTouchDropTarget}){
+  const firm = firms.find(f=>f.id===task.firm_id);
+  const contact = contacts&&task.contact_id?contacts.find(x=>x.id===task.contact_id):null;
+  const touch = isTouchDevice();
+  const lpTimer = useRef(null);
+  const didDrag = useRef(false);
+  function handleTouchStart(){
+    if(task.done||!onLongPressStart) return;
+    didDrag.current=false;
+    lpTimer.current=setTimeout(()=>{
+      didDrag.current=true;
+      onLongPressStart();
+      if(navigator.vibrate) navigator.vibrate(30);
+    },400);
+  }
+  function handleTouchEnd(){clearTimeout(lpTimer.current);}
+  function handleClick(){if(!didDrag.current) onEdit(task);}
   return(
-    <div className="task-row" style={{boxShadow:'0 12px 32px rgba(0,0,0,.45)',transform:'scale(1.025)',background:'var(--card)',cursor:'grabbing',pointerEvents:'none',opacity:1}}>
-      <TaskCheckbox checked={false} onChange={()=>{}} ticking={false}/>
-      <div className="task-main">
-        <div className="task-title"><span className="task-title-text">{task.title}</span></div>
-        <div className="task-meta">
-          {firm&&<span className="tag" style={{fontSize:10,padding:'1px 7px'}}>{firm.name}</span>}
-          {contact&&<span className="tag" style={{fontSize:10,padding:'1px 7px',color:'var(--accent)'}}>{contact.name}</span>}
-          {task.notes&&<span className="task-notes">{task.notes}</span>}
-        </div>
-      </div>
-      <div className="task-actions" style={{opacity:1}}>
-        <span className="btn-icon" style={{fontSize:13,color:'var(--danger)'}}>✕</span>
-      </div>
-    </div>
-  );
-}
-function TaskRow({task,firms,contacts,onToggle,onEdit,onDelete,ticking,setRef}){
-  // Lock useSortable at first render via useRef – prevents hook-count change if CDN loads late
-  const _useSortableRef=useRef(window.DndKitSortable?.useSortable||useSortableFallback);
-  const useSortable=_useSortableRef.current;
-  const CSS=window.DndKitUtils?.CSS||{Transform:{toString:()=>''}};
-  const {setNodeRef,transform,transition,isDragging,attributes,listeners}=useSortable({
-    id:String(task.id),
-    disabled:!!task.done
-  });
-  const firm=firms.find(f=>f.id===task.firm_id);
-  const contact=contacts&&task.contact_id?contacts.find(x=>x.id===task.contact_id):null;
-  const style={
-    transform:CSS.Transform.toString(transform),
-    transition:isDragging?undefined:transition,
-  };
-  return(
-    <div
-      ref={node=>{setNodeRef(node);if(setRef)setRef(node);}}
-      style={style}
-      className={`task-row${task.done?' done-row':''}${isDragging?' touch-dragging':''}`}
-      {...(!task.done?{...attributes,...listeners}:{})}
-      onClick={()=>{if(!isDragging&&!task.done)onEdit(task);}}
-    >
-      <div onPointerDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();if(!ticking)onToggle(task);}}>
+    <>
+      {(isDragOver||isTouchDropTarget)&&<div className="task-drop-indicator"/>}
+      <div ref={setRef} className={`task-row${task.done?' done-row':''}${isDragging||isTouchDragging?' dragging':''}${!touch&&dragHandlers?.draggable?' reorderable':''}${isTouchDragging?' touch-dragging':''}`}
+        {...(touch?{}:dragHandlers)}
+        tabIndex={0} role="listitem"
+        aria-label={`${task.title}${isFirst!==undefined?`, position ${isFirst?1:(isLast?'last':'middle')}`:''}`}
+        title={!touch&&dragHandlers?.draggable?'Drag to reorder':undefined}
+        onClick={handleClick}
+        onTouchStart={touch&&!task.done?handleTouchStart:undefined}
+        onTouchEnd={touch&&!task.done?handleTouchEnd:undefined}
+        onTouchCancel={touch&&!task.done?handleTouchEnd:undefined}
+        onKeyDown={e=>{
+          if(e.key==='ArrowUp'&&onMoveUp&&!isFirst){e.preventDefault();onMoveUp();}
+          if(e.key==='ArrowDown'&&onMoveDown&&!isLast){e.preventDefault();onMoveDown();}
+        }}>
         <TaskCheckbox checked={task.done} onChange={()=>onToggle(task)} ticking={ticking}/>
-      </div>
-      <div className="task-main">
-        <div className="task-title">
-          <span className={`task-title-text${ticking?' striking':''}${task.done&&!ticking?' struck':''}`}>{task.title}</span>
+        <div className="task-main">
+          <div className="task-title">
+            <span className={`task-title-text${ticking?' striking':''}${task.done&&!ticking?' struck':''}`}>{task.title}</span>
+          </div>
+          <div className="task-meta">
+            {firm&&<span className="tag" style={{fontSize:10,padding:'1px 7px'}}>{firm.name}</span>}
+            {contact&&<span className="tag" style={{fontSize:10,padding:'1px 7px',color:'var(--accent)'}}>{contact.name}</span>}
+            {task.notes&&<span className="task-notes">{task.notes}</span>}
+          </div>
         </div>
-        <div className="task-meta">
-          {firm&&<span className="tag" style={{fontSize:10,padding:'1px 7px'}}>{firm.name}</span>}
-          {contact&&<span className="tag" style={{fontSize:10,padding:'1px 7px',color:'var(--accent)'}}>{contact.name}</span>}
-          {task.notes&&<span className="task-notes">{task.notes}</span>}
+        <div className="task-actions">
+          <button className="btn-icon" style={{fontSize:13,color:'var(--danger)'}} onClick={e=>{e.stopPropagation();onDelete(task);}} aria-label="Delete task">✕</button>
         </div>
       </div>
-      <div className="task-actions" onClick={e=>e.stopPropagation()}>
-        <button className="btn-icon" style={{fontSize:13,color:'var(--danger)'}} onClick={e=>{e.stopPropagation();onDelete(task);}} aria-label="Delete task">✕</button>
-      </div>
-    </div>
+    </>
   );
 }
+
 function TodoTab(){
   const {firms,contacts,todos,db,reload} = useContext(DataCtx);
   const {shortcutAction} = useContext(UICtx);
@@ -1652,28 +1623,13 @@ function TodoTab(){
   const [showDone,setShowDone] = useState(false);
   const [editTodo,setEditTodo] = useState(null);
   const [editForm,setEditForm] = useState({});
-  const [activeId,setActiveId] = useState(null);
+  const [dragSrc,setDragSrc] = useState(null);
+  const [dragOver,setDragOver] = useState(null);
   const [tickingIds,setTickingIds] = useState(new Set());
+  const [touchDrag,setTouchDrag] = useState({active:false,srcIdx:null,overIdx:null});
+  const touchDragRef = useRef({active:false,srcIdx:null,overIdx:null});
   /* Tracks pending animation timeouts so we can cancel on DB error */
   const tickingTimeouts = useRef({});
-  /* ── dnd-kit sensors – null-safe: works even if CDN blocked (e.g. file://) ── */
-  const _dndCore=window.DndKitCore||{};
-  const _dndSortable=window.DndKitSortable||{};
-  const DndContext=_dndCore.DndContext||((props)=>React.createElement(React.Fragment,null,props.children));
-  const DndDragOverlay=_dndCore.DragOverlay||(()=>null);
-  const SortableContext=_dndSortable.SortableContext||((props)=>React.createElement(React.Fragment,null,props.children));
-  const verticalListSortingStrategy=_dndSortable.verticalListSortingStrategy||null;
-  const closestCenter=_dndCore.closestCenter||null;
-  // Sensor config via useRef – never calls useSensors/useSensor (which call useMemo internally)
-  // This means hook count is always exactly 1 (the useRef), regardless of dnd-kit load state
-  const _sensorsRef=useRef(null);
-  if(!_sensorsRef.current&&_dndCore.MouseSensor){
-    _sensorsRef.current=[
-      {sensor:_dndCore.MouseSensor,options:{activationConstraint:{distance:8}}},
-      {sensor:_dndCore.TouchSensor,options:{activationConstraint:{delay:400,tolerance:8}}}
-    ];
-  }
-  const sensors=_sensorsRef.current||[];
   /* Local optimistic overlay — mirrors context todos but allows instant UI updates.
      Don't overwrite if an animation is in progress (would jump the task immediately). */
   const [localTodos,setLocalTodos] = useState(todos);
@@ -1803,6 +1759,7 @@ function TodoTab(){
 
   async function moveTask(fromIdx, toIdx) {
     if(toIdx<0||toIdx>=open.length) return;
+    snapshotPositions();
     const arr=[...open];
     const [moved]=arr.splice(fromIdx,1);
     arr.splice(toIdx,0,moved);
@@ -1815,6 +1772,66 @@ function TodoTab(){
     }catch(e){toast('Reorder failed','e');reload();}
   }
 
+  function startTouchDrag(idx){
+    touchDragRef.current={active:true,srcIdx:idx,overIdx:idx};
+    setTouchDrag({active:true,srcIdx:idx,overIdx:idx});
+    snapshotPositions();
+  }
+  useEffect(()=>{
+    if(!touchDrag.active) return;
+    function onMove(e){
+      e.preventDefault();
+      const y=e.touches[0].clientY;
+      for(let i=0;i<open.length;i++){
+        const el=taskRefs.current[open[i].id];
+        if(!el) continue;
+        const r=el.getBoundingClientRect();
+        if(y>=r.top&&y<=r.bottom){
+          if(touchDragRef.current.overIdx!==i){touchDragRef.current.overIdx=i;setTouchDrag(p=>({...p,overIdx:i}));}
+          break;
+        }
+      }
+    }
+    function onEnd(){
+      const {srcIdx,overIdx}=touchDragRef.current;
+      touchDragRef.current={active:false,srcIdx:null,overIdx:null};
+      setTouchDrag({active:false,srcIdx:null,overIdx:null});
+      if(srcIdx!==null&&overIdx!==null&&srcIdx!==overIdx) moveTask(srcIdx,overIdx);
+    }
+    document.addEventListener('touchmove',onMove,{passive:false});
+    document.addEventListener('touchend',onEnd);
+    document.addEventListener('touchcancel',onEnd);
+    return()=>{
+      document.removeEventListener('touchmove',onMove);
+      document.removeEventListener('touchend',onEnd);
+      document.removeEventListener('touchcancel',onEnd);
+    };
+  },[touchDrag.active]);
+  function onDragStart(e,task){setDragSrc(task);e.dataTransfer.effectAllowed='move';}
+  function onDragEnd(){setDragSrc(null);setDragOver(null);}
+  function onDragOverFn(e,task){e.preventDefault();if(dragSrc&&dragSrc.id!==task.id)setDragOver(task.id);}
+  function onDragLeaveFn(){setDragOver(null);}
+  async function onDrop(e,task){
+    e.preventDefault();setDragOver(null);
+    if(!dragSrc||dragSrc.id===task.id)return;
+    snapshotPositions();
+    const prevOrder=open.map(t=>({id:t.id,priority:t.priority}));
+    const arr=[...open];
+    const srcIdx=arr.findIndex(t=>t.id===dragSrc.id);
+    const tgtIdx=arr.findIndex(t=>t.id===task.id);
+    arr.splice(srcIdx,1);arr.splice(tgtIdx,0,dragSrc);
+    /* Optimistic local reorder */
+    const updates=arr.map((t,i)=>({...t,priority:i}));
+    setLocalTodos(prev=>prev.map(t=>{const u=updates.find(x=>x.id===t.id);return u?{...t,priority:u.priority}:t;}));
+    try{
+      await Promise.all(arr.map((t,i)=>db.upd('todos',t.id,{priority:i})));
+      reload();
+    }catch(err){
+      toast('Reorder failed, reverting','e');
+      try{await Promise.all(prevOrder.map(p=>db.upd('todos',p.id,{priority:p.priority})));}catch(_){}
+      reload();
+    }
+  }
 
   return(
     <div className="todo-page">
@@ -1833,31 +1850,28 @@ function TodoTab(){
 
       {!activeList.length&&!pastTasks.length&&<div className="empty-state">No tasks yet. Press <strong>N</strong> to add one.</div>}
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter}
-        onDragStart={e=>setActiveId(e.active.id)}
-        onDragEnd={e=>{
-          const {active,over}=e;
-          setActiveId(null);
-          if(!over||active.id===over.id) return;
-          const oldIdx=open.findIndex(t=>String(t.id)===String(active.id));
-          const newIdx=open.findIndex(t=>String(t.id)===String(over.id));
-          if(oldIdx!==-1&&newIdx!==-1&&oldIdx!==newIdx) moveTask(oldIdx,newIdx);
-        }}>
-        <SortableContext items={open.map(t=>String(t.id))} strategy={verticalListSortingStrategy}>
-          {activeList.map(task=>(
-            <TaskRow key={task.id} task={task} firms={firms} contacts={contacts}
-              onToggle={toggleDone}
-              onEdit={t=>{setEditTodo(t);setEditForm({title:t.title,notes:t.notes||'',firm_id:t.firm_id||'',contact_id:t.contact_id||''});}}
-              onDelete={deleteTodo}
-              ticking={tickingIds.has(task.id)}
-              setRef={el=>{taskRefs.current[task.id]=el;}}
-            />
-          ))}
-        </SortableContext>
-        <DndDragOverlay dropAnimation={{duration:200,easing:'ease'}}>
-          {activeId?<TaskRowOverlay task={open.find(t=>String(t.id)===String(activeId))} firms={firms} contacts={contacts}/>:null}
-        </DndDragOverlay>
-      </DndContext>
+      {activeList.map((task,idx)=>{
+        const isInOpen=!task.done;
+        const openIdx=isInOpen?open.indexOf(task):-1;
+        return(
+          <TaskRow key={task.id} task={task} firms={firms} contacts={contacts}
+            onToggle={toggleDone}
+            onEdit={t=>{setEditTodo(t);setEditForm({title:t.title,notes:t.notes||'',firm_id:t.firm_id||'',contact_id:t.contact_id||''}); }}
+            onDelete={deleteTodo}
+            isDragOver={dragOver===task.id}
+            isDragging={dragSrc?.id===task.id}
+            dragHandlers={isInOpen?{draggable:true,onDragStart:e=>onDragStart(e,task),onDragEnd,onDragOver:e=>onDragOverFn(e,task),onDragLeave:onDragLeaveFn,onDrop:e=>onDrop(e,task)}:{}}
+            onMoveUp={isInOpen?()=>moveTask(openIdx,openIdx-1):undefined}
+            onMoveDown={isInOpen?()=>moveTask(openIdx,openIdx+1):undefined}
+            isFirst={isInOpen?openIdx===0:true} isLast={isInOpen?openIdx===open.length-1:true}
+            ticking={tickingIds.has(task.id)}
+            setRef={el=>{taskRefs.current[task.id]=el;}}
+            onLongPressStart={isInOpen?()=>startTouchDrag(openIdx):undefined}
+            isTouchDragging={touchDrag.active&&touchDrag.srcIdx===openIdx}
+            isTouchDropTarget={touchDrag.active&&touchDrag.overIdx===openIdx&&touchDrag.srcIdx!==openIdx}
+          />
+        );
+      })}
 
       {pastTasks.length>0&&(
         <>
@@ -1868,8 +1882,9 @@ function TodoTab(){
           {showDone&&pastTasks.map(task=>(
             <TaskRow key={task.id} task={task} firms={firms} contacts={contacts}
               onToggle={toggleDone}
-              onEdit={t=>{setEditTodo(t);setEditForm({title:t.title,notes:t.notes||'',firm_id:t.firm_id||'',contact_id:t.contact_id||''});}}
+              onEdit={t=>{setEditTodo(t);setEditForm({title:t.title,notes:t.notes||'',firm_id:t.firm_id||'',contact_id:t.contact_id||''}); }}
               onDelete={deleteTodo}
+              isDragOver={false} isDragging={false} dragHandlers={{}}
               setRef={el=>{taskRefs.current[task.id]=el;}}
             />
           ))}
@@ -2655,15 +2670,7 @@ function App(){
   if(!auth||!auth.userId)return <SignInScreen/>;
   return <Dashboard db={new DB(cfg.url,cfg.key,auth.userId)}/>;
 }
-let _appMounted=false;
-function mountApp(){
-  if(_appMounted)return;
-  _appMounted=true;
-  ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
-}
-// Mount when dnd-kit is ready, OR after 500ms (handles file:// where module scripts are blocked)
-document.addEventListener('dndkit-ready',mountApp,{once:true});
-setTimeout(mountApp,500);
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>

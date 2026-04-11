@@ -13,11 +13,6 @@
     href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 </head>
 <body>
-    <!-- Full-page video background (CSS background-image doesn't support video) -->
-    <video id="bg-video" autoplay muted loop playsinline aria-hidden="true">
-        <source src="3_images/paysage1.mp4" type="video/mp4">
-    </video>
-
     <!-- Scroll progress bar -->
     <div id="scroll-progress-bar" aria-hidden="true"></div>
 
@@ -50,6 +45,10 @@
 
     <!-- Hero Section -->
     <section class="hero" id="home">
+        <!-- Video background — inside hero so backdrop-filter composites correctly -->
+        <video id="bg-video" autoplay muted loop playsinline aria-hidden="true">
+            <source src="3_images/paysage1.mp4" type="video/mp4">
+        </video>
         <!-- Interactive ASCII text overlay (mouse-reactive) -->
         <div class="ascii-embed">
             <pre class="ascii-pre" aria-hidden="true"></pre>

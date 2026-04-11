@@ -59,11 +59,12 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Full-page video background — fixed so it behaves like background-attachment: fixed */
+/* Hero video background — absolute inside .hero so backdrop-filter composites correctly.
+   position:fixed + z-index:-1 causes a Chrome compositor bug that makes the hero card
+   invisible when backdrop-filter tries to sample from the video's separate GPU layer. */
 #bg-video {
-    position: fixed;
-    top: 0;
-    left: 0;
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -277,7 +278,7 @@ h2 {
 
 .hero {
     padding: 0;
-    /* Pull hero up behind the fixed header so ASCII fills the full viewport */
+    /* Pull hero up behind the fixed header so ASCII + video fill the full viewport */
     margin-top: calc(-1 * var(--header-height));
     min-height: 100vh;
     min-height: 100svh;
@@ -286,6 +287,10 @@ h2 {
     align-items: center;
     position: relative;
     overflow: hidden;
+    /* z-index:0 creates a stacking context so backdrop-filter on .hero-content
+       correctly composites the video + ASCII layers within this context,
+       avoiding the Chrome GPU-layer bug with fixed+negative-z-index video */
+    z-index: 0;
 }
 
 /* ASCII interactive text overlay container */

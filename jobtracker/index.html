@@ -1220,7 +1220,6 @@ function ContactsTab(){
   const {setModal,shortcutAction} = useContext(UICtx);
   const {toast} = useContext(NotifyCtx);
   const [search,setSearch] = useState('');
-  const [detail,setDetail] = useState(null);
   const [formOpen,setFormOpen] = useState(false);
   const [sortCol,setSortCol] = useState('status');
   const [sortDir,setSortDir] = useState('asc');
@@ -1239,7 +1238,7 @@ function ContactsTab(){
 
   const filtered = useMemo(()=>{
     let list = contacts;
-    if(search){const q=search.toLowerCase();list=list.filter(c=>c.name.toLowerCase().includes(q)||c.role?.toLowerCase().includes(q)||c.email?.toLowerCase().includes(q));}
+    if(search){const q=search.toLowerCase();list=list.filter(c=>[c.name,c.role,c.email,c.phone,c.linkedin,c.notes,firms.find(f=>f.id===c.firm_id)?.name].some(v=>v?.toLowerCase().includes(q)));}
     return list;
   },[contacts,search]);
 
@@ -1301,7 +1300,7 @@ function ContactsTab(){
         <input ref={searchRef} placeholder="Search contacts..." value={search} onChange={e=>setSearch(e.target.value)} style={{flex:1}}/>
       </div>
 
-      <div className="lines-table-header contact-row">
+      <div className="lines-table-header contact-row" style={{cursor:'default'}}>
         {CONTACT_COLS.map(({key,label,cls})=>(
           <div key={cls} className={`lines-th${cls?' '+cls:''}${key?' lines-th--sortable':''}${sortCol===key?' lines-th--active':''}`} onClick={()=>key&&handleSort(key)}>
             {label}{sortCol===key&&<span className="lines-sort-arrow">{sortDir==='asc'?' ↑':' ↓'}</span>}
@@ -1311,7 +1310,7 @@ function ContactsTab(){
       <div className="lines-table-body">
         {sorted.length?sorted.map(c=>(
           <React.Fragment key={c.id}>
-            <div className={`c-row contact-row${detail===c.id?' expanded':''}`} onClick={()=>setDetail(detail===c.id?null:c.id)}>
+            <div className="c-row contact-row" style={{cursor:'pointer'}} onClick={()=>setModal({type:'edit-contact',data:c})}>
               <div className="c-row-name contact-col-name">{c.name}</div>
               <div className="contact-col-status"><Badge v={c.status} arr={C_ST}/></div>
               <div className="c-row-firm contact-col-firm">{firms.find(f=>f.id===c.firm_id)?.name||'?'}</div>
@@ -1326,15 +1325,7 @@ function ContactsTab(){
                 <button className="btn-icon" style={{color:'var(--danger)'}} onClick={e=>{e.stopPropagation();setModal({type:'del-contact',data:c})}} aria-label="Delete contact">✕</button>
               </div>
             </div>
-            {detail===c.id&&(
-              <div className="c-detail">
-                {c.email&&<div className="c-detail-row"><div className="c-detail-label">Email</div><div className="c-detail-val"><a href={`mailto:${c.email}`}>{c.email}</a></div></div>}
-                {c.phone&&<div className="c-detail-row"><div className="c-detail-label">Phone</div><div className="c-detail-val"><a href={`tel:${c.phone}`}>{c.phone}</a></div></div>}
-                {c.linkedin&&<div className="c-detail-row"><div className="c-detail-label">LinkedIn</div><div className="c-detail-val"><a href={c.linkedin} target="_blank" rel="noreferrer">{c.linkedin}</a></div></div>}
-                {c.advice&&<div className="c-detail-row"><div className="c-detail-label">Advice</div><div className="c-detail-val" style={{fontStyle:'italic'}}>{c.advice}</div></div>}
-                {c.notes&&<div className="c-detail-row"><div className="c-detail-label">Notes</div><div className="c-detail-val">{c.notes}</div></div>}
-              </div>
-            )}
+
           </React.Fragment>
         )):<div className="empty-state">No contacts found</div>}
       </div>
@@ -1348,7 +1339,6 @@ function OppsTab(){
   const {setModal,shortcutAction} = useContext(UICtx);
   const {toast} = useContext(NotifyCtx);
   const [search,setSearch] = useState('');
-  const [detail,setDetail] = useState(null);
   const [formOpen,setFormOpen] = useState(false);
   const [sortCol,setSortCol] = useState('stage');
   const [sortDir,setSortDir] = useState('asc');
@@ -1368,7 +1358,7 @@ function OppsTab(){
 
   const filtered = useMemo(()=>{
     let list = opps;
-    if(search){const q=search.toLowerCase();list=list.filter(o=>o.role?.toLowerCase().includes(q)||firms.find(f=>f.id===o.firm_id)?.name?.toLowerCase().includes(q));}
+    if(search){const q=search.toLowerCase();list=list.filter(o=>[o.role,o.location,o.notes,o.referral,firms.find(f=>f.id===o.firm_id)?.name].some(v=>v?.toLowerCase().includes(q)));}
     return list;
   },[opps,search,firms]);
 
@@ -1427,8 +1417,6 @@ function OppsTab(){
 
       {newFirmModal&&<Modal title="Create Firm" onClose={()=>setNewFirmModal(null)} onSave={handleCreateFirm} saveLabel="Create"><FirmForm d={newFirmForm} set={setNewFirmForm}/></Modal>}
 
-      <div className="note-box">New opportunities automatically appear in the Pipeline tab under "Not Applied".</div>
-
       <div className="filter-bar" style={{marginBottom:0}}>
         <input ref={searchRef} placeholder="Search opportunities..." value={search} onChange={e=>setSearch(e.target.value)} style={{flex:1}}/>
       </div>
@@ -1443,7 +1431,7 @@ function OppsTab(){
       <div className="lines-table-body">
         {sorted.length?sorted.map(o=>(
           <React.Fragment key={o.id}>
-            <div className={`opp-row${detail===o.id?' expanded':''}`} onClick={()=>setDetail(detail===o.id?null:o.id)}>
+            <div className="opp-row" style={{cursor:'pointer'}} onClick={()=>setModal({type:'edit-opp',data:o})}>
               <div className="opp-col-role">{o.role}</div>
               <div className="opp-col-stage"><Badge v={o.stage} arr={STAGES}/></div>
               <div className="opp-col-firm">{firmName(o.firm_id)}</div>
@@ -1457,13 +1445,7 @@ function OppsTab(){
                 <button className="btn-icon" style={{fontSize:14,color:'var(--danger)'}} onClick={e=>{e.stopPropagation();setModal({type:'del-opp',data:o})}} aria-label="Delete opportunity">✕</button>
               </div>
             </div>
-            {detail===o.id&&(
-              <div className="c-detail">
-                {o.notes&&<div className="c-detail-row"><div className="c-detail-label">Notes</div><div className="c-detail-val">{o.notes}</div></div>}
-                {o.link&&<div className="c-detail-row"><div className="c-detail-label">Job Link</div><div className="c-detail-val"><a href={o.link} target="_blank" rel="noreferrer">{o.link}</a></div></div>}
-                {o.referral&&<div className="c-detail-row"><div className="c-detail-label">Referral</div><div className="c-detail-val">{o.referral}</div></div>}
-              </div>
-            )}
+
           </React.Fragment>
         )):<div className="empty-state">No opportunities yet. Create one above.</div>}
       </div>

@@ -505,8 +505,6 @@
     .pull-indicator { display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; overflow:hidden; transition:color .15s; }
 
     /* ── Touch: task move buttons ── */
-    .task-move-btns { display:flex; flex-direction:column; gap:2px; }
-    .task-move-btns .btn-icon { padding:2px 6px; font-size:12px; min-width:unset; min-height:unset; }
 
     /* ── Stage picker (touch pipeline) ── */
     .stage-picker-grid { display:flex; flex-direction:column; gap:6px; }
@@ -538,7 +536,7 @@
         padding:0 4px;
       }
       .mobile-menu__item {
-        flex:1;
+        flex:1; min-width:0; overflow:hidden;
         display:flex;
         flex-direction:row;
         align-items:center;
@@ -554,7 +552,7 @@
         -webkit-tap-highlight-color:transparent;
         transition:color .2s;
       }
-      .mobile-menu__item.active { color:var(--accent); }
+      .mobile-menu__item.active { flex:2; color:var(--accent); }
       .mobile-menu__icon { width:26px; height:26px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
       .mobile-menu__icon svg { width:26px; height:26px; }
       .mobile-menu__item.active .mobile-menu__icon { animation:iconBounce .5s ease-out; }
@@ -569,7 +567,7 @@
         white-space:nowrap;
         position:relative;
       }
-      .mobile-menu__text.active { opacity:1; max-width:90px; }
+      .mobile-menu__text.active { opacity:1; max-width:200px; }
       .mobile-menu__text.active::after {
         content:'';
         position:absolute;
@@ -607,6 +605,13 @@
       .pl-card-role { font-size:14px; }
       .fc-item { font-size:13px; }
       .field label { font-size:13px; }
+      /* Mobile list cards (contacts + opps) */
+      .m-list-card { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border:1px solid var(--bdr); border-radius:var(--r); background:var(--card); margin-bottom:6px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+      .m-list-card:active { background:var(--bg2); }
+      .m-card-main { flex:1; min-width:0; }
+      .m-card-name { font-weight:600; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-bottom:2px; }
+      .m-card-sub { font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .task-row.touch-dragging { opacity:0.5; transform:scale(1.02); box-shadow:var(--sh-lg); z-index:10; }
     }
   </style>
 </head>
@@ -1256,10 +1261,20 @@ function PipelineTab(){
 }
 
 /* ══════════════════ TAB 3: CONTACTS ══════════════════ */
+function useIsMobile(){
+  const [m,setM]=useState(()=>window.innerWidth<=768);
+  useEffect(()=>{
+    const h=()=>setM(window.innerWidth<=768);
+    window.addEventListener('resize',h);
+    return ()=>window.removeEventListener('resize',h);
+  },[]);
+  return m;
+}
 function ContactsTab(){
   const {firms,contacts,db,reload} = useContext(DataCtx);
   const {setModal,shortcutAction} = useContext(UICtx);
   const {toast} = useContext(NotifyCtx);
+  const isMobile = useIsMobile();
   const [search,setSearch] = useState('');
   const [formOpen,setFormOpen] = useState(false);
   const [sortCol,setSortCol] = useState('status');
@@ -1341,35 +1356,51 @@ function ContactsTab(){
         <input ref={searchRef} placeholder="Search contacts..." value={search} onChange={e=>setSearch(e.target.value)} style={{flex:1}}/>
       </div>
 
-      <div className="lines-table-header contact-row" style={{cursor:'default'}}>
-        {CONTACT_COLS.map(({key,label,cls})=>(
-          <div key={cls} className={`lines-th${cls?' '+cls:''}${key?' lines-th--sortable':''}${sortCol===key?' lines-th--active':''}`} onClick={()=>key&&handleSort(key)}>
-            {label}{sortCol===key&&<span className="lines-sort-arrow">{sortDir==='asc'?' ↑':' ↓'}</span>}
-          </div>
-        ))}
-      </div>
-      <div className="lines-table-body">
-        {sorted.length?sorted.map(c=>(
-          <React.Fragment key={c.id}>
-            <div className="c-row contact-row" style={{cursor:'pointer'}} onClick={()=>setModal({type:'edit-contact',data:c})}>
-              <div className="c-row-name contact-col-name">{c.name}</div>
-              <div className="contact-col-status"><Badge v={c.status} arr={C_ST}/></div>
-              <div className="c-row-firm contact-col-firm">{firms.find(f=>f.id===c.firm_id)?.name||'?'}</div>
-              <div className="c-row-role contact-col-role">{c.role||'-'}</div>
-              <div className="contact-col-links">
-                {c.email?<button className="c-row-link c-row-copy" onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(c.email).then(()=>toast('Email copied','s'))}} title={`Copy: ${c.email}`}><IconEmail/></button>:<span className="contact-btn-placeholder" />}
-                {c.linkedin?<a className="c-row-link contact-linkedin" href={c.linkedin} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} title="Open LinkedIn"><IconLinkedIn/></a>:<span className="contact-btn-placeholder" />}
-                {c.phone?<button className="c-row-link c-row-copy" onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(c.phone).then(()=>toast('Phone copied','s'))}} title={`Copy: ${c.phone}`}><IconPhone/></button>:<span className="contact-btn-placeholder" />}
+      {isMobile ? (
+        <div>
+          {sorted.length?sorted.map(c=>(
+            <div key={c.id} className="m-list-card" onClick={()=>setModal({type:'edit-contact',data:c})}>
+              <div className="m-card-main">
+                <div className="m-card-name">{c.name}</div>
+                <div className="m-card-sub">{firms.find(f=>f.id===c.firm_id)?.name||''}{c.role?` · ${c.role}`:''}</div>
               </div>
-              <div className="contact-col-actions">
-                <button className="btn-icon" onClick={e=>{e.stopPropagation();setModal({type:'edit-contact',data:c})}} aria-label="Edit contact">✎</button>
-                <button className="btn-icon" style={{color:'var(--danger)'}} onClick={e=>{e.stopPropagation();setModal({type:'del-contact',data:c})}} aria-label="Delete contact">✕</button>
-              </div>
+              <Badge v={c.status} arr={C_ST}/>
             </div>
-
-          </React.Fragment>
-        )):<div className="empty-state">No contacts found</div>}
-      </div>
+          )):<div className="empty-state">No contacts found</div>}
+        </div>
+      ) : (
+        <>
+        <div className="lines-table-header contact-row" style={{cursor:'default'}}>
+          {CONTACT_COLS.map(({key,label,cls})=>(
+            <div key={cls} className={`lines-th${cls?' '+cls:''}${key?' lines-th--sortable':''}${sortCol===key?' lines-th--active':''}`} onClick={()=>key&&handleSort(key)}>
+              {label}{sortCol===key&&<span className="lines-sort-arrow">{sortDir==='asc'?' ↑':' ↓'}</span>}
+            </div>
+          ))}
+        </div>
+        <div className="lines-table-body">
+          {sorted.length?sorted.map(c=>(
+            <React.Fragment key={c.id}>
+              <div className="c-row contact-row" style={{cursor:'pointer'}} onClick={()=>setModal({type:'edit-contact',data:c})}>
+                <div className="c-row-name contact-col-name">{c.name}</div>
+                <div className="contact-col-status"><Badge v={c.status} arr={C_ST}/></div>
+                <div className="c-row-firm contact-col-firm">{firms.find(f=>f.id===c.firm_id)?.name||'?'}</div>
+                <div className="c-row-role contact-col-role">{c.role||'-'}</div>
+                <div className="contact-col-links">
+                  {c.email?<button className="c-row-link c-row-copy" onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(c.email).then(()=>toast('Email copied','s'))}} title={`Copy: ${c.email}`}><IconEmail/></button>:<span className="contact-btn-placeholder" />}
+                  {c.linkedin?<a className="c-row-link contact-linkedin" href={c.linkedin} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} title="Open LinkedIn"><IconLinkedIn/></a>:<span className="contact-btn-placeholder" />}
+                  {c.phone?<button className="c-row-link c-row-copy" onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(c.phone).then(()=>toast('Phone copied','s'))}} title={`Copy: ${c.phone}`}><IconPhone/></button>:<span className="contact-btn-placeholder" />}
+                </div>
+                <div className="contact-col-actions">
+                  <button className="btn-icon" onClick={e=>{e.stopPropagation();setModal({type:'edit-contact',data:c})}} aria-label="Edit contact">✎</button>
+                  <button className="btn-icon" style={{color:'var(--danger)'}} onClick={e=>{e.stopPropagation();setModal({type:'del-contact',data:c})}} aria-label="Delete contact">✕</button>
+                </div>
+              </div>
+  
+            </React.Fragment>
+          )):<div className="empty-state">No contacts found</div>}
+        </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1379,6 +1410,7 @@ function OppsTab(){
   const {firms,opps,db,reload} = useContext(DataCtx);
   const {setModal,shortcutAction} = useContext(UICtx);
   const {toast} = useContext(NotifyCtx);
+  const isMobile = useIsMobile();
   const [search,setSearch] = useState('');
   const [formOpen,setFormOpen] = useState(false);
   const [sortCol,setSortCol] = useState('stage');
@@ -1462,34 +1494,50 @@ function OppsTab(){
         <input ref={searchRef} placeholder="Search opportunities..." value={search} onChange={e=>setSearch(e.target.value)} style={{flex:1}}/>
       </div>
 
-      <div className="lines-table-header opp-row" style={{cursor:'default'}}>
-        {OPP_COLS.map(({key,label,cls})=>(
-          <div key={cls} className={`lines-th${cls?' '+cls:''}${key?' lines-th--sortable':''}${sortCol===key?' lines-th--active':''}`} onClick={()=>key&&handleSort(key)}>
-            {label}{sortCol===key&&<span className="lines-sort-arrow">{sortDir==='asc'?' ↑':' ↓'}</span>}
-          </div>
-        ))}
-      </div>
-      <div className="lines-table-body">
-        {sorted.length?sorted.map(o=>(
-          <React.Fragment key={o.id}>
-            <div className="opp-row" style={{cursor:'pointer'}} onClick={()=>setModal({type:'edit-opp',data:o})}>
-              <div className="opp-col-role">{o.role}</div>
-              <div className="opp-col-stage"><Badge v={o.stage} arr={STAGES}/></div>
-              <div className="opp-col-firm">{firmName(o.firm_id)}</div>
-              <div className="opp-col-loc">{o.location||'—'}</div>
-              <div className="opp-col-ref">{o.referral&&o.referral!=='No'&&o.referral!==''&&<span className="tag" style={{fontSize:10}}>{o.referral==='Yes'?'✓ Ref':'⏳'}</span>}</div>
-              <div className="opp-col-link">
-                {o.link?<a className="btn-icon opp-link-btn" href={o.link} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} aria-label="Open job posting" title="Open job posting"><IconExternalLink/></a>:<span style={{width:28,display:'block'}}/>}
+      {isMobile ? (
+        <div>
+          {sorted.length?sorted.map(o=>(
+            <div key={o.id} className="m-list-card" onClick={()=>setModal({type:'edit-opp',data:o})}>
+              <div className="m-card-main">
+                <div className="m-card-name">{o.role}</div>
+                <div className="m-card-sub">{firmName(o.firm_id)}{o.location?` · ${o.location}`:''}</div>
               </div>
-              <div className="opp-col-actions">
-                <button className="btn-icon" style={{fontSize:14}} onClick={e=>{e.stopPropagation();setModal({type:'edit-opp',data:o})}} aria-label="Edit opportunity">✎</button>
-                <button className="btn-icon" style={{fontSize:14,color:'var(--danger)'}} onClick={e=>{e.stopPropagation();setModal({type:'del-opp',data:o})}} aria-label="Delete opportunity">✕</button>
-              </div>
+              <Badge v={o.stage} arr={STAGES}/>
             </div>
-
-          </React.Fragment>
-        )):<div className="empty-state">No opportunities yet. Create one above.</div>}
-      </div>
+          )):<div className="empty-state">No opportunities yet. Create one above.</div>}
+        </div>
+      ) : (
+        <>
+        <div className="lines-table-header opp-row" style={{cursor:'default'}}>
+          {OPP_COLS.map(({key,label,cls})=>(
+            <div key={cls} className={`lines-th${cls?' '+cls:''}${key?' lines-th--sortable':''}${sortCol===key?' lines-th--active':''}`} onClick={()=>key&&handleSort(key)}>
+              {label}{sortCol===key&&<span className="lines-sort-arrow">{sortDir==='asc'?' ↑':' ↓'}</span>}
+            </div>
+          ))}
+        </div>
+        <div className="lines-table-body">
+          {sorted.length?sorted.map(o=>(
+            <React.Fragment key={o.id}>
+              <div className="opp-row" style={{cursor:'pointer'}} onClick={()=>setModal({type:'edit-opp',data:o})}>
+                <div className="opp-col-role">{o.role}</div>
+                <div className="opp-col-stage"><Badge v={o.stage} arr={STAGES}/></div>
+                <div className="opp-col-firm">{firmName(o.firm_id)}</div>
+                <div className="opp-col-loc">{o.location||'—'}</div>
+                <div className="opp-col-ref">{o.referral&&o.referral!=='No'&&o.referral!==''&&<span className="tag" style={{fontSize:10}}>{o.referral==='Yes'?'✓ Ref':'⏳'}</span>}</div>
+                <div className="opp-col-link">
+                  {o.link?<a className="btn-icon opp-link-btn" href={o.link} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} aria-label="Open job posting" title="Open job posting"><IconExternalLink/></a>:<span style={{width:28,display:'block'}}/>}
+                </div>
+                <div className="opp-col-actions">
+                  <button className="btn-icon" style={{fontSize:14}} onClick={e=>{e.stopPropagation();setModal({type:'edit-opp',data:o})}} aria-label="Edit opportunity">✎</button>
+                  <button className="btn-icon" style={{fontSize:14,color:'var(--danger)'}} onClick={e=>{e.stopPropagation();setModal({type:'del-opp',data:o})}} aria-label="Delete opportunity">✕</button>
+                </div>
+              </div>
+  
+            </React.Fragment>
+          )):<div className="empty-state">No opportunities yet. Create one above.</div>}
+        </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1513,28 +1561,39 @@ function TaskCheckbox({checked,onChange,ticking}){
   );
 }
 
-function TaskRow({task,firms,contacts,onToggle,onEdit,onDelete,dragHandlers,isDragOver,isDragging,onMoveUp,onMoveDown,isFirst,isLast,ticking,setRef}){
+function TaskRow({task,firms,contacts,onToggle,onEdit,onDelete,dragHandlers,isDragOver,isDragging,onMoveUp,onMoveDown,isFirst,isLast,ticking,setRef,onLongPressStart,isTouchDragging,isTouchDropTarget}){
   const firm = firms.find(f=>f.id===task.firm_id);
   const contact = contacts&&task.contact_id?contacts.find(x=>x.id===task.contact_id):null;
   const touch = isTouchDevice();
+  const lpTimer = useRef(null);
+  const didDrag = useRef(false);
+  function handleTouchStart(){
+    if(task.done||!onLongPressStart) return;
+    didDrag.current=false;
+    lpTimer.current=setTimeout(()=>{
+      didDrag.current=true;
+      onLongPressStart();
+      if(navigator.vibrate) navigator.vibrate(30);
+    },400);
+  }
+  function handleTouchEnd(){clearTimeout(lpTimer.current);}
+  function handleClick(){if(!didDrag.current) onEdit(task);}
   return(
     <>
-      {isDragOver&&<div className="task-drop-indicator"/>}
-      <div ref={setRef} className={`task-row${task.done?' done-row':''}${isDragging?' dragging':''}${!touch&&dragHandlers?.draggable?' reorderable':''}`}
+      {(isDragOver||isTouchDropTarget)&&<div className="task-drop-indicator"/>}
+      <div ref={setRef} className={`task-row${task.done?' done-row':''}${isDragging||isTouchDragging?' dragging':''}${!touch&&dragHandlers?.draggable?' reorderable':''}${isTouchDragging?' touch-dragging':''}`}
         {...(touch?{}:dragHandlers)}
         tabIndex={0} role="listitem"
         aria-label={`${task.title}${isFirst!==undefined?`, position ${isFirst?1:(isLast?'last':'middle')}`:''}`}
         title={!touch&&dragHandlers?.draggable?'Drag to reorder':undefined}
+        onClick={handleClick}
+        onTouchStart={touch&&!task.done?handleTouchStart:undefined}
+        onTouchEnd={touch&&!task.done?handleTouchEnd:undefined}
+        onTouchCancel={touch&&!task.done?handleTouchEnd:undefined}
         onKeyDown={e=>{
           if(e.key==='ArrowUp'&&onMoveUp&&!isFirst){e.preventDefault();onMoveUp();}
           if(e.key==='ArrowDown'&&onMoveDown&&!isLast){e.preventDefault();onMoveDown();}
         }}>
-        {touch && !task.done ? (
-          <div className="task-move-btns">
-            <button className="btn-icon" aria-label="Move up" onClick={onMoveUp} disabled={isFirst}>&#9650;</button>
-            <button className="btn-icon" aria-label="Move down" onClick={onMoveDown} disabled={isLast}>&#9660;</button>
-          </div>
-        ) : null}
         <TaskCheckbox checked={task.done} onChange={()=>onToggle(task)} ticking={ticking}/>
         <div className="task-main">
           <div className="task-title">
@@ -1547,7 +1606,6 @@ function TaskRow({task,firms,contacts,onToggle,onEdit,onDelete,dragHandlers,isDr
           </div>
         </div>
         <div className="task-actions">
-          <button className="btn-icon" style={{fontSize:13}} onClick={e=>{e.stopPropagation();onEdit(task);}} aria-label="Edit task">✎</button>
           <button className="btn-icon" style={{fontSize:13,color:'var(--danger)'}} onClick={e=>{e.stopPropagation();onDelete(task);}} aria-label="Delete task">✕</button>
         </div>
       </div>
@@ -1568,6 +1626,8 @@ function TodoTab(){
   const [dragSrc,setDragSrc] = useState(null);
   const [dragOver,setDragOver] = useState(null);
   const [tickingIds,setTickingIds] = useState(new Set());
+  const [touchDrag,setTouchDrag] = useState({active:false,srcIdx:null,overIdx:null});
+  const touchDragRef = useRef({active:false,srcIdx:null,overIdx:null});
   /* Tracks pending animation timeouts so we can cancel on DB error */
   const tickingTimeouts = useRef({});
   /* Local optimistic overlay — mirrors context todos but allows instant UI updates.
@@ -1712,6 +1772,41 @@ function TodoTab(){
     }catch(e){toast('Reorder failed','e');reload();}
   }
 
+  function startTouchDrag(idx){
+    touchDragRef.current={active:true,srcIdx:idx,overIdx:idx};
+    setTouchDrag({active:true,srcIdx:idx,overIdx:idx});
+    snapshotPositions();
+  }
+  useEffect(()=>{
+    if(!touchDrag.active) return;
+    function onMove(e){
+      e.preventDefault();
+      const y=e.touches[0].clientY;
+      for(let i=0;i<open.length;i++){
+        const el=taskRefs.current[open[i].id];
+        if(!el) continue;
+        const r=el.getBoundingClientRect();
+        if(y>=r.top&&y<=r.bottom){
+          if(touchDragRef.current.overIdx!==i){touchDragRef.current.overIdx=i;setTouchDrag(p=>({...p,overIdx:i}));}
+          break;
+        }
+      }
+    }
+    function onEnd(){
+      const {srcIdx,overIdx}=touchDragRef.current;
+      touchDragRef.current={active:false,srcIdx:null,overIdx:null};
+      setTouchDrag({active:false,srcIdx:null,overIdx:null});
+      if(srcIdx!==null&&overIdx!==null&&srcIdx!==overIdx) moveTask(srcIdx,overIdx);
+    }
+    document.addEventListener('touchmove',onMove,{passive:false});
+    document.addEventListener('touchend',onEnd);
+    document.addEventListener('touchcancel',onEnd);
+    return()=>{
+      document.removeEventListener('touchmove',onMove);
+      document.removeEventListener('touchend',onEnd);
+      document.removeEventListener('touchcancel',onEnd);
+    };
+  },[touchDrag.active]);
   function onDragStart(e,task){setDragSrc(task);e.dataTransfer.effectAllowed='move';}
   function onDragEnd(){setDragSrc(null);setDragOver(null);}
   function onDragOverFn(e,task){e.preventDefault();if(dragSrc&&dragSrc.id!==task.id)setDragOver(task.id);}
@@ -1771,6 +1866,9 @@ function TodoTab(){
             isFirst={isInOpen?openIdx===0:true} isLast={isInOpen?openIdx===open.length-1:true}
             ticking={tickingIds.has(task.id)}
             setRef={el=>{taskRefs.current[task.id]=el;}}
+            onLongPressStart={isInOpen?()=>startTouchDrag(openIdx):undefined}
+            isTouchDragging={touchDrag.active&&touchDrag.srcIdx===openIdx}
+            isTouchDropTarget={touchDrag.active&&touchDrag.overIdx===openIdx&&touchDrag.srcIdx!==openIdx}
           />
         );
       })}

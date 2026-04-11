@@ -1579,10 +1579,6 @@ function useSortableFallback({id,disabled}){
   const _ref=useRef(null);
   return{setNodeRef:el=>{_ref.current=el;},transform:null,transition:null,isDragging:false,isSorting:false,attributes:{tabIndex:0,role:'listitem'},listeners:{}};
 }
-/* useSensorsFallback mirrors real useSensors hook signature (both call useMemo once) */
-function useSensorsFallback(...args){useMemo(()=>[], args);return [];}
-/* useSensorFallback mirrors real useSensor hook signature (both call useMemo once) */
-function useSensorFallback(sensor,options){useMemo(()=>null,[sensor,options]);return null;}
 function TaskRowOverlay({task,firms,contacts}){
   if(!task) return null;
   const firm=firms.find(f=>f.id===task.firm_id);
@@ -1668,12 +1664,16 @@ function TodoTab(){
   const SortableContext=_dndSortable.SortableContext||((props)=>React.createElement(React.Fragment,null,props.children));
   const verticalListSortingStrategy=_dndSortable.verticalListSortingStrategy||null;
   const closestCenter=_dndCore.closestCenter||null;
-  // Always call _useSensor exactly twice (unconditional) so hook count never changes
-  const _useSensors=_dndCore.useSensors||useSensorsFallback;
-  const _useSensor=_dndCore.useSensor||useSensorFallback;
-  const _msSensor=_useSensor(_dndCore.MouseSensor||null,{activationConstraint:{distance:8}});
-  const _tsSensor=_useSensor(_dndCore.TouchSensor||null,{activationConstraint:{delay:400,tolerance:8}});
-  const sensors=_useSensors(_msSensor,_tsSensor);
+  // Sensor config via useRef – never calls useSensors/useSensor (which call useMemo internally)
+  // This means hook count is always exactly 1 (the useRef), regardless of dnd-kit load state
+  const _sensorsRef=useRef(null);
+  if(!_sensorsRef.current&&_dndCore.MouseSensor){
+    _sensorsRef.current=[
+      {sensor:_dndCore.MouseSensor,options:{activationConstraint:{distance:8}}},
+      {sensor:_dndCore.TouchSensor,options:{activationConstraint:{delay:400,tolerance:8}}}
+    ];
+  }
+  const sensors=_sensorsRef.current||[];
   /* Local optimistic overlay — mirrors context todos but allows instant UI updates.
      Don't overwrite if an animation is in progress (would jump the task immediately). */
   const [localTodos,setLocalTodos] = useState(todos);

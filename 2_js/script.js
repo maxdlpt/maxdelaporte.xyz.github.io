@@ -1,4 +1,67 @@
-// ==================== 
+// ====================
+// Header Scroll State
+// ====================
+
+(function () {
+    const header = document.querySelector('.header');
+    if (!header) return;
+    const THRESHOLD = 20;
+    const update = () => {
+        header.classList.toggle('is-scrolled', window.scrollY > THRESHOLD);
+    };
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+})();
+
+// ====================
+// Scroll Progress Bar
+// ====================
+
+(function () {
+    const bar = document.getElementById('scroll-progress-bar');
+    if (!bar) return;
+
+    // Lerp state — smoothly interpolates toward the real scroll fraction
+    // to produce the spring-like feel from the original motion/react component.
+    let current = 0;
+    let target = 0;
+    let rafId = null;
+    const LERP = 0.12; // lower = more lag / spring feel; range 0.05–0.25
+
+    const getScrollFraction = () => {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        return docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0;
+    };
+
+    const tick = () => {
+        current += (target - current) * LERP;
+        bar.style.transform = `scaleX(${current})`;
+
+        // Keep animating until settled (within 0.1% of target)
+        if (Math.abs(target - current) > 0.001) {
+            rafId = requestAnimationFrame(tick);
+        } else {
+            current = target;
+            bar.style.transform = `scaleX(${current})`;
+            rafId = null;
+        }
+    };
+
+    window.addEventListener('scroll', () => {
+        target = getScrollFraction();
+        if (rafId === null) {
+            rafId = requestAnimationFrame(tick);
+        }
+    }, { passive: true });
+
+    // Initialise on load (page may already be scrolled on refresh)
+    target = getScrollFraction();
+    current = target;
+    bar.style.transform = `scaleX(${current})`;
+})();
+
+// ====================
 // Smooth Scrolling
 // ====================
 

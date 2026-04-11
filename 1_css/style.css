@@ -9,7 +9,7 @@
 }
 
 :root {
-    --header-height: 105px;
+    --header-height: 72px;
 
     /* Section spacing controls */
     --section-gap: 60px;
@@ -32,11 +32,28 @@
     --text-muted: #6e6e7a;
 }
 
+/* Scroll progress bar — sits above everything including the fixed header */
+#scroll-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    z-index: 1001;
+    pointer-events: none;
+    /* Lerp-style spring: fast start, gradual settle — mirrors motion/react useSpring */
+    transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 8px rgba(129, 211, 26, 0.5);
+}
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
     line-height: 1.6;
     color: var(--text-primary);
-    background-image: url('../3_images/paysage1.JPG');
+    background-image: url('../3_images/paysage1.mp4');
     background-attachment: fixed;
     background-size: cover;
     background-position: center;
@@ -97,23 +114,51 @@ h2 {
    ==================== */
 
 .header {
-    background-color: rgba(10, 10, 14, 0.75);
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
-    padding: 10px 0;
-    border-bottom: 1px solid var(--surface-border);
+    background-color: transparent;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     z-index: 1000;
+    transition: border-color 0.5s ease;
+}
+
+/* Blur/glass overlay — animated via opacity so backdrop-filter transitions smoothly */
+.header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(10, 10, 14, 0.75);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.header.is-scrolled::before {
+    opacity: 1;
+}
+
+.header.is-scrolled {
+    border-color: var(--surface-border);
+}
+
+/* Show glass when mobile menu is open regardless of scroll position */
+.header.menu-open::before {
+    opacity: 1;
 }
 
 .header .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 1;
 }
 
 .logo {
@@ -123,8 +168,8 @@ h2 {
 }
 
 .profile-pic {
-    width: 60px;
-    height: 60px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     object-fit: cover;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -136,6 +181,7 @@ h2 {
     letter-spacing: 2px;
     margin: 0;
     color: #fff;
+    transition: color 0.5s ease;
 }
 
 .logo .tagline {
@@ -143,6 +189,7 @@ h2 {
     letter-spacing: 3px;
     color: #e2e2e2;
     margin-top: 0px;
+    transition: color 0.5s ease;
 }
 
 .nav ul {
@@ -157,7 +204,7 @@ h2 {
     text-transform: uppercase;
     color: #fff;
     font-weight: 500;
-    transition: color 0.3s ease;
+    transition: color 0.5s ease;
 }
 
 .nav a:hover {
@@ -175,6 +222,7 @@ h2 {
     align-items: center;
     justify-content: center;
     padding: 0;
+    transition: color 0.5s ease;
 }
 
 .nav-toggle-icon {
@@ -184,11 +232,35 @@ h2 {
 }
 
 .nav-toggle-icon path {
-    transition: stroke 0.3s ease;
+    transition: stroke 0.5s ease;
 }
 
 .header.menu-open .nav-toggle-icon {
     transform: rotate(90deg);
+}
+
+/* Header text: black when transparent at top → white once glass kicks in */
+.header:not(.is-scrolled) .logo-text h1,
+.header:not(.is-scrolled) .logo .tagline,
+.header:not(.is-scrolled) .nav a,
+.header:not(.is-scrolled) .nav-toggle {
+    color: rgba(0, 0, 0, 0.82);
+}
+
+/* Keep accent on hover even in transparent state */
+.header:not(.is-scrolled) .nav a:hover {
+    color: var(--accent);
+}
+
+/* Hamburger SVG stroke also flips dark/light */
+.header:not(.is-scrolled) .nav-toggle-icon path {
+    stroke: rgba(0, 0, 0, 0.82);
+    transition: stroke 0.5s ease;
+}
+
+.header.is-scrolled .nav-toggle-icon path {
+    stroke: #ffffff;
+    transition: stroke 0.5s ease;
 }
 
 /* ==================== 
@@ -197,12 +269,43 @@ h2 {
 
 .hero {
     padding: 0;
-    min-height: calc(100vh - var(--header-height));
-    min-height: calc(100svh - var(--header-height));
-    min-height: calc(100dvh - var(--header-height));
+    /* Pull hero up behind the fixed header so ASCII fills the full viewport */
+    margin-top: calc(-1 * var(--header-height));
+    min-height: 100vh;
+    min-height: 100svh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ASCII interactive text overlay container */
+.ascii-embed {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 0;
+}
+
+pre.ascii-pre {
+    position: absolute;
+    inset: 0;
     margin: 0;
+    overflow: hidden;
+    color: #000000;
+    background: transparent;
+    opacity: 0.15;
+    font: 13px/13px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    white-space: pre;
+    user-select: none;
+    letter-spacing: 0.5px;
+    pointer-events: auto;
+    z-index: 0;
+}
+
+@media (min-width: 900px) {
+    pre.ascii-pre { font-size: 14px; line-height: 14px; }
 }
 
 .hero-content {
@@ -219,6 +322,8 @@ h2 {
     border-radius: 16px;
     border: 1px solid var(--surface-border);
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+    position: relative;
+    z-index: 1;
 }
 
 .hero-text h2 {
@@ -725,9 +830,10 @@ h2 {
 
     .hero {
         padding: 0;
-        min-height: calc(100vh - var(--header-height));
-        min-height: calc(100svh - var(--header-height));
-        min-height: calc(100dvh - var(--header-height));
+        margin-top: calc(-1 * var(--header-height));
+        min-height: 100vh;
+        min-height: 100svh;
+        min-height: 100dvh;
     }
 
     .social-links-footer {

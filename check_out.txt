@@ -1,0 +1,6 @@
+﻿[OK] Header cursor:default on contacts
+[OK] note-box removed
+[OK] contacts search expanded
+[OK] opps search expanded
+[OK] contacts row click-to-edit
+[OK] opps row click-to-edit

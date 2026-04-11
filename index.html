@@ -13,6 +13,9 @@
     href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 </head>
 <body>
+    <!-- Scroll progress bar -->
+    <div id="scroll-progress-bar" aria-hidden="true"></div>
+
     <!-- Header / Navigation -->
     <header class="header">
         <div class="container">
@@ -42,6 +45,10 @@
 
     <!-- Hero Section -->
     <section class="hero" id="home">
+        <!-- Interactive ASCII text overlay (mouse-reactive) -->
+        <div class="ascii-embed">
+            <pre class="ascii-pre" aria-hidden="true"></pre>
+        </div>
         <div class="container hero-content">
             <div class="hero-text">
                 <h2>Economics, Data Science, Portfolio Management</h2>
@@ -150,5 +157,6 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
     <script src="2_js/script.js"></script>
+    <script src="2_js/ascii-bg.js"></script>
 </body>
 </html>

@@ -1574,6 +1574,11 @@ function TaskCheckbox({checked,onChange,ticking}){
   );
 }
 
+/* Safe fallback for useSortable when dnd-kit CDN is unavailable (e.g. file://) */
+function useSortableFallback({id,disabled}){
+  const _ref=useRef(null);
+  return{setNodeRef:el=>{_ref.current=el;},transform:null,transition:null,isDragging:false,isSorting:false,attributes:{tabIndex:0,role:'listitem'},listeners:{}};
+}
 function TaskRowOverlay({task,firms,contacts}){
   if(!task) return null;
   const firm=firms.find(f=>f.id===task.firm_id);
@@ -1596,8 +1601,8 @@ function TaskRowOverlay({task,firms,contacts}){
   );
 }
 function TaskRow({task,firms,contacts,onToggle,onEdit,onDelete,ticking,setRef}){
-  const {useSortable}=window.DndKitSortable;
-  const {CSS}=window.DndKitUtils;
+  const useSortable=window.DndKitSortable?.useSortable||useSortableFallback;
+  const CSS=window.DndKitUtils?.CSS||{Transform:{toString:()=>''}};
   const {setNodeRef,transform,transition,isDragging,attributes,listeners}=useSortable({
     id:String(task.id),
     disabled:!!task.done
@@ -1686,12 +1691,19 @@ function TodoTab(){
   const [tickingIds,setTickingIds] = useState(new Set());
   /* Tracks pending animation timeouts so we can cancel on DB error */
   const tickingTimeouts = useRef({});
-  /* ── dnd-kit sensors: mouse drag (8px) on desktop, long-press (400ms) on touch ── */
-  const {DndContext,DragOverlay:DndDragOverlay,useSensors,useSensor,MouseSensor,TouchSensor,closestCenter}=window.DndKitCore;
-  const {SortableContext,verticalListSortingStrategy}=window.DndKitSortable;
-  const sensors=useSensors(
-    useSensor(MouseSensor,{activationConstraint:{distance:8}}),
-    useSensor(TouchSensor,{activationConstraint:{delay:400,tolerance:8}})
+  /* ── dnd-kit sensors – null-safe: works even if CDN blocked (e.g. file://) ── */
+  const _dndCore=window.DndKitCore||{};
+  const _dndSortable=window.DndKitSortable||{};
+  const DndContext=_dndCore.DndContext||((props)=>React.createElement(React.Fragment,null,props.children));
+  const DndDragOverlay=_dndCore.DragOverlay||(()=>null);
+  const SortableContext=_dndSortable.SortableContext||((props)=>React.createElement(React.Fragment,null,props.children));
+  const verticalListSortingStrategy=_dndSortable.verticalListSortingStrategy||null;
+  const closestCenter=_dndCore.closestCenter||null;
+  const _useSensors=_dndCore.useSensors||(()=>[]);
+  const _useSensor=_dndCore.useSensor||(()=>null);
+  const sensors=_useSensors(
+    _dndCore.MouseSensor?_useSensor(_dndCore.MouseSensor,{activationConstraint:{distance:8}}):null,
+    _dndCore.TouchSensor?_useSensor(_dndCore.TouchSensor,{activationConstraint:{delay:400,tolerance:8}}):null
   );
   /* Local optimistic overlay — mirrors context todos but allows instant UI updates.
      Don't overwrite if an animation is in progress (would jump the task immediately). */
@@ -2682,9 +2694,15 @@ function App(){
   if(!auth||!auth.userId)return <SignInScreen/>;
   return <Dashboard db={new DB(cfg.url,cfg.key,auth.userId)}/>;
 }
-function mountApp(){ReactDOM.createRoot(document.getElementById('root')).render(<App/>);}
-if(window.DndKitCore){mountApp();}
-else{document.addEventListener('dndkit-ready',mountApp,{once:true});}
+let _appMounted=false;
+function mountApp(){
+  if(_appMounted)return;
+  _appMounted=true;
+  ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+}
+// Mount when dnd-kit is ready, OR after 500ms (handles file:// where module scripts are blocked)
+document.addEventListener('dndkit-ready',mountApp,{once:true});
+setTimeout(mountApp,500);
 </script>
 </body>
 </html>

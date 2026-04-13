@@ -324,25 +324,20 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
 // ====================
 
 (function () {
-    const tabs = Array.from(document.querySelectorAll('.portfolio-tab'));
+    const tabs   = Array.from(document.querySelectorAll('.portfolio-tab'));
     const images = Array.from(document.querySelectorAll('.portfolio-img-wrap'));
-    const imgCol = document.querySelector('.portfolio-img-col');
+    const tabsEl = document.querySelector('.portfolio-tabs');
 
     if (!tabs.length || !images.length) return;
 
-    const total = tabs.length;
-    let current = 0;
+    let current    = 0;
     let isAnimating = false;
-    let autoPlayTimer = null;
-    const AUTO_MS = 5000;
 
-    // Restart the CSS progress-bar fill animation on the given tab
-    function restartProgress(tab) {
-        const bar = tab.querySelector('.tab-progress');
-        if (!bar) return;
-        bar.style.animation = 'none';
-        void bar.offsetHeight; // force reflow
-        bar.style.animation = '';
+    // Update the CSS variable that drives the green track line length
+    function updateTrackLine() {
+        if (!tabsEl || !tabs[current]) return;
+        const h = tabs[current].offsetTop + tabs[current].offsetHeight;
+        tabsEl.style.setProperty('--track-height', `${h}px`);
     }
 
     function goTo(nextIndex, dir) {
@@ -352,68 +347,46 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         const prevIndex = current;
         current = nextIndex;
 
-        // Swap active tab
         tabs[prevIndex].classList.remove('is-active');
         tabs[nextIndex].classList.add('is-active');
-        restartProgress(tabs[nextIndex]);
+        updateTrackLine();
 
-        // Snap next image to entry position (instant — no transition)
+        // Snap next image to entry position (no transition)
         images[nextIndex].style.transition = 'none';
-        images[nextIndex].style.transform = dir > 0 ? 'translateY(100%)' : 'translateY(-100%)';
-        images[nextIndex].style.opacity = '0';
+        images[nextIndex].style.transform  = dir > 0 ? 'translateY(100%)' : 'translateY(-100%)';
+        images[nextIndex].style.opacity    = '0';
         void images[nextIndex].offsetHeight; // force reflow
-        images[nextIndex].style.transition = ''; // restore CSS transition
+        images[nextIndex].style.transition = '';
 
-        // Animate both images in the next frame
         requestAnimationFrame(() => {
-            // Previous exits upward (forward) or downward (backward)
-            images[prevIndex].style.transform = dir > 0 ? 'translateY(-100%)' : 'translateY(100%)';
-            images[prevIndex].style.opacity = '0';
+            images[prevIndex].style.transform   = dir > 0 ? 'translateY(-100%)' : 'translateY(100%)';
+            images[prevIndex].style.opacity      = '0';
             images[prevIndex].style.pointerEvents = 'none';
 
-            // Next enters from its entry position to center
-            images[nextIndex].style.transform = 'translateY(0)';
-            images[nextIndex].style.opacity = '1';
+            images[nextIndex].style.transform   = 'translateY(0)';
+            images[nextIndex].style.opacity      = '1';
             images[nextIndex].style.pointerEvents = 'auto';
         });
 
         setTimeout(() => { isAnimating = false; }, 750);
     }
 
-    function startAutoPlay() {
-        stopAutoPlay();
-        autoPlayTimer = setInterval(() => goTo((current + 1) % total, 1), AUTO_MS);
-    }
-
-    function stopAutoPlay() {
-        clearInterval(autoPlayTimer);
-        autoPlayTimer = null;
-    }
-
-    // Tab click
     tabs.forEach((tab, i) => {
         tab.addEventListener('click', (e) => {
-            if (e.target.closest('a')) return; // let CTA links through
-            const dir = i >= current ? 1 : -1;
-            goTo(i, dir);
-            stopAutoPlay();
-            startAutoPlay();
+            if (e.target.closest('a')) return;
+            goTo(i, i >= current ? 1 : -1);
         });
     });
 
-    // Pause auto-play while hovering the image column
-    if (imgCol) {
-        imgCol.addEventListener('mouseenter', stopAutoPlay);
-        imgCol.addEventListener('mouseleave', startAutoPlay);
-    }
+    // Re-measure on resize (clamp font-size changes tab height)
+    window.addEventListener('resize', updateTrackLine, { passive: true });
 
-    // Initialise: set first image visible
-    images[0].style.transform = 'translateY(0)';
-    images[0].style.opacity = '1';
+    // Init
+    images[0].style.transform   = 'translateY(0)';
+    images[0].style.opacity      = '1';
     images[0].style.pointerEvents = 'auto';
 
-    restartProgress(tabs[0]);
-    startAutoPlay();
+    requestAnimationFrame(updateTrackLine);
 })();
 
 
@@ -447,14 +420,36 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         return c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : c;
     }
 
+    // Build word-safe HTML from a char array — spaces become break points between .hero-word spans
+    function toWordHTML(chars) {
+        let html = '';
+        let buf  = '';
+        for (const ch of chars) {
+            if (ch === ' ') {
+                if (buf) { html += `<span class="hero-word">${buf}</span>`; buf = ''; }
+                html += ' ';
+            } else {
+                buf += `<span>${esc(ch)}</span>`;
+            }
+        }
+        if (buf) html += `<span class="hero-word">${buf}</span>`;
+        return html;
+    }
+
     function render(text, animate) {
         const cursor = '<span class="morphing-cursor" aria-hidden="true"></span>';
-        heroH2.innerHTML = text.split('').map((ch, i) => {
-            const safe = ch === ' ' ? '\u00a0' : esc(ch);
-            return animate
-                ? `<span class="morph-char" style="animation-delay:${i * 28}ms">${safe}</span>`
-                : `<span>${safe}</span>`;
-        }).join('') + cursor;
+        let ci = 0;
+        const wordSpans = text.split(' ').map(word => {
+            const chars = word.split('').map(ch => {
+                const delay = ci++ * 28;
+                return animate
+                    ? `<span class="morph-char" style="animation-delay:${delay}ms">${esc(ch)}</span>`
+                    : `<span>${esc(ch)}</span>`;
+            }).join('');
+            ci++; // account for the space
+            return `<span class="hero-word">${chars}</span>`;
+        });
+        heroH2.innerHTML = wordSpans.join(' ') + cursor;
     }
 
     function morphNext() {
@@ -475,18 +470,12 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
                 return;
             }
             const cursor = '<span class="morphing-cursor" aria-hidden="true"></span>';
-            let html = '';
+            const chars = [];
             for (let i = 0; i < maxLen; i++) {
-                let ch;
-                if (i < step)          { ch = nxt[i] || ''; }
-                else if (i < cur.length) { ch = Math.random() > 0.7 ? randChar() : cur[i]; }
-                else                   { ch = ''; }
-                if (ch) {
-                    const safe = ch === ' ' ? '\u00a0' : esc(ch);
-                    html += `<span>${safe}</span>`;
-                }
+                if (i < step)            { if (nxt[i]) chars.push(nxt[i]); }
+                else if (i < cur.length) { chars.push(Math.random() > 0.7 ? randChar() : cur[i]); }
             }
-            heroH2.innerHTML = html + cursor;
+            heroH2.innerHTML = toWordHTML(chars) + cursor;
             step++;
             setTimeout(tick, STEP_MS);
         })();
@@ -500,11 +489,10 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         (function glitch() {
             if (f++ >= 6) { render(cur, false); return; }
             const cursor = '<span class="morphing-cursor" aria-hidden="true"></span>';
-            heroH2.innerHTML = cur.split('').map(ch => {
-                const out = Math.random() > 2 ? randChar() : ch;
-                const safe = out === ' ' ? '\u00a0' : esc(out);
-                return `<span>${safe}</span>`;
-            }).join('') + cursor;
+            const chars = cur.split('').map(ch =>
+                ch === ' ' ? ' ' : (Math.random() > 0.55 ? randChar() : ch)
+            );
+            heroH2.innerHTML = toWordHTML(chars) + cursor;
             setTimeout(glitch, 45);
         })();
     });

@@ -1,0 +1,16 @@
+{
+  "name": "Job Search Tracker",
+  "short_name": "JobTracker",
+  "description": "Track firms, contacts, opportunities, and tasks for your job search",
+  "start_url": "/jobtracker/index.html",
+  "scope": "/jobtracker/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1d27",
+  "theme_color": "#1a1d27",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -22,6 +22,7 @@
     --portfolio-bottom-bias: clamp(16px, 2.5vh, 28px);
 
     /* Palette */
+    --bg: #0000008a ;
     --accent: #81D31A ;
     --accent-hover: #a9ee54;
     --accent-subtle: rgba(110, 227, 90, 0.12);
@@ -59,16 +60,14 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Hero video background — absolute inside .hero so backdrop-filter composites correctly.
-   position:fixed + z-index:-1 causes a Chrome compositor bug that makes the hero card
-   invisible when backdrop-filter tries to sample from the video's separate GPU layer. */
+/* Video and ASCII are fixed children of <body> — they stay in place as sections scroll over them */
 #bg-video {
-    position: absolute;
+    position: fixed;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    z-index: -1;
+    z-index: -2;
     pointer-events: none;
 }
 
@@ -213,17 +212,27 @@ h2 {
     text-transform: uppercase;
     color: #fff;
     font-weight: 500;
-    transition: color 0.5s ease;
+    padding-bottom: 2px;
+    background-image: linear-gradient(var(--accent), var(--accent));
+    background-size: 0% 2px;
+    background-position: left bottom;
+    background-repeat: no-repeat;
+    transition: color 0.5s ease, background-size 0.3s ease;
+}
+
+/* Suppress global a::after — gradient handles the nav underline */
+.nav a::after {
+    display: none;
 }
 
 .nav a:hover {
     color: var(--accent);
+    background-size: 100% 2px;
 }
 
 .nav a.active {
     color: var(--accent);
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 2px;
+    background-size: 100% 2px;
     animation: activeNavPulse 0.4s ease-out;
 }
 
@@ -298,7 +307,6 @@ h2 {
 
 .hero {
     padding: 0;
-    /* Pull hero up behind the fixed header so ASCII + video fill the full viewport */
     margin-top: calc(-1 * var(--header-height));
     min-height: 100vh;
     min-height: 100svh;
@@ -306,19 +314,18 @@ h2 {
     display: flex;
     align-items: center;
     position: relative;
-    overflow: hidden;
-    /* z-index:0 creates a stacking context so backdrop-filter on .hero-content
-       correctly composites the video + ASCII layers within this context,
-       avoiding the Chrome GPU-layer bug with fixed+negative-z-index video */
+    /* pointer-events: none lets clicks fall through to the fixed ASCII layer behind */
+    pointer-events: none;
     z-index: 0;
 }
 
-/* ASCII interactive text overlay container */
+/* ASCII interactive text overlay — fixed so it stays put as sections scroll over it */
 .ascii-embed {
-    position: absolute;
+    position: fixed;
     inset: 0;
     overflow: hidden;
-    z-index: 0;
+    z-index: -1;
+    pointer-events: none; /* individual pre still has pointer-events: auto */
 }
 
 pre.ascii-pre {
@@ -357,6 +364,7 @@ pre.ascii-pre {
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
     position: relative;
     z-index: 1;
+    pointer-events: auto; /* re-enable on the card since .hero has pointer-events:none */
 }
 
 .hero-text h2 {
@@ -378,6 +386,12 @@ pre.ascii-pre {
 /* Morphing text — hero h2 character spans */
 .hero-text h2 span {
     display: inline-block;
+}
+
+/* Word wrapper — prevents breaks mid-word; spaces between wrappers are the only break points */
+.hero-word {
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .morphing-cursor {
@@ -477,9 +491,32 @@ pre.ascii-pre {
    ==================== */
 
 .portfolio {
-    margin: var(--section-gap) 0;
-    background-color: #0a0a0e;
-    overflow: hidden;
+    margin: var(--section-gap) 0 0 0;
+    position: relative;
+    overflow: clip; /* clips without breaking position:sticky */
+}
+
+/* Dark veil above the video, below content */
+.portfolio::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 4, 7, 0.80);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Blurred video background */
+.portfolio-bg-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(28px);
+    transform: scale(1.12); /* hide blur-edge artefacts */
+    z-index: 0;
+    pointer-events: none;
 }
 
 .portfolio-wrap {
@@ -487,6 +524,8 @@ pre.ascii-pre {
     grid-template-columns: 1fr 1fr;
     align-items: start;
     min-height: 80vh;
+    position: relative;
+    z-index: 2;
 }
 
 /* ── Left text column ── */
@@ -510,6 +549,30 @@ pre.ascii-pre {
 .portfolio-tabs {
     display: flex;
     flex-direction: column;
+    position: relative;
+}
+
+/* Gray background track — spans full height of list */
+.portfolio-tabs::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Green line — grows from top down to the active tab */
+.portfolio-tabs::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2px;
+    height: var(--track-height, 0px);
+    background: var(--accent);
+    transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .portfolio-tab {
@@ -523,35 +586,6 @@ pre.ascii-pre {
 
 .portfolio-tab:first-child {
     border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-/* Progress track — thin vertical line on left edge */
-.tab-track {
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background-color: rgba(255, 255, 255, 0.08);
-    overflow: hidden;
-}
-
-.tab-progress {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 0%;
-    background-color: var(--accent);
-}
-
-.portfolio-tab.is-active .tab-progress {
-    animation: tabProgressFill 5s linear forwards;
-}
-
-@keyframes tabProgressFill {
-    from { height: 0%; }
-    to { height: 100%; }
 }
 
 /* Tab header row (number + title) */
@@ -675,6 +709,18 @@ pre.ascii-pre {
     opacity: 0;
     pointer-events: none;
     transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
+}
+
+/* Image links — suppress underline decoration */
+.img-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.img-link::after {
+    display: none !important;
 }
 
 .portfolio-img-wrap img {
@@ -804,7 +850,7 @@ pre.ascii-pre {
     background-color: rgba(18, 18, 22, 0.85);
     color: var(--text-secondary);
     text-align: center;
-    margin: var(--section-gap) 0 0 0;
+    margin: 0;
     padding: var(--footer-padding-y) 0;
     font-size: 13px;
 }

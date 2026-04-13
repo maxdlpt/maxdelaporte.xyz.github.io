@@ -49,27 +49,40 @@
     box-shadow: 0 0 8px rgba(129, 211, 26, 0.5);
 }
 
+/* Dark fallback on the root element — shows through transparent body while video loads */
+html {
+    background-color: #0a0a0e;
+}
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
     line-height: 1.6;
     color: var(--text-primary);
-    background-color: #0a0a0e; /* fallback while video loads */
+    background-color: transparent; /* let html fallback + video show through */
     padding-top: var(--header-height);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Hero video background — absolute inside .hero so backdrop-filter composites correctly.
-   position:fixed + z-index:-1 causes a Chrome compositor bug that makes the hero card
-   invisible when backdrop-filter tries to sample from the video's separate GPU layer. */
+/* Fixed full-page video background at z-index:0.
+   Using z-index:0 (not -1) keeps the video in Chrome's main compositor layer tree,
+   so backdrop-filter on .hero-content can correctly sample it.
+   z-index:-1 on a fixed element creates a separate "below-root" GPU layer that
+   backdrop-filter cannot reach, making the hero card invisible in Chrome. */
 #bg-video {
-    position: absolute;
+    position: fixed;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    z-index: -1;
+    z-index: 0;
     pointer-events: none;
+}
+
+/* All page content sits above the video in the same compositor tree */
+#page-wrapper {
+    position: relative;
+    z-index: 1;
 }
 
 .container {
@@ -287,9 +300,7 @@ h2 {
     align-items: center;
     position: relative;
     overflow: hidden;
-    /* z-index:0 creates a stacking context so backdrop-filter on .hero-content
-       correctly composites the video + ASCII layers within this context,
-       avoiding the Chrome GPU-layer bug with fixed+negative-z-index video */
+    /* z-index:0 keeps hero in normal stacking flow within #page-wrapper */
     z-index: 0;
 }
 
@@ -420,187 +431,201 @@ pre.ascii-pre {
 }
 
 
-/* ==================== 
-   Portfolio Section 
+/* ====================
+   Portfolio Section — Elyse-style scroll-driven sticky layout
+   Full-bleed, no card. Image left / text right. Vertical progress line.
    ==================== */
 
 .portfolio {
-    padding: var(--section-padding-y) 0;
-    background-color: var(--surface);
-    backdrop-filter: blur(24px) saturate(1.3);
-    -webkit-backdrop-filter: blur(24px) saturate(1.3);
-    border: 1px solid var(--surface-border);
-    border-radius: 16px;
-    margin: var(--section-gap) var(--section-side-margin);
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25);
+    padding: 0;
+    /* No glass card — raw dark background matching the page */
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin: var(--section-gap) 0; /* full-width, keep vertical rhythm */
+    position: relative;
 }
 
-.portfolio h2 {
-    font-size: 36px;
-    text-align: center;
-    margin-bottom: var(--section-heading-gap);
-    display: inline-block;
-    width: 100%;
-
+/* ---- Scroll track (sticky panel + spacers as siblings) ---- */
+.pf-track {
+    position: relative;
 }
 
-.portfolio-grid {
+/* ---- Sticky display panel ---- */
+.pf-sticky {
+    position: sticky;
+    top: var(--header-height, 72px);
+    height: calc(100dvh - var(--header-height, 72px));
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 40px;
+    grid-template-columns: 57fr 43fr;
+    overflow: hidden;
 }
 
-
-
-.portfolio-item {
-    border-radius: 8px;
+/* ---- Left: image stack ---- */
+.pf-left {
+    position: relative;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    background-color: white;
+}
+
+.pf-images {
+    position: absolute;
+    inset: 0;
+}
+
+/* All images stacked, controlled by --mask-gradient custom property.
+   Matches Elyse's [data-amenities-anim="big-image"] pattern. */
+.pf-image {
+    position: absolute;
+    inset: 0;
+    --mask-gradient: none;
+    mask-image: var(--mask-gradient);
+    -webkit-mask-image: var(--mask-gradient);
+    will-change: opacity, mask-image, -webkit-mask-image;
+}
+
+/* First image: no mask, slides in from right (matching Elyse first-image treatment) */
+.pf-image[data-pf-idx="0"] {
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+}
+
+.pf-image img {
     width: 100%;
     height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.portfolio-item:hover {
-    transform: scale(1.02);
-}
-
-.portfolio-item img {
-    width: 100%;
-    height: 60%;
     object-fit: cover;
-    flex-shrink: 0;
+    display: block;
+    user-select: none;
+    pointer-events: none;
 }
 
-.portfolio-item h3 {
-    padding: 15px 15px 5px 15px;
-    font-size: 16px;
-    color: #1a1a1a;
-    background-color: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(255, 255, 255, 0.3);
-    flex-shrink: 0;
+/* Project counter (bottom-right of image panel) */
+.pf-counter {
+    position: absolute;
+    bottom: 28px;
+    right: 32px;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: rgba(255, 255, 255, 0.45);
+    font-weight: 500;
+    z-index: 2;
+    font-variant-numeric: tabular-nums;
 }
 
-.portfolio-item p {
-    padding: 0 15px 15px;
-    font-size: 14px;
-    color: #333;
-    background-color: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    flex-grow: 1;
+.pf-num {
+    display: inline-block;
+    min-width: 2ch;
+}
+
+/* ---- Right: text panel ---- */
+.pf-right {
+    display: flex;
+    align-items: center;
     overflow: hidden;
+    background-color: #0a0a0e; /* solid dark matching page bg — text stays readable */
+    position: relative;
 }
 
-.portfolio-carousel {
-  --swiper-max-width: 520px;
-  --swiper-side-clearance: 140px;
-  --nav-btn-size: 44px;
-  position: relative;
-  width: 100%;
-  margin: 0 auto;
+/* Vertical progress line (Elyse amenities-progress pattern) */
+.pf-progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.12);
+    z-index: 2;
 }
 
-.swiper {
-  width: min(var(--swiper-max-width), calc(100% - var(--swiper-side-clearance)));
-  height: auto;
-  margin: 0;
-  overflow: visible;
+.pf-progress-line {
+    width: 100%;
+    background: var(--accent);
+    height: 0%;           /* animated by JS as user scrolls */
+    transform-origin: top;
+    transition: none;     /* driven by GSAP, not CSS transition */
 }
 
-.swiper-slide {
-  background: rgba(28, 28, 34);
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 16px 48px rgba(0,0,0,0.3);
-  border: 1px solid var(--surface-border);
-  display: flex;
-  flex-direction: column;
-  height: auto;
-  transition: box-shadow 0.3s ease;
+.pf-right-inner {
+    padding: clamp(36px, 5vw, 80px) clamp(36px, 5vw, 80px) clamp(36px, 5vw, 80px) clamp(48px, 6vw, 96px);
+    width: 100%;
 }
 
-.swiper-slide img {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  flex-shrink: 0;
+.pf-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    display: block;
 }
 
-.swiper-slide h3 {
-  padding: 16px 18px 6px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #fff;
+/* Texts container — children absolutely stacked */
+.pf-texts {
+    position: relative;
+    min-height: 300px;
 }
 
-.swiper-slide p {
-  padding: 0 18px 18px;
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.6;
+.pf-text {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    visibility: hidden;   /* hidden by default; JS sets to visible + animates */
 }
 
-.project-card-link {
-  color: inherit;
-  text-decoration: none;
-  transition: transform 0.3s ease;
+.pf-text.pf-active {
+    pointer-events: auto;
+    visibility: visible;
 }
 
-.project-card-link::after {
-  display: none;
+/* Large editorial title — matching Elyse h5 scale */
+.pf-proj-title {
+    font-size: clamp(26px, 3.2vw, 48px);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    letter-spacing: -0.03em;
 }
 
-.project-card-link:hover {
-  color: inherit;
-  transform: translateY(-4px);
+.pf-proj-desc {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin-bottom: 36px;
+    max-width: 380px;
 }
 
-.project-card-link p {
-  font-weight: 400;
+.pf-btn {
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 12px 28px;
+    text-decoration: none;
+    color: #fff !important;
 }
 
-.portfolio-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 5;
-  width: var(--nav-btn-size);
-  height: var(--nav-btn-size);
-  border: 1px solid var(--surface-border);
-  border-radius: 50%;
-  background-color: rgba(28, 28, 34, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: #fff;
-  font-size: 26px;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+.pf-btn::after {
+    display: none !important;
 }
 
-.portfolio-prev {
-  left: calc((100% - min(var(--swiper-max-width), calc(100% - var(--swiper-side-clearance)))) / 4 - (var(--nav-btn-size) / 2));
+.pf-btn:hover {
+    color: #fff !important;
 }
 
-.portfolio-next {
-  right: calc((100% - min(var(--swiper-max-width), calc(100% - var(--swiper-side-clearance)))) / 4 - (var(--nav-btn-size) / 2));
+/* ---- Scroll spacers ----
+   6 spacers for 5 projects (matches Elyse pattern: N+1 triggers for N images).
+   spacer[0] = first-image appear
+   spacers[1-4] = transitions 0→1, 1→2, 2→3, 3→4
+   spacer[5] = is-last buffer  */
+.pf-spacer {
+    height: 80vh;
+    pointer-events: none;
+    user-select: none;
 }
 
-.portfolio-nav:hover {
-  transform: translateY(calc(-50% - 2px));
-  background-color: var(--accent);
-  color: #111;
-  border-color: var(--accent);
+.pf-spacer.is-last {
+    height: 40vh; /* shorter buffer at the end */
 }
 
 /* ==================== 
@@ -868,17 +893,76 @@ pre.ascii-pre {
         height: 25px;
     }
 
-    .swiper {
+    /* ---- Portfolio: mobile stacked layout ---- */
+    .portfolio {
+        margin: var(--section-gap) 0;
+    }
+
+    .pf-sticky {
+        position: relative;
+        top: 0;
         height: auto;
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
     }
 
-    .portfolio-carousel {
-        --swiper-max-width: 360px;
-        --swiper-side-clearance: 108px;
-        --nav-btn-size: 38px;
+    .pf-left {
+        height: 56vw;
+        min-height: 200px;
+        max-height: 340px;
     }
 
-    .portfolio-nav {
-        font-size: 22px;
+    /* On mobile all images shown sequentially — show first, hide rest */
+    .pf-image {
+        opacity: 0;
+        mask-image: none !important;
+        -webkit-mask-image: none !important;
+    }
+    .pf-image[data-pf-idx="0"] {
+        opacity: 1;
+    }
+
+    .pf-right {
+        border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .pf-progress {
+        display: none;
+    }
+
+    /* Texts: all visible, stacked vertically */
+    .pf-texts {
+        position: static;
+        min-height: 0;
+    }
+
+    .pf-text {
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
+        opacity: 1 !important;
+        transform: none !important;
+        visibility: visible !important;
+        pointer-events: auto;
+        padding-bottom: 36px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        margin-bottom: 36px;
+    }
+
+    .pf-text:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .pf-counter {
+        display: none;
+    }
+
+    .pf-spacer {
+        display: none;
     }
 }
+ 

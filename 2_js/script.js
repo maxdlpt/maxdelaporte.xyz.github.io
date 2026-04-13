@@ -305,24 +305,6 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         ease: 'power2.out',
     });
 
-    // Portfolio section — fade up heading, then carousel
-    gsap.from('.portfolio h2', {
-        scrollTrigger: { trigger: '.portfolio', start: 'top 85%', toggleActions: 'play none none none' },
-        opacity: 0,
-        y: 30,
-        duration: 0.7,
-        ease: 'power2.out',
-    });
-
-    gsap.from('.portfolio-carousel', {
-        scrollTrigger: { trigger: '.portfolio', start: 'top 75%', toggleActions: 'play none none none' },
-        opacity: 0,
-        y: 40,
-        duration: 0.8,
-        delay: 0.2,
-        ease: 'power2.out',
-    });
-
     // Footer — subtle fade in
     gsap.from('.footer-content', {
         scrollTrigger: { trigger: '.footer', start: 'top 95%', toggleActions: 'play none none none' },
@@ -400,68 +382,240 @@ if (carousel) {
 
     updateStack();
 }
-const syncPortfolioCardHeights = (swiperInstance) => {
-    const swiperEl = document.querySelector('.mySwiper');
-    const slides = Array.from(document.querySelectorAll('.mySwiper .swiper-slide'));
+// ====================
+// Portfolio — Scroll-Driven Sticky Transitions
+// ====================
 
-    if (!swiperEl || slides.length === 0) return;
+(function portfolioAnim() {
+    // Mirrors the Elyse Residence amenities scroll animation pattern exactly.
+    // First image: slides in from x:100 on trigger enter (not slice reveal).
+    // Subsequent images: 30-slice bottom-to-top reveal via --mask-gradient, scrubbed.
+    // Text: fade+y in/out (whole element, no SplitText — premium plugin unavailable).
+    // Vertical progress line: height 0→100% over full section scroll.
 
-    slides.forEach((slide) => {
-        slide.style.height = 'auto';
-    });
+    if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
 
-    const maxHeight = Math.max(...slides.map((slide) => slide.scrollHeight));
-    if (!Number.isFinite(maxHeight) || maxHeight <= 0) return;
+    const pfSection = document.querySelector('.portfolio');
+    if (!pfSection) return;
 
-    slides.forEach((slide) => {
-        slide.style.height = `${maxHeight}px`;
-    });
-    swiperEl.style.height = `${maxHeight}px`;
+    const track        = pfSection.querySelector('.pf-track');
+    const images       = gsap.utils.toArray('.pf-image');
+    const textBoxes    = gsap.utils.toArray('.pf-text');
+    const triggers     = gsap.utils.toArray('.pf-spacer');
+    const numEl        = pfSection.querySelector('.pf-num');
+    const progressLine = pfSection.querySelector('.pf-progress-line');
 
-    if (swiperInstance && typeof swiperInstance.update === 'function') {
-        swiperInstance.update();
+    if (!images.length || !textBoxes.length || !triggers.length) return;
+
+    // ---- Elyse's exact mask gradient generator ----
+    // linear-gradient(0deg, ...) = starts from bottom (0deg = upward).
+    // Slice [i] maps to vertical band i*(100/N)% from the BOTTOM.
+    // progressArray[i] = 0 (hidden) → 1 (fully revealed for that slice).
+    const SLICES = 30;
+
+    function generateMaskGradient(progressArray) {
+        const step = 100 / SLICES;
+        let gradient = 'linear-gradient(0deg';
+        for (let i = 0; i < SLICES; i++) {
+            const start       = i * step;
+            const end         = (i + 1) * step;
+            const progress    = progressArray[i];
+            const visibleEnd  = start + step * progress;
+            gradient += `, black ${start}% ${visibleEnd}%`;
+            if (progress < 1) {
+                gradient += `, transparent ${visibleEnd}% ${end}%`;
+            }
+        }
+        gradient += ')';
+        return gradient;
     }
-};
 
-if (typeof Swiper !== "undefined" && document.querySelector(".mySwiper")) {
-    const swiper = new Swiper(".mySwiper", {
-        effect: "cards",
-        grabCursor: true,
-        loop: false,
-        rewind: true,
-        watchOverflow: false,
-        navigation: {
-            nextEl: ".portfolio-next",
-            prevEl: ".portfolio-prev",
-        },
-    });
+    const isMobile = () => window.innerWidth <= 768;
 
-    const refreshCardHeights = () => {
-        requestAnimationFrame(() => {
-            syncPortfolioCardHeights(swiper);
-            requestLayoutSync();
+    // ---- Scroll trigger instances (so we can kill & rebuild on resize) ----
+    const pfSTs = [];
+
+    // ---- Desktop setup ----
+    function initDesktop() {
+        // ---- Set initial states (mirrors Elyse's setup block) ----
+
+        // First image: hidden to the right, no mask
+        gsap.set(images[0], { x: 100, opacity: 0, zIndex: 2 });
+
+        // Other images: hidden via mask, stacked behind
+        images.forEach((img, i) => {
+            if (i === 0) return;
+            const initialProgress = new Array(SLICES).fill(0);
+            img.style.setProperty('--mask-gradient', generateMaskGradient(initialProgress));
+            gsap.set(img, { opacity: 0, zIndex: 1 });
         });
-    };
 
-    refreshCardHeights();
-    window.addEventListener('resize', refreshCardHeights);
-    window.addEventListener('load', refreshCardHeights);
-    swiper.on('slideChangeTransitionEnd', refreshCardHeights);
-    swiper.on('resize', refreshCardHeights);
+        // All texts hidden, stacked
+        textBoxes.forEach((box, i) => {
+            gsap.set(box, { opacity: 0, y: 30, visibility: 'hidden' });
+            box.classList.remove('pf-active');
+        });
 
-    document.querySelectorAll('.mySwiper .swiper-slide img').forEach((img) => {
-        if (img.complete) {
-            refreshCardHeights();
+        // Counter
+        if (numEl) numEl.textContent = '01';
+
+        let hasAnimatedFirst = false;
+
+        // ---- Trigger 0: first image slides in from right, first text fades up ----
+        const firstST = ScrollTrigger.create({
+            trigger: triggers[0],
+            start: 'top 80%',
+            onEnter() {
+                if (hasAnimatedFirst) return;
+                hasAnimatedFirst = true;
+
+                // Slide image in from right (Elyse first-image pattern)
+                gsap.to(images[0], {
+                    x: 0,
+                    opacity: 1,
+                    duration: 1.2,
+                    ease: 'power2.out',
+                });
+
+                // Reveal first text
+                gsap.set(textBoxes[0], { visibility: 'visible' });
+                textBoxes[0].classList.add('pf-active');
+                gsap.to(textBoxes[0], {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.8,
+                    ease: 'power3.out',
+                    delay: 0.3,
+                });
+            },
+        });
+        pfSTs.push(firstST);
+
+        // ---- Triggers 1–4: slice reveal + text swap (Elyse transitions) ----
+        triggers.forEach((trigger, index) => {
+            if (index === 0 || index >= images.length) return; // skip first + tail buffer
+
+            // Slice-reveal timeline (scrubbed) — exactly the Elyse approach
+            const showProgressArray = new Array(SLICES).fill(0);
+
+            const showTl = gsap.timeline({
+                onUpdate() {
+                    images[index].style.setProperty('--mask-gradient', generateMaskGradient(showProgressArray));
+                },
+                scrollTrigger: {
+                    trigger,
+                    start: 'top center',
+                    end:   'center center',
+                    scrub: 1,
+                    onEnter()     { gsap.set(images[index], { opacity: 1, zIndex: 3 }); },
+                    onLeaveBack() {
+                        gsap.set(images[index], { opacity: 0, zIndex: 1 });
+                        const reset = new Array(SLICES).fill(0);
+                        images[index].style.setProperty('--mask-gradient', generateMaskGradient(reset));
+                        showProgressArray.fill(0);
+                    },
+                },
+            });
+            pfSTs.push(showTl.scrollTrigger);
+
+            // Sequential per-slice tweens — Elyse's stagger pattern
+            for (let i = 0; i < SLICES; i++) {
+                showTl.to(showProgressArray, { [i]: 1, duration: 0.5, ease: 'none' }, i * 0.015);
+            }
+
+            // Text swap timeline (scrubbed with the same trigger)
+            const textTl = gsap.timeline({
+                scrollTrigger: {
+                    trigger,
+                    start: 'top center',
+                    end:   'center center',
+                    scrub: 1,
+                },
+            });
+            pfSTs.push(textTl.scrollTrigger);
+
+            // Out: current text slides up and fades
+            textTl.to(textBoxes[index - 1], {
+                opacity: 0,
+                y: -30,
+                duration: 0.3,
+                ease: 'power2.in',
+            })
+            // Hide previous text box
+            .set(textBoxes[index - 1], { visibility: 'hidden' })
+            .call(() => textBoxes[index - 1].classList.remove('pf-active'))
+            // Show and animate in new text box
+            .set(textBoxes[index], { visibility: 'visible' })
+            .call(() => textBoxes[index].classList.add('pf-active'))
+            .fromTo(textBoxes[index],
+                { opacity: 0, y: 30 },
+                { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' }
+            );
+
+            // Counter update
+            ScrollTrigger.create({
+                trigger,
+                start: 'top center',
+                onEnter()     { if (numEl) numEl.textContent = String(index + 1).padStart(2, '0'); },
+                onLeaveBack() { if (numEl) numEl.textContent = String(index).padStart(2, '0'); },
+            });
+        });
+
+        // ---- Vertical progress line: height tracks overall section scroll ----
+        if (progressLine && track) {
+            const progressST = ScrollTrigger.create({
+                trigger: track,
+                start: 'top top',
+                end:   'bottom bottom',
+                scrub: 0.5,
+                onUpdate(self) {
+                    progressLine.style.height = `${self.progress * 100}%`;
+                },
+            });
+            pfSTs.push(progressST);
+        }
+    }
+
+    // ---- Mobile setup ---- (no animation, all projects visible) ----
+    function initMobile() {
+        images.forEach(img => {
+            img.style.removeProperty('--mask-gradient');
+            gsap.set(img, { clearProps: 'all' });
+        });
+        textBoxes.forEach(t => {
+            gsap.set(t, { clearProps: 'all' });
+            t.style.visibility = 'visible';
+        });
+    }
+
+    // ---- Boot ----
+    if (isMobile()) {
+        initMobile();
+    } else {
+        initDesktop();
+    }
+
+    // ---- Rebuild on desktop ↔ mobile switch ----
+    let wasMobile = isMobile();
+    window.addEventListener('resize', () => {
+        const nowMobile = isMobile();
+        if (nowMobile === wasMobile) return;
+        wasMobile = nowMobile;
+        pfSTs.forEach(st => st && st.kill());
+        pfSTs.length = 0;
+        if (nowMobile) {
+            initMobile();
         } else {
-            img.addEventListener('load', refreshCardHeights, { once: true });
+            initDesktop();
         }
     });
-} else {
-    console.warn("Swiper library or container not found; carousel was not initialized.");
-}
+})();
 
 
+// ====================
 // Email Copy Functionality
+// ====================
+
 const emailCopyBtn = document.getElementById('emailCopyBtn');
 if (emailCopyBtn) {
     emailCopyBtn.addEventListener('click', async function() {

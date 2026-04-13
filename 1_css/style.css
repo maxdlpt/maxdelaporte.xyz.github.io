@@ -49,40 +49,27 @@
     box-shadow: 0 0 8px rgba(129, 211, 26, 0.5);
 }
 
-/* Dark fallback on the root element — shows through transparent body while video loads */
-html {
-    background-color: #0a0a0e;
-}
-
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
     line-height: 1.6;
     color: var(--text-primary);
-    background-color: transparent; /* let html fallback + video show through */
+    background-color: #0a0a0e; /* fallback while video loads */
     padding-top: var(--header-height);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Fixed full-page video background at z-index:0.
-   Using z-index:0 (not -1) keeps the video in Chrome's main compositor layer tree,
-   so backdrop-filter on .hero-content can correctly sample it.
-   z-index:-1 on a fixed element creates a separate "below-root" GPU layer that
-   backdrop-filter cannot reach, making the hero card invisible in Chrome. */
+/* Hero video background — absolute inside .hero so backdrop-filter composites correctly.
+   position:fixed + z-index:-1 causes a Chrome compositor bug that makes the hero card
+   invisible when backdrop-filter tries to sample from the video's separate GPU layer. */
 #bg-video {
-    position: fixed;
+    position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    z-index: 0;
+    z-index: -1;
     pointer-events: none;
-}
-
-/* All page content sits above the video in the same compositor tree */
-#page-wrapper {
-    position: relative;
-    z-index: 1;
 }
 
 .container {
@@ -233,6 +220,26 @@ h2 {
     color: var(--accent);
 }
 
+.nav a.active {
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 2px;
+    animation: activeNavPulse 0.4s ease-out;
+}
+
+@keyframes activeNavPulse {
+    0% {
+        color: var(--accent);
+        opacity: 0.7;
+        transform: translateY(-2px);
+    }
+    100% {
+        color: var(--accent);
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .nav-toggle {
     display: none;
     border: none;
@@ -300,7 +307,9 @@ h2 {
     align-items: center;
     position: relative;
     overflow: hidden;
-    /* z-index:0 keeps hero in normal stacking flow within #page-wrapper */
+    /* z-index:0 creates a stacking context so backdrop-filter on .hero-content
+       correctly composites the video + ASCII layers within this context,
+       avoiding the Chrome GPU-layer bug with fixed+negative-z-index video */
     z-index: 0;
 }
 
@@ -319,7 +328,7 @@ pre.ascii-pre {
     overflow: hidden;
     color: #000000;
     background: transparent;
-    opacity: 0.2;
+    opacity: 0.15;
     font: 13px/13px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     white-space: pre;
     user-select: none;
@@ -366,8 +375,40 @@ pre.ascii-pre {
     margin-bottom: 30px;
 }
 
-/* ==================== 
-   CTA Button 
+/* Morphing text — hero h2 character spans */
+.hero-text h2 span {
+    display: inline-block;
+}
+
+.morphing-cursor {
+    display: inline-block;
+    width: 3px;
+    height: 0.75em;
+    background: var(--accent);
+    margin-left: 3px;
+    vertical-align: middle;
+    border-radius: 1px;
+    animation: cursorBlink 2s ease-in-out infinite;
+}
+
+@keyframes cursorBlink {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 1; }
+}
+
+.morph-char {
+    display: inline-block;
+    animation: morphCharIn 0.45s ease forwards;
+}
+
+@keyframes morphCharIn {
+    0%   { opacity: 0; transform: translateY(14px) scale(0.82); }
+    55%  { opacity: 0.75; transform: translateY(-4px) scale(1.06); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ====================
+   CTA Button
    ==================== */
 
 .cta-button {
@@ -432,200 +473,219 @@ pre.ascii-pre {
 
 
 /* ====================
-   Portfolio Section — Elyse-style scroll-driven sticky layout
-   Full-bleed, no card. Image left / text right. Vertical progress line.
+   Portfolio Section — VerticalTabs style
    ==================== */
 
 .portfolio {
-    padding: 0;
-    /* No glass card — raw dark background matching the page */
-    background-color: transparent;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    margin: var(--section-gap) 0; /* full-width, keep vertical rhythm */
-    position: relative;
+    margin: var(--section-gap) 0;
+    background-color: #0a0a0e;
+    overflow: hidden;
 }
 
-/* ---- Scroll track (sticky panel + spacers as siblings) ---- */
-.pf-track {
-    position: relative;
-}
-
-/* ---- Sticky display panel ---- */
-.pf-sticky {
-    position: sticky;
-    top: var(--header-height, 72px);
-    height: calc(100dvh - var(--header-height, 72px));
+.portfolio-wrap {
     display: grid;
-    grid-template-columns: 57fr 43fr;
-    overflow: hidden;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    min-height: 80vh;
 }
 
-/* ---- Left: image stack ---- */
-.pf-left {
+/* ── Left text column ── */
+.portfolio-text-col {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(40px, 6vw, 80px) clamp(32px, 5vw, 64px);
     position: relative;
-    overflow: hidden;
+    z-index: 2;
+    gap: 24px;
 }
 
-.pf-images {
-    position: absolute;
-    inset: 0;
-}
-
-/* All images stacked, controlled by --mask-gradient custom property.
-   Matches Elyse's [data-amenities-anim="big-image"] pattern. */
-.pf-image {
-    position: absolute;
-    inset: 0;
-    --mask-gradient: none;
-    mask-image: var(--mask-gradient);
-    -webkit-mask-image: var(--mask-gradient);
-    will-change: opacity, mask-image, -webkit-mask-image;
-}
-
-/* First image: no mask, slides in from right (matching Elyse first-image treatment) */
-.pf-image[data-pf-idx="0"] {
-    mask-image: none !important;
-    -webkit-mask-image: none !important;
-}
-
-.pf-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    user-select: none;
-    pointer-events: none;
-}
-
-/* Project counter (bottom-right of image panel) */
-.pf-counter {
-    position: absolute;
-    bottom: 28px;
-    right: 32px;
+.portfolio-caption {
     font-size: 11px;
     letter-spacing: 3px;
-    color: rgba(255, 255, 255, 0.45);
-    font-weight: 500;
-    z-index: 2;
-    font-variant-numeric: tabular-nums;
+    text-transform: uppercase;
+    color: var(--text-muted);
 }
 
-.pf-num {
-    display: inline-block;
-    min-width: 2ch;
-}
-
-/* ---- Right: text panel ---- */
-.pf-right {
+/* Tab list */
+.portfolio-tabs {
     display: flex;
-    align-items: center;
-    overflow: hidden;
-    background-color: #0a0a0e; /* solid dark matching page bg — text stays readable */
-    position: relative;
+    flex-direction: column;
 }
 
-/* Vertical progress line (Elyse amenities-progress pattern) */
-.pf-progress {
+.portfolio-tab {
+    display: flex;
+    flex-direction: column;
+    padding: 14px 0 14px 24px;
+    position: relative;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+}
+
+.portfolio-tab:first-child {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Progress track — thin vertical line on left edge */
+.tab-track {
     position: absolute;
     left: 0;
     top: 0;
     bottom: 0;
-    width: 1px;
-    background: rgba(255, 255, 255, 0.12);
-    z-index: 2;
+    width: 2px;
+    background-color: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
 }
 
-.pf-progress-line {
-    width: 100%;
-    background: var(--accent);
-    height: 0%;           /* animated by JS as user scrolls */
-    transform-origin: top;
-    transition: none;     /* driven by GSAP, not CSS transition */
-}
-
-.pf-right-inner {
-    padding: clamp(36px, 5vw, 80px) clamp(36px, 5vw, 80px) clamp(36px, 5vw, 80px) clamp(48px, 6vw, 96px);
-    width: 100%;
-}
-
-.pf-label {
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    margin-bottom: 40px;
-    display: block;
-}
-
-/* Texts container — children absolutely stacked */
-.pf-texts {
-    position: relative;
-    min-height: 300px;
-}
-
-.pf-text {
+.tab-progress {
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
+    width: 100%;
+    height: 0%;
+    background-color: var(--accent);
+}
+
+.portfolio-tab.is-active .tab-progress {
+    animation: tabProgressFill 5s linear forwards;
+}
+
+@keyframes tabProgressFill {
+    from { height: 0%; }
+    to { height: 100%; }
+}
+
+/* Tab header row (number + title) */
+.tab-btn {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
     pointer-events: none;
-    visibility: hidden;   /* hidden by default; JS sets to visible + animates */
 }
 
-.pf-text.pf-active {
-    pointer-events: auto;
-    visibility: visible;
+.tab-number {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--accent);
+    font-weight: 500;
+    flex-shrink: 0;
+    opacity: 0.45;
+    transition: opacity 0.3s ease;
 }
 
-/* Large editorial title — matching Elyse h5 scale */
-.pf-proj-title {
-    font-size: clamp(26px, 3.2vw, 48px);
+.portfolio-tab.is-active .tab-number {
+    opacity: 1;
+}
+
+.tab-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    transition: color 0.35s ease, font-size 0.35s ease;
+}
+
+.portfolio-tab.is-active .tab-title {
+    font-size: clamp(22px, 2.8vw, 40px);
     font-weight: 700;
     color: #fff;
-    line-height: 1.1;
-    margin-bottom: 20px;
-    letter-spacing: -0.03em;
 }
 
-.pf-proj-desc {
-    font-size: 15px;
+/* Collapsible description + CTA */
+.tab-expand {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: max-height 0.45s ease, opacity 0.35s ease, margin-top 0.35s ease;
+}
+
+.portfolio-tab.is-active .tab-expand {
+    max-height: 400px;
+    opacity: 1;
+    margin-top: 10px;
+}
+
+.tab-desc {
+    font-size: 13px;
     color: var(--text-secondary);
-    line-height: 1.8;
-    margin-bottom: 36px;
+    line-height: 1.75;
     max-width: 380px;
 }
 
-.pf-btn {
+/* CTA — outlined style */
+.portfolio-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     font-size: 11px;
     letter-spacing: 2px;
-    padding: 12px 28px;
-    text-decoration: none;
-    color: #fff !important;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 11px 20px;
+    border-radius: 6px;
+    width: fit-content;
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
 }
 
-.pf-btn::after {
+.portfolio-cta:hover {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: #111;
+    transform: translateY(-2px);
+}
+
+.portfolio-cta::after {
     display: none !important;
 }
 
-.pf-btn:hover {
-    color: #fff !important;
+/* ── Right image column ── */
+.portfolio-img-col {
+    position: sticky;
+    top: var(--header-height);
+    height: calc(100vh - var(--header-height));
+    overflow: hidden;
 }
 
-/* ---- Scroll spacers ----
-   6 spacers for 5 projects (matches Elyse pattern: N+1 triggers for N images).
-   spacer[0] = first-image appear
-   spacers[1-4] = transitions 0→1, 1→2, 2→3, 3→4
-   spacer[5] = is-last buffer  */
-.pf-spacer {
-    height: 80vh;
+.portfolio-img-frame {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.portfolio-img-wrap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 40px;
+    transform: translateY(100%);
+    opacity: 0;
     pointer-events: none;
-    user-select: none;
+    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
 }
 
-.pf-spacer.is-last {
-    height: 40vh; /* shorter buffer at the end */
+.portfolio-img-wrap img {
+    max-width: 100%;
+    max-height: 70vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    border-radius: 8px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
 }
 
 /* ==================== 
@@ -861,11 +921,6 @@ pre.ascii-pre {
         font-size: 32px;
     }
 
-    .services-grid,
-    .portfolio-grid {
-        grid-template-columns: 1fr;
-    }
-
     .hero {
         padding: 0;
         margin-top: calc(-1 * var(--header-height));
@@ -893,76 +948,27 @@ pre.ascii-pre {
         height: 25px;
     }
 
-    /* ---- Portfolio: mobile stacked layout ---- */
-    .portfolio {
-        margin: var(--section-gap) 0;
+    /* Portfolio — stack on mobile */
+    .portfolio-wrap {
+        grid-template-columns: 1fr;
+        align-items: stretch;
     }
 
-    .pf-sticky {
+    .portfolio-img-col {
         position: relative;
+        height: 280px;
         top: 0;
-        height: auto;
-        display: flex;
-        flex-direction: column;
-        overflow: visible;
     }
 
-    .pf-left {
-        height: 56vw;
-        min-height: 200px;
-        max-height: 340px;
+    .portfolio-img-wrap {
+        padding: 20px;
     }
 
-    /* On mobile all images shown sequentially — show first, hide rest */
-    .pf-image {
-        opacity: 0;
-        mask-image: none !important;
-        -webkit-mask-image: none !important;
-    }
-    .pf-image[data-pf-idx="0"] {
-        opacity: 1;
+    .portfolio-img-wrap img {
+        max-height: 240px;
     }
 
-    .pf-right {
-        border-top: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .pf-progress {
-        display: none;
-    }
-
-    /* Texts: all visible, stacked vertically */
-    .pf-texts {
-        position: static;
-        min-height: 0;
-    }
-
-    .pf-text {
-        position: relative;
-        top: auto;
-        left: auto;
-        right: auto;
-        opacity: 1 !important;
-        transform: none !important;
-        visibility: visible !important;
-        pointer-events: auto;
-        padding-bottom: 36px;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
-        margin-bottom: 36px;
-    }
-
-    .pf-text:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-    }
-
-    .pf-counter {
-        display: none;
-    }
-
-    .pf-spacer {
-        display: none;
+    .portfolio-tab.is-active .tab-title {
+        font-size: clamp(18px, 6vw, 28px);
     }
 }
- 

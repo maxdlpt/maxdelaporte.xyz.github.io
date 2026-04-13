@@ -206,62 +206,40 @@ if (headerEl && navToggle && navTogglePath) {
     });
 }
 
-// ==================== 
-// Contact Form Handling
+// ====================
+// Active Navigation Highlighting (with debounce)
 // ====================
 
-const contactForm = document.querySelector('.contact-form');
-
-if (contactForm) {
-    contactForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        
-        // Get form values
-        const name = this.querySelector('input[type="text"]').value;
-        const email = this.querySelector('input[type="email"]').value;
-        const message = this.querySelector('textarea').value;
-        
-        // Simple validation
-        if (name.trim() === '' || email.trim() === '' || message.trim() === '') {
-            alert('Please fill out all fields');
-            return;
-        }
-        
-        // Here you would typically send the form data to a server
-        console.log('Form submitted:', { name, email, message });
-        alert('Thank you for your message! I\'ll get back to you soon.');
-        
-        // Reset form
-        this.reset();
-    });
-}
-
-// ==================== 
-// Active Navigation Highlighting
-// ====================
+let navHighlightRAF = null;
 
 window.addEventListener('scroll', function () {
-    const sections = document.querySelectorAll('section');
-    const navLinks = document.querySelectorAll('.nav a');
-    
-    let current = '';
-    
-    sections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.clientHeight;
-        
-        if (pageYOffset >= sectionTop - 200) {
-            current = section.getAttribute('id');
-        }
+    if (navHighlightRAF) return;
+
+    navHighlightRAF = requestAnimationFrame(() => {
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.nav a');
+
+        let current = '';
+
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+
+            if (pageYOffset >= sectionTop - 200) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href').slice(1) === current) {
+                link.classList.add('active');
+            }
+        });
+
+        navHighlightRAF = null;
     });
-    
-    navLinks.forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('href').slice(1) === current) {
-            link.classList.add('active');
-        }
-    });
-});
+}, { passive: true });
 
 // ====================
 // Page Load Animation
@@ -305,6 +283,32 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         ease: 'power2.out',
     });
 
+    // Portfolio section — fade up caption
+    gsap.from('.portfolio-caption', {
+        scrollTrigger: { trigger: '.portfolio', start: 'top 85%', toggleActions: 'play none none none' },
+        opacity: 0,
+        y: 30,
+        duration: 0.7,
+        ease: 'power2.out',
+    });
+
+    gsap.from('.portfolio-img-col', {
+        scrollTrigger: { trigger: '.portfolio', start: 'top 75%', toggleActions: 'play none none none' },
+        opacity: 0,
+        x: 40,
+        duration: 1,
+        delay: 0.2,
+        ease: 'power2.out',
+    });
+
+    gsap.from('.portfolio-text-col', {
+        scrollTrigger: { trigger: '.portfolio', start: 'top 80%', toggleActions: 'play none none none' },
+        opacity: 0,
+        x: -30,
+        duration: 0.9,
+        ease: 'power2.out',
+    });
+
     // Footer — subtle fade in
     gsap.from('.footer-content', {
         scrollTrigger: { trigger: '.footer', start: 'top 95%', toggleActions: 'play none none none' },
@@ -315,307 +319,201 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     });
 }
 
-// ==================== 
-// Carousel Navigation
+// ====================
+// Portfolio — VerticalTabs
 // ====================
 
-const carousel = document.getElementById('carousel');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
+(function () {
+    const tabs = Array.from(document.querySelectorAll('.portfolio-tab'));
+    const images = Array.from(document.querySelectorAll('.portfolio-img-wrap'));
+    const imgCol = document.querySelector('.portfolio-img-col');
 
-if (carousel) {
-    let items = Array.from(document.querySelectorAll('.portfolio-item'));
+    if (!tabs.length || !images.length) return;
+
+    const total = tabs.length;
+    let current = 0;
     let isAnimating = false;
+    let autoPlayTimer = null;
+    const AUTO_MS = 5000;
 
-    function updateStack() {
-        items.forEach((item, index) => {
-            item.className = 'portfolio-item';
-
-            if (index === 0) item.classList.add('active');
-            if (index === 1) item.classList.add('stack-1');
-            if (index === 2) item.classList.add('stack-2');
-            if (index === 3) item.classList.add('stack-3');
-        });
+    // Restart the CSS progress-bar fill animation on the given tab
+    function restartProgress(tab) {
+        const bar = tab.querySelector('.tab-progress');
+        if (!bar) return;
+        bar.style.animation = 'none';
+        void bar.offsetHeight; // force reflow
+        bar.style.animation = '';
     }
 
-    function nextSlide() {
-        if (isAnimating) return;
+    function goTo(nextIndex, dir) {
+        if (isAnimating || nextIndex === current) return;
         isAnimating = true;
 
-        const first = items[0];
+        const prevIndex = current;
+        current = nextIndex;
 
-        first.classList.add('exit-up');
+        // Swap active tab
+        tabs[prevIndex].classList.remove('is-active');
+        tabs[nextIndex].classList.add('is-active');
+        restartProgress(tabs[nextIndex]);
 
-        setTimeout(() => {
-            first.classList.remove('exit-up');
-            items.push(items.shift()); // move first to back
-            updateStack();
-            isAnimating = false;
-        }, 600);
-    }
+        // Snap next image to entry position (instant — no transition)
+        images[nextIndex].style.transition = 'none';
+        images[nextIndex].style.transform = dir > 0 ? 'translateY(100%)' : 'translateY(-100%)';
+        images[nextIndex].style.opacity = '0';
+        void images[nextIndex].offsetHeight; // force reflow
+        images[nextIndex].style.transition = ''; // restore CSS transition
 
-    function prevSlide() {
-        if (isAnimating) return;
-        isAnimating = true;
-
-        const last = items[items.length - 1];
-
-        // Move last to front in array
-        items.unshift(items.pop());
-
-        updateStack();
-
-        const newFirst = items[0];
-
-        newFirst.classList.add('enter-down');
-
+        // Animate both images in the next frame
         requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                newFirst.classList.remove('enter-down');
-                isAnimating = false;
-            });
+            // Previous exits upward (forward) or downward (backward)
+            images[prevIndex].style.transform = dir > 0 ? 'translateY(-100%)' : 'translateY(100%)';
+            images[prevIndex].style.opacity = '0';
+            images[prevIndex].style.pointerEvents = 'none';
+
+            // Next enters from its entry position to center
+            images[nextIndex].style.transform = 'translateY(0)';
+            images[nextIndex].style.opacity = '1';
+            images[nextIndex].style.pointerEvents = 'auto';
         });
+
+        setTimeout(() => { isAnimating = false; }, 750);
     }
 
-    nextBtn.addEventListener('click', nextSlide);
-    prevBtn.addEventListener('click', prevSlide);
-
-    updateStack();
-}
-// ====================
-// Portfolio — Scroll-Driven Sticky Transitions
-// ====================
-
-(function portfolioAnim() {
-    // Mirrors the Elyse Residence amenities scroll animation pattern exactly.
-    // First image: slides in from x:100 on trigger enter (not slice reveal).
-    // Subsequent images: 30-slice bottom-to-top reveal via --mask-gradient, scrubbed.
-    // Text: fade+y in/out (whole element, no SplitText — premium plugin unavailable).
-    // Vertical progress line: height 0→100% over full section scroll.
-
-    if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
-
-    const pfSection = document.querySelector('.portfolio');
-    if (!pfSection) return;
-
-    const track        = pfSection.querySelector('.pf-track');
-    const images       = gsap.utils.toArray('.pf-image');
-    const textBoxes    = gsap.utils.toArray('.pf-text');
-    const triggers     = gsap.utils.toArray('.pf-spacer');
-    const numEl        = pfSection.querySelector('.pf-num');
-    const progressLine = pfSection.querySelector('.pf-progress-line');
-
-    if (!images.length || !textBoxes.length || !triggers.length) return;
-
-    // ---- Elyse's exact mask gradient generator ----
-    // linear-gradient(0deg, ...) = starts from bottom (0deg = upward).
-    // Slice [i] maps to vertical band i*(100/N)% from the BOTTOM.
-    // progressArray[i] = 0 (hidden) → 1 (fully revealed for that slice).
-    const SLICES = 30;
-
-    function generateMaskGradient(progressArray) {
-        const step = 100 / SLICES;
-        let gradient = 'linear-gradient(0deg';
-        for (let i = 0; i < SLICES; i++) {
-            const start       = i * step;
-            const end         = (i + 1) * step;
-            const progress    = progressArray[i];
-            const visibleEnd  = start + step * progress;
-            gradient += `, black ${start}% ${visibleEnd}%`;
-            if (progress < 1) {
-                gradient += `, transparent ${visibleEnd}% ${end}%`;
-            }
-        }
-        gradient += ')';
-        return gradient;
+    function startAutoPlay() {
+        stopAutoPlay();
+        autoPlayTimer = setInterval(() => goTo((current + 1) % total, 1), AUTO_MS);
     }
 
-    const isMobile = () => window.innerWidth <= 768;
-
-    // ---- Scroll trigger instances (so we can kill & rebuild on resize) ----
-    const pfSTs = [];
-
-    // ---- Desktop setup ----
-    function initDesktop() {
-        // ---- Set initial states (mirrors Elyse's setup block) ----
-
-        // First image: hidden to the right, no mask
-        gsap.set(images[0], { x: 100, opacity: 0, zIndex: 2 });
-
-        // Other images: hidden via mask, stacked behind
-        images.forEach((img, i) => {
-            if (i === 0) return;
-            const initialProgress = new Array(SLICES).fill(0);
-            img.style.setProperty('--mask-gradient', generateMaskGradient(initialProgress));
-            gsap.set(img, { opacity: 0, zIndex: 1 });
-        });
-
-        // All texts hidden, stacked
-        textBoxes.forEach((box, i) => {
-            gsap.set(box, { opacity: 0, y: 30, visibility: 'hidden' });
-            box.classList.remove('pf-active');
-        });
-
-        // Counter
-        if (numEl) numEl.textContent = '01';
-
-        let hasAnimatedFirst = false;
-
-        // ---- Trigger 0: first image slides in from right, first text fades up ----
-        const firstST = ScrollTrigger.create({
-            trigger: triggers[0],
-            start: 'top 80%',
-            onEnter() {
-                if (hasAnimatedFirst) return;
-                hasAnimatedFirst = true;
-
-                // Slide image in from right (Elyse first-image pattern)
-                gsap.to(images[0], {
-                    x: 0,
-                    opacity: 1,
-                    duration: 1.2,
-                    ease: 'power2.out',
-                });
-
-                // Reveal first text
-                gsap.set(textBoxes[0], { visibility: 'visible' });
-                textBoxes[0].classList.add('pf-active');
-                gsap.to(textBoxes[0], {
-                    opacity: 1,
-                    y: 0,
-                    duration: 0.8,
-                    ease: 'power3.out',
-                    delay: 0.3,
-                });
-            },
-        });
-        pfSTs.push(firstST);
-
-        // ---- Triggers 1–4: slice reveal + text swap (Elyse transitions) ----
-        triggers.forEach((trigger, index) => {
-            if (index === 0 || index >= images.length) return; // skip first + tail buffer
-
-            // Slice-reveal timeline (scrubbed) — exactly the Elyse approach
-            const showProgressArray = new Array(SLICES).fill(0);
-
-            const showTl = gsap.timeline({
-                onUpdate() {
-                    images[index].style.setProperty('--mask-gradient', generateMaskGradient(showProgressArray));
-                },
-                scrollTrigger: {
-                    trigger,
-                    start: 'top center',
-                    end:   'center center',
-                    scrub: 1,
-                    onEnter()     { gsap.set(images[index], { opacity: 1, zIndex: 3 }); },
-                    onLeaveBack() {
-                        gsap.set(images[index], { opacity: 0, zIndex: 1 });
-                        const reset = new Array(SLICES).fill(0);
-                        images[index].style.setProperty('--mask-gradient', generateMaskGradient(reset));
-                        showProgressArray.fill(0);
-                    },
-                },
-            });
-            pfSTs.push(showTl.scrollTrigger);
-
-            // Sequential per-slice tweens — Elyse's stagger pattern
-            for (let i = 0; i < SLICES; i++) {
-                showTl.to(showProgressArray, { [i]: 1, duration: 0.5, ease: 'none' }, i * 0.015);
-            }
-
-            // Text swap timeline (scrubbed with the same trigger)
-            const textTl = gsap.timeline({
-                scrollTrigger: {
-                    trigger,
-                    start: 'top center',
-                    end:   'center center',
-                    scrub: 1,
-                },
-            });
-            pfSTs.push(textTl.scrollTrigger);
-
-            // Out: current text slides up and fades
-            textTl.to(textBoxes[index - 1], {
-                opacity: 0,
-                y: -30,
-                duration: 0.3,
-                ease: 'power2.in',
-            })
-            // Hide previous text box
-            .set(textBoxes[index - 1], { visibility: 'hidden' })
-            .call(() => textBoxes[index - 1].classList.remove('pf-active'))
-            // Show and animate in new text box
-            .set(textBoxes[index], { visibility: 'visible' })
-            .call(() => textBoxes[index].classList.add('pf-active'))
-            .fromTo(textBoxes[index],
-                { opacity: 0, y: 30 },
-                { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' }
-            );
-
-            // Counter update
-            ScrollTrigger.create({
-                trigger,
-                start: 'top center',
-                onEnter()     { if (numEl) numEl.textContent = String(index + 1).padStart(2, '0'); },
-                onLeaveBack() { if (numEl) numEl.textContent = String(index).padStart(2, '0'); },
-            });
-        });
-
-        // ---- Vertical progress line: height tracks overall section scroll ----
-        if (progressLine && track) {
-            const progressST = ScrollTrigger.create({
-                trigger: track,
-                start: 'top top',
-                end:   'bottom bottom',
-                scrub: 0.5,
-                onUpdate(self) {
-                    progressLine.style.height = `${self.progress * 100}%`;
-                },
-            });
-            pfSTs.push(progressST);
-        }
+    function stopAutoPlay() {
+        clearInterval(autoPlayTimer);
+        autoPlayTimer = null;
     }
 
-    // ---- Mobile setup ---- (no animation, all projects visible) ----
-    function initMobile() {
-        images.forEach(img => {
-            img.style.removeProperty('--mask-gradient');
-            gsap.set(img, { clearProps: 'all' });
+    // Tab click
+    tabs.forEach((tab, i) => {
+        tab.addEventListener('click', (e) => {
+            if (e.target.closest('a')) return; // let CTA links through
+            const dir = i >= current ? 1 : -1;
+            goTo(i, dir);
+            stopAutoPlay();
+            startAutoPlay();
         });
-        textBoxes.forEach(t => {
-            gsap.set(t, { clearProps: 'all' });
-            t.style.visibility = 'visible';
-        });
-    }
-
-    // ---- Boot ----
-    if (isMobile()) {
-        initMobile();
-    } else {
-        initDesktop();
-    }
-
-    // ---- Rebuild on desktop ↔ mobile switch ----
-    let wasMobile = isMobile();
-    window.addEventListener('resize', () => {
-        const nowMobile = isMobile();
-        if (nowMobile === wasMobile) return;
-        wasMobile = nowMobile;
-        pfSTs.forEach(st => st && st.kill());
-        pfSTs.length = 0;
-        if (nowMobile) {
-            initMobile();
-        } else {
-            initDesktop();
-        }
     });
+
+    // Pause auto-play while hovering the image column
+    if (imgCol) {
+        imgCol.addEventListener('mouseenter', stopAutoPlay);
+        imgCol.addEventListener('mouseleave', startAutoPlay);
+    }
+
+    // Initialise: set first image visible
+    images[0].style.transform = 'translateY(0)';
+    images[0].style.opacity = '1';
+    images[0].style.pointerEvents = 'auto';
+
+    restartProgress(tabs[0]);
+    startAutoPlay();
 })();
 
 
 // ====================
-// Email Copy Functionality
+// Hero Morphing Text
 // ====================
 
+(function () {
+    const heroH2 = document.querySelector('.hero-text h2');
+    if (!heroH2) return;
+
+    const texts = [
+        'Economics & Mathematical Modelling',
+        'Machine Learning & Applied AI Skills',
+        'Quantitative Finance & Analytics',
+        'Full-Stack App Development',
+    ];
+
+    const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    const INTERVAL = 10000;
+    const STEP_MS  = 75;
+
+    let idx = 0;
+    let busy = false;
+
+    function randChar() {
+        return CHARS[Math.floor(Math.random() * CHARS.length)];
+    }
+
+    function esc(c) {
+        return c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : c;
+    }
+
+    function render(text, animate) {
+        const cursor = '<span class="morphing-cursor" aria-hidden="true"></span>';
+        heroH2.innerHTML = text.split('').map((ch, i) => {
+            const safe = ch === ' ' ? '\u00a0' : esc(ch);
+            return animate
+                ? `<span class="morph-char" style="animation-delay:${i * 28}ms">${safe}</span>`
+                : `<span>${safe}</span>`;
+        }).join('') + cursor;
+    }
+
+    function morphNext() {
+        if (busy) return;
+        busy = true;
+
+        const cur = texts[idx];
+        const ni  = (idx + 1) % texts.length;
+        const nxt = texts[ni];
+        const maxLen = Math.max(cur.length, nxt.length);
+        let step = 0;
+
+        (function tick() {
+            if (step > maxLen) {
+                idx = ni;
+                render(nxt, true);
+                busy = false;
+                return;
+            }
+            const cursor = '<span class="morphing-cursor" aria-hidden="true"></span>';
+            let html = '';
+            for (let i = 0; i < maxLen; i++) {
+                let ch;
+                if (i < step)          { ch = nxt[i] || ''; }
+                else if (i < cur.length) { ch = Math.random() > 0.7 ? randChar() : cur[i]; }
+                else                   { ch = ''; }
+                if (ch) {
+                    const safe = ch === ' ' ? '\u00a0' : esc(ch);
+                    html += `<span>${safe}</span>`;
+                }
+            }
+            heroH2.innerHTML = html + cursor;
+            step++;
+            setTimeout(tick, STEP_MS);
+        })();
+    }
+
+    // Hover glitch burst
+    heroH2.addEventListener('mouseenter', () => {
+        if (busy) return;
+        const cur = texts[idx];
+        let f = 0;
+        (function glitch() {
+            if (f++ >= 6) { render(cur, false); return; }
+            const cursor = '<span class="morphing-cursor" aria-hidden="true"></span>';
+            heroH2.innerHTML = cur.split('').map(ch => {
+                const out = Math.random() > 2 ? randChar() : ch;
+                const safe = out === ' ' ? '\u00a0' : esc(out);
+                return `<span>${safe}</span>`;
+            }).join('') + cursor;
+            setTimeout(glitch, 45);
+        })();
+    });
+
+    render(texts[0], false);
+    setInterval(morphNext, INTERVAL);
+})();
+
+// Email Copy Functionality
 const emailCopyBtn = document.getElementById('emailCopyBtn');
 if (emailCopyBtn) {
     emailCopyBtn.addEventListener('click', async function() {

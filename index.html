@@ -11,17 +11,6 @@
     <link rel="stylesheet" href="1_css/style.css">
 </head>
 <body>
-    <!-- Fixed full-page video background.
-         Sits at z-index:0 (NOT -1) so Chrome keeps it in the main compositor
-         layer tree, allowing backdrop-filter on .hero-content to sample it. -->
-    <video id="bg-video" autoplay muted loop playsinline aria-hidden="true">
-        <source src="3_images/paysage1.mp4" type="video/mp4">
-    </video>
-
-    <!-- Page wrapper at z-index:1 ensures all content paints above the video
-         while staying in the same compositor tree for backdrop-filter. -->
-    <div id="page-wrapper">
-
     <!-- Scroll progress bar -->
     <div id="scroll-progress-bar" aria-hidden="true"></div>
 
@@ -54,6 +43,10 @@
 
     <!-- Hero Section -->
     <section class="hero" id="home">
+        <!-- Video background — inside hero so backdrop-filter composites correctly -->
+        <video id="bg-video" autoplay muted loop playsinline aria-hidden="true">
+            <source src="3_images/paysage1.mp4" type="video/mp4">
+        </video>
         <!-- Interactive ASCII text overlay (mouse-reactive) -->
         <div class="ascii-embed">
             <pre class="ascii-pre" aria-hidden="true"></pre>
@@ -67,116 +60,113 @@
 
         </div>
     </section>
-
+   
     <!-- About Section -->
     <section class="about" id="about">
         <div class="container">
             <h2>About Me</h2>
-            <p>I'm a French-American University of Warwick graduate, working as a Portfolio Management Analyst at <a href="https://heritgeholdings.co">Heritage Holdings</a>.
+            <p>I'm a French-American University of Warwick graduate, working as a Portfolio Management Analyst at <a href="https://heritgeholdings.co">Heritage Holdings</a>. 
                 I'm passionate about Data Science and Machine Learning methods and have worked on various projects in those fields. <br>
 
             </p>
         </div>
     </section>
 
-        <!-- Portfolio Section -->
+    <!-- Portfolio Section -->
     <section class="portfolio" id="portfolio">
+        <div class="portfolio-wrap">
 
-      <!-- Scroll track: sticky panel + spacers are direct siblings inside here,
-           matching the Elyse .anim-track pattern -->
-      <div class="pf-track">
+            <!-- Left: caption + vertical tab list -->
+            <div class="portfolio-text-col">
+                <div class="portfolio-caption">(my projects)</div>
 
-      <!-- Sticky display panel: stays at the top while spacers scroll past -->
-      <div class="pf-sticky">
+                <div class="portfolio-tabs">
 
-        <!-- Left column: stacked images -->
-        <div class="pf-left">
-          <div class="pf-images">
+                    <div class="portfolio-tab is-active" data-index="0">
+                        <div class="tab-track"><div class="tab-progress"></div></div>
+                        <div class="tab-btn">
+                            <span class="tab-number">/01</span>
+                            <span class="tab-title">Job Tracker</span>
+                        </div>
+                        <div class="tab-expand">
+                            <p class="tab-desc">Application Tracker &amp; Relationship Management tool. Use demo account for preview — username: <strong>demo</strong>, password: <strong>demo1234</strong>.</p>
+                            <a href="jobtracker/index.html" target="_blank" rel="noopener noreferrer" class="portfolio-cta">VIEW PROJECT</a>
+                        </div>
+                    </div>
 
-            <div class="pf-image" data-pf-idx="0">
-              <img src="projects/jobtracker/thumbnail_v1.png" alt="Job Tracker">
+                    <div class="portfolio-tab" data-index="1">
+                        <div class="tab-track"><div class="tab-progress"></div></div>
+                        <div class="tab-btn">
+                            <span class="tab-number">/02</span>
+                            <span class="tab-title">Economics Dissertation</span>
+                        </div>
+                        <div class="tab-expand">
+                            <p class="tab-desc">Research in Applied Economics. A theoretical model inspired by Jones (2022), Doepke (2013), and Zeira (1998) linking AI-driven childcare automation to fertility decisions.</p>
+                            <a href="projects/dissertation/EC331_DISSERTATION_FINAL.pdf" target="_blank" rel="noopener noreferrer" class="portfolio-cta">VIEW PDF</a>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-tab" data-index="2">
+                        <div class="tab-track"><div class="tab-progress"></div></div>
+                        <div class="tab-btn">
+                            <span class="tab-number">/03</span>
+                            <span class="tab-title">Data Science</span>
+                        </div>
+                        <div class="tab-expand">
+                            <p class="tab-desc">Predictive Machine Learning models to forecast overnight Airbnb prices in London. Top 10% of cohort at Warwick.</p>
+                            <a href="projects/ML_project/EC349_2126980.html" target="_blank" rel="noopener noreferrer" class="portfolio-cta">VIEW PROJECT</a>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-tab" data-index="3">
+                        <div class="tab-track"><div class="tab-progress"></div></div>
+                        <div class="tab-btn">
+                            <span class="tab-number">/04</span>
+                            <span class="tab-title">Policy Proposal</span>
+                        </div>
+                        <div class="tab-expand">
+                            <p class="tab-desc">Applying Diamond-Mortensen-Pissarides labour market mechanics to study gender-specific employment taxes on wage disparities. Ranked top in cohort.</p>
+                            <a href="projects/policy_proposal/EC339 Applied Macroeconomics Assignment 1.pdf" target="_blank" rel="noopener noreferrer" class="portfolio-cta">VIEW PDF</a>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-tab" data-index="4">
+                        <div class="tab-track"><div class="tab-progress"></div></div>
+                        <div class="tab-btn">
+                            <span class="tab-number">/05</span>
+                            <span class="tab-title">Portfolio Allocation Model</span>
+                        </div>
+                        <div class="tab-expand">
+                            <p class="tab-desc">Dynamic model using Bloomberg, Python, VBA and Excel. Solves for optimal allocation via GJR-GARCH volatility forecasting across four methods.</p>
+                            <a href="projects/PAM/index.html" target="_blank" rel="noopener noreferrer" class="portfolio-cta">VIEW PROJECT</a>
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
-            <div class="pf-image" data-pf-idx="1">
-              <img src="projects/dissertation/Screenshot.png" alt="Economics Dissertation">
+            <!-- Right: sliding project images -->
+            <div class="portfolio-img-col">
+                <div class="portfolio-img-frame">
+                    <div class="portfolio-img-wrap" data-index="0">
+                        <img src="projects/jobtracker/thumbnail_v1.png" alt="Job Tracker">
+                    </div>
+                    <div class="portfolio-img-wrap" data-index="1">
+                        <img src="projects/dissertation/Screenshot.png" alt="Economics Dissertation">
+                    </div>
+                    <div class="portfolio-img-wrap" data-index="2">
+                        <img src="projects/ML_project/thumbnail_v3.png" alt="Data Science Project">
+                    </div>
+                    <div class="portfolio-img-wrap" data-index="3">
+                        <img src="projects/policy_proposal/thumbnail.png" alt="Policy Proposal">
+                    </div>
+                    <div class="portfolio-img-wrap" data-index="4">
+                        <img src="projects/PAM/screenshots/tab5.png" alt="Portfolio Allocation Model">
+                    </div>
+                </div>
             </div>
 
-            <div class="pf-image" data-pf-idx="2">
-              <img src="projects/ML_project/thumbnail_v3.png" alt="Data Science Project">
-            </div>
-
-            <div class="pf-image" data-pf-idx="3">
-              <img src="projects/policy_proposal/thumbnail.png" alt="Policy Proposal">
-            </div>
-
-            <div class="pf-image" data-pf-idx="4">
-              <img src="projects/PAM/screenshots/tab5.png" alt="Portfolio Allocation Model">
-            </div>
-
-          </div><!-- /.pf-images -->
-          <div class="pf-counter" aria-live="polite">
-            <span class="pf-num">01</span><span class="pf-sep"> / </span><span class="pf-total">05</span>
-          </div>
-        </div><!-- /.pf-left -->
-
-        <!-- Right column: project info -->
-        <div class="pf-right">
-          <!-- Vertical progress line — grows bottom-to-top as user scrolls through projects -->
-          <div class="pf-progress"><div class="pf-progress-line"></div></div>
-          <div class="pf-right-inner">
-            <p class="pf-label">( Portfolio )</p>
-            <div class="pf-texts">
-
-              <div class="pf-text" data-pf-idx="0">
-                <h3 class="pf-proj-title">Job Tracker</h3>
-                <p class="pf-proj-desc">Application Tracker and Relationship Management tool built with React and Supabase. Use the demo account for a preview.<br><strong>Username:</strong> demo &nbsp;|&nbsp; <strong>Password:</strong> demo1234</p>
-                <a href="jobtracker/index.html" class="cta-button pf-btn" target="_blank" rel="noopener noreferrer">View Project</a>
-              </div>
-
-              <div class="pf-text" data-pf-idx="1">
-                <h3 class="pf-proj-title">Economics Dissertation</h3>
-                <p class="pf-proj-desc">Research in Applied Economics — a theoretical model of human capital, inequality, and growth, inspired by Jones (2022), Doepke (2013), and Zeira (1998).</p>
-                <a href="projects/dissertation/EC331_DISSERTATION_FINAL.pdf" class="cta-button pf-btn" target="_blank" rel="noopener noreferrer">View Project</a>
-              </div>
-
-              <div class="pf-text" data-pf-idx="2">
-                <h3 class="pf-proj-title">Data Science Project</h3>
-                <p class="pf-proj-desc">Predictive Machine Learning models (XGBoost, Random Forest, Ridge regression) to estimate overnight Airbnb prices across London neighbourhoods.</p>
-                <a href="projects/ML_project/EC349_2126980.html" class="cta-button pf-btn" target="_blank" rel="noopener noreferrer">View Project</a>
-              </div>
-
-              <div class="pf-text" data-pf-idx="3">
-                <h3 class="pf-proj-title">Policy Proposal</h3>
-                <p class="pf-proj-desc">Applying Diamond–Mortensen–Pissarides labour-market mechanics to study the impact of gender-specific employment taxes on wage disparities.</p>
-                <a href="projects/policy_proposal/EC339 Applied Macroeconomics Assignment 1.pdf" class="cta-button pf-btn" target="_blank" rel="noopener noreferrer">View Project</a>
-              </div>
-
-              <div class="pf-text" data-pf-idx="4">
-                <h3 class="pf-proj-title">Portfolio Allocation Model</h3>
-                <p class="pf-proj-desc">Dynamic model combining Bloomberg data, Python, VBA, and Excel to compute GARCH-predicted volatilities and optimise asset allocation across up to 30 equity holdings.</p>
-                <a href="projects/PAM/index.html" class="cta-button pf-btn" target="_blank" rel="noopener noreferrer">View Project</a>
-              </div>
-
-            </div><!-- /.pf-texts -->
-          </div><!-- /.pf-right-inner -->
-        </div><!-- /.pf-right -->
-
-      </div><!-- /.pf-sticky -->
-
-      <!-- Invisible spacers — one per project + one is-last buffer.
-           Matches Elyse's amenities-triggers pattern (N images + 1 tail).
-           spacer[0]: first image appears
-           spacers[1-4]: transitions between projects
-           spacer[5]: tail buffer before sticky releases -->
-      <div class="pf-spacer" data-pf-spacer="0" aria-hidden="true"></div>
-      <div class="pf-spacer" data-pf-spacer="1" aria-hidden="true"></div>
-      <div class="pf-spacer" data-pf-spacer="2" aria-hidden="true"></div>
-      <div class="pf-spacer" data-pf-spacer="3" aria-hidden="true"></div>
-      <div class="pf-spacer" data-pf-spacer="4" aria-hidden="true"></div>
-      <div class="pf-spacer is-last" data-pf-spacer="5" aria-hidden="true"></div>
-
-      </div><!-- /.pf-track -->
-
+        </div>
     </section>
 
     <!-- Footer -->
@@ -212,8 +202,6 @@
             </div>
         </div>
     </footer>
-
-    </div><!-- /#page-wrapper -->
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>

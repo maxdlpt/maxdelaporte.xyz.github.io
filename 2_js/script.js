@@ -378,8 +378,8 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         });
     });
 
-    // Re-measure on resize (clamp font-size changes tab height)
-    window.addEventListener('resize', updateTrackLine, { passive: true });
+    // Re-measure whenever tab heights change (expand/collapse animations, resize, etc.)
+    new ResizeObserver(updateTrackLine).observe(tabsEl);
 
     // Init
     images[0].style.transform   = 'translateY(0)';

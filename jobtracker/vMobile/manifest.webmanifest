@@ -1,0 +1,15 @@
+{
+  "name": "Job Search Tracker",
+  "short_name": "JobTracker",
+  "description": "Mobile companion for the Job Search Tracker — tasks, firms, pipeline, matchmaker.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1d27",
+  "theme_color": "#1a1d27",
+  "icons": [
+    { "src": "./icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icons/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

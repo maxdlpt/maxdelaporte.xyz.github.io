@@ -480,6 +480,7 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     // Footer — subtle fade in
     gsap.from('.footer-content', {
         scrollTrigger: { trigger: '.footer', start: 'top 95%', toggleActions: 'play none none none' },
+        immediateRender: false,
         opacity: 0,
         y: 20,
         duration: 0.6,

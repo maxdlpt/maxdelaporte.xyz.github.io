@@ -159,6 +159,12 @@ h2 {
     opacity: 1;
 }
 
+.header .container,
+.footer .container {
+    max-width: 100%;
+    padding: 0 clamp(28px, 5vw, 60px);
+}
+
 .header .container {
     display: flex;
     justify-content: space-between;

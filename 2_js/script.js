@@ -1,4 +1,172 @@
 // ====================
+// Section Snap Scrolling
+// Intercepts wheel/touch events while the user is in the hero or about section
+// and smoothly snaps to the next (or previous) section.
+// Snap duration scales inversely with scroll velocity — a quick flick snaps
+// faster than a single slow tick.
+// ====================
+
+(function () {
+    const snapIds = ['home', 'about', 'portfolio'];
+    const snapEls = snapIds.map(id => document.getElementById(id)).filter(Boolean);
+    if (snapEls.length < 2) return;
+
+    let isSnapping = false;
+
+    const getHeaderH = () =>
+        parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 72;
+
+    const getCurrentIdx = () => {
+        const y = window.scrollY;
+        for (let i = snapEls.length - 1; i >= 0; i--) {
+            if (y >= snapEls[i].offsetTop - getHeaderH() - 80) return i;
+        }
+        return 0;
+    };
+
+    // hero (0) + about (1): locked in both directions.
+    // portfolio (2): locked for upward scroll only (one flick returns to about).
+    const isLocked = (idx, dir) =>
+        idx === 0 || idx === 1 || (idx === 2 && dir === -1);
+
+    function easeOutExpo(t) {
+        return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    }
+
+    function snapToY(targetY, durationMs) {
+        const startY = window.scrollY;
+        const dist   = targetY - startY;
+        if (Math.abs(dist) < 5) { isSnapping = false; return; }
+
+        const t0 = performance.now();
+        const step = (now) => {
+            const t = Math.min((now - t0) / durationMs, 1);
+            window.scrollTo(0, startY + dist * easeOutExpo(t));
+            if (t < 1) requestAnimationFrame(step);
+            else       isSnapping = false;
+        };
+        requestAnimationFrame(step);
+    }
+
+    function triggerSnap(direction, rawDelta) {
+        const idx = getCurrentIdx();
+        if (!isLocked(idx, direction)) return;
+        const nextIdx = idx + direction;
+        if (nextIdx < 0 || nextIdx >= snapEls.length) return;
+
+        const speedFactor = Math.min(Math.abs(rawDelta) / 30, 5);
+        const duration    = Math.max(320, 820 - speedFactor * 100);
+
+        isSnapping = true;
+
+        const nextEl = snapEls[nextIdx];
+        // Snapping down to portfolio: land at page bottom so the footer is visible.
+        const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
+        const targetY = (nextEl.id === 'portfolio' && direction === 1)
+            ? maxScrollY
+            : Math.max(0, nextEl.offsetTop - getHeaderH());
+
+        snapToY(targetY, duration);
+    }
+
+    window.addEventListener('wheel', (e) => {
+        const dir = e.deltaY > 0 ? 1 : -1;
+        if (!isLocked(getCurrentIdx(), dir)) return;
+        e.preventDefault();
+        if (isSnapping) return;
+        triggerSnap(dir, e.deltaY);
+    }, { passive: false });
+
+    let touchStartY = 0;
+    window.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+        if (isSnapping) return;
+        const delta = touchStartY - e.changedTouches[0].clientY;
+        if (Math.abs(delta) < 30) return;
+        const dir = delta > 0 ? 1 : -1;
+        if (!isLocked(getCurrentIdx(), dir)) return;
+        triggerSnap(dir, delta * 2);
+    }, { passive: true });
+})();
+
+// ====================
+// Logo Carousel — driven by logos.json
+// 1. Fetches 3_images/Software logos/logos.json to get the file list.
+// 2. Builds <span.logo-item><img></span> elements in the track.
+// 3. Waits for all images to load (so scrollWidth is accurate).
+// 4. Clones the set until the track overfills the viewport, then starts
+//    the CSS animation using the exact measured pixel value.
+//
+// To add a logo: drop the SVG into the folder, run `npm run sync`.
+// ====================
+
+(function () {
+    const track = document.querySelector('.logo-carousel-track');
+    if (!track) return;
+
+    const BASE = '3_images/Software%20logos/';
+    const MANIFEST = BASE + 'logos.json';
+
+    function buildItems(logos) {
+        logos.forEach(({ file, alt }) => {
+            const span = document.createElement('span');
+            span.className = 'logo-item';
+            const img = document.createElement('img');
+            img.src = BASE + encodeURIComponent(file);
+            img.alt = alt || '';
+            img.loading = 'eager';
+            span.appendChild(img);
+            track.appendChild(span);
+        });
+    }
+
+    function waitForImages(callback) {
+        const imgs = Array.from(track.querySelectorAll('img'));
+        let remaining = imgs.length;
+        if (remaining === 0) { requestAnimationFrame(callback); return; }
+        imgs.forEach(img => {
+            const done = () => { if (--remaining === 0) requestAnimationFrame(callback); };
+            if (img.complete) { done(); }
+            else {
+                img.addEventListener('load',  done, { once: true });
+                img.addEventListener('error', done, { once: true });
+            }
+        });
+    }
+
+    function init() {
+        const originalItems = Array.from(track.children);
+        const gap = 42; // must match CSS gap
+
+        const setWidth = track.scrollWidth + gap;
+        if (setWidth <= gap) return;
+
+        while (track.scrollWidth < window.innerWidth + setWidth * 2) {
+            originalItems.forEach(item => {
+                const clone = item.cloneNode(true);
+                clone.setAttribute('aria-hidden', 'true');
+                clone.querySelector('img').alt = '';
+                track.appendChild(clone);
+            });
+        }
+
+        track.style.setProperty('--carousel-set-width', setWidth + 'px');
+        track.classList.add('is-ready');
+    }
+
+    fetch(MANIFEST)
+        .then(r => r.json())
+        .then(logos => {
+            buildItems(logos);
+            waitForImages(init);
+        })
+        .catch(err => console.warn('Logo carousel: could not load logos.json', err));
+})();
+
+// ====================
 // Header Scroll State
 // ====================
 
@@ -391,13 +559,14 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
 
 
 // ====================
-// Hero Morphing Text
+// Liquid Morphing Text
+// Ports the blur/threshold animation from the React liquid-text component.
+// Two spans crossfade with per-frame blur, combined with an SVG feColorMatrix
+// threshold on the parent that snaps semi-transparent blurred edges into
+// crisp liquid-looking transitions.
 // ====================
 
 (function () {
-    const heroH2 = document.querySelector('.hero-text h2');
-    if (!heroH2) return;
-
     const texts = [
         'Economics & Mathematical Modelling',
         'Machine Learning & Applied AI Skills',
@@ -405,100 +574,81 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         'Full-Stack App Development',
     ];
 
-    const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-    const INTERVAL = 10000;
-    const STEP_MS  = 75;
+    const MORPH_TIME    = 1.5;  // seconds for one crossfade
+    const COOLDOWN_TIME = 5;    // seconds of hold between morphs
 
-    let idx = 0;
-    let busy = false;
+    const el1 = document.getElementById('lt-text1');
+    const el2 = document.getElementById('lt-text2');
+    if (!el1 || !el2) return;
 
-    function randChar() {
-        return CHARS[Math.floor(Math.random() * CHARS.length)];
+    const h2El = el1.closest('h2');
+
+    let textIndex = 0;
+    let morph     = 0;
+    let cooldown  = COOLDOWN_TIME;
+    let lastTime  = Date.now();
+
+    // Apply per-frame blur + opacity to both spans.
+    // fraction 0 → el1 fully visible, el2 invisible
+    // fraction 1 → el1 invisible,      el2 fully visible
+    function setStyles(fraction) {
+        el2.style.filter  = `blur(${Math.min(8 / fraction - 8, 100)}px)`;
+        el2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
+
+        const inv = 1 - fraction;
+        el1.style.filter  = `blur(${Math.min(8 / inv - 8, 100)}px)`;
+        el1.style.opacity = `${Math.pow(inv, 0.4) * 100}%`;
+
+        el1.textContent = texts[textIndex % texts.length];
+        el2.textContent = texts[(textIndex + 1) % texts.length];
     }
 
-    function esc(c) {
-        return c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : c;
-    }
+    function doMorph() {
+        morph    -= cooldown;  // absorb any overshoot from the cooldown timer
+        cooldown  = 0;
 
-    // Build word-safe HTML from a char array — spaces become break points between .hero-word spans
-    function toWordHTML(chars) {
-        let html = '';
-        let buf  = '';
-        for (const ch of chars) {
-            if (ch === ' ') {
-                if (buf) { html += `<span class="hero-word">${buf}</span>`; buf = ''; }
-                html += ' ';
-            } else {
-                buf += `<span>${esc(ch)}</span>`;
-            }
+        // Re-enable the SVG threshold filter only while morphing
+        if (h2El) h2El.style.filter = 'url(#threshold)';
+
+        let fraction = morph / MORPH_TIME;
+        if (fraction > 1) {
+            cooldown = COOLDOWN_TIME;
+            fraction = 1;
         }
-        if (buf) html += `<span class="hero-word">${buf}</span>`;
-        return html;
+
+        setStyles(fraction);
+
+        if (fraction === 1) textIndex++;
     }
 
-    function render(text, animate) {
-        const cursor = '<span class="morphing-cursor" aria-hidden="true"></span>';
-        let ci = 0;
-        const wordSpans = text.split(' ').map(word => {
-            const chars = word.split('').map(ch => {
-                const delay = ci++ * 28;
-                return animate
-                    ? `<span class="morph-char" style="animation-delay:${delay}ms">${esc(ch)}</span>`
-                    : `<span>${esc(ch)}</span>`;
-            }).join('');
-            ci++; // account for the space
-            return `<span class="hero-word">${chars}</span>`;
-        });
-        heroH2.innerHTML = wordSpans.join(' ') + cursor;
+    // During the hold period: lock el2 visible, el1 hidden, no blur.
+    // Remove the threshold filter so font anti-aliasing renders normally.
+    function doCooldown() {
+        morph = 0;
+        if (h2El) h2El.style.filter = 'none';
+        el2.style.filter  = 'none';
+        el2.style.opacity = '100%';
+        el1.style.filter  = 'none';
+        el1.style.opacity = '0%';
     }
 
-    function morphNext() {
-        if (busy) return;
-        busy = true;
+    // Initialise: show the first string immediately in el2.
+    el1.textContent   = texts[0];
+    el2.textContent   = texts[0];
+    el2.style.opacity = '100%';
+    el2.style.filter  = 'none';
+    el1.style.opacity = '0%';
+    el1.style.filter  = 'none';
 
-        const cur = texts[idx];
-        const ni  = (idx + 1) % texts.length;
-        const nxt = texts[ni];
-        const maxLen = Math.max(cur.length, nxt.length);
-        let step = 0;
-
-        (function tick() {
-            if (step > maxLen) {
-                idx = ni;
-                render(nxt, true);
-                busy = false;
-                return;
-            }
-            const cursor = '<span class="morphing-cursor" aria-hidden="true"></span>';
-            const chars = [];
-            for (let i = 0; i < maxLen; i++) {
-                if (i < step)            { if (nxt[i]) chars.push(nxt[i]); }
-                else if (i < cur.length) { chars.push(Math.random() > 0.7 ? randChar() : cur[i]); }
-            }
-            heroH2.innerHTML = toWordHTML(chars) + cursor;
-            step++;
-            setTimeout(tick, STEP_MS);
-        })();
-    }
-
-    // Hover glitch burst
-    heroH2.addEventListener('mouseenter', () => {
-        if (busy) return;
-        const cur = texts[idx];
-        let f = 0;
-        (function glitch() {
-            if (f++ >= 6) { render(cur, false); return; }
-            const cursor = '<span class="morphing-cursor" aria-hidden="true"></span>';
-            const chars = cur.split('').map(ch =>
-                ch === ' ' ? ' ' : (Math.random() > 0.55 ? randChar() : ch)
-            );
-            heroH2.innerHTML = toWordHTML(chars) + cursor;
-            setTimeout(glitch, 45);
-        })();
-    });
-
-    render(texts[0], false);
-    setInterval(morphNext, INTERVAL);
+    (function animate() {
+        requestAnimationFrame(animate);
+        const now = Date.now();
+        const dt  = (now - lastTime) / 1000;
+        lastTime  = now;
+        cooldown -= dt;
+        if (cooldown <= 0) doMorph();
+        else doCooldown();
+    })();
 })();
 
 // Email Copy Functionality

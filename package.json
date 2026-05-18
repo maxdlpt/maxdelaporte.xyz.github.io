@@ -1,0 +1,7 @@
+{
+  "name": "perswebsite",
+  "private": true,
+  "scripts": {
+    "sync": "node scripts/sync-logos.js"
+  }
+}

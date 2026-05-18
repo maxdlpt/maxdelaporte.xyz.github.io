@@ -1,0 +1,12 @@
+[      35ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://localhost:8765/jobtracker/index.html:0
+[      41ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://localhost:8765/jobtracker/icons/icon-192.png:0
+[      41ms] [WARNING] Error while trying to use the following icon from the Manifest: http://localhost:8765/jobtracker/icons/icon-192.png (Download error or resource isn't a valid image) @ http://localhost:8765/jobtracker/index.html:0
+[     149ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:8765/jobtracker/index.html:0
+[   37373ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://qmwjhbijvtxuesikpnfb.supabase.co/rest/v1/matchmaker?select=*&order=match_score.desc.nullslast:0
+[   38425ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://qmwjhbijvtxuesikpnfb.supabase.co/rest/v1/matchmaker?select=*&order=match_score.desc.nullslast:0
+[   40473ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://qmwjhbijvtxuesikpnfb.supabase.co/rest/v1/matchmaker?select=*&order=match_score.desc.nullslast:0
+[   40473ms] [WARNING] Matchmaker load failed: Error: permission denied for table matchmaker
+    at l_.get (http://localhost:8765/jobtracker/assets/index-BKaN-Twn.js:55:72323)
+    at async Nn (http://localhost:8765/jobtracker/assets/index-BKaN-Twn.js:55:51714)
+    at async h_ (http://localhost:8765/jobtracker/assets/index-BKaN-Twn.js:55:73051)
+    at async http://localhost:8765/jobtracker/assets/index-BKaN-Twn.js:55:127797 @ http://localhost:8765/jobtracker/assets/index-BKaN-Twn.js:54

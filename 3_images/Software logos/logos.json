@@ -1,0 +1,46 @@
+[
+  {
+    "file": "01 - Bloomberg.svg",
+    "alt": "Bloomberg"
+  },
+  {
+    "file": "02 - excel.svg",
+    "alt": "excel"
+  },
+  {
+    "file": "03 - ppt.svg",
+    "alt": "ppt"
+  },
+  {
+    "file": "04 - VS Code.svg",
+    "alt": "VS Code"
+  },
+  {
+    "file": "05 - git.svg",
+    "alt": "git"
+  },
+  {
+    "file": "06 - Claude.svg",
+    "alt": "Claude"
+  },
+  {
+    "file": "07 - supabase.svg",
+    "alt": "supabase"
+  },
+  {
+    "file": "08 - python.svg",
+    "alt": "python"
+  },
+  {
+    "file": "09 - electron.svg",
+    "alt": "electron"
+  },
+  {
+    "file": "10 - Rstudio.svg",
+    "alt": "Rstudio"
+  },
+  {
+    "file": "claude-code.svg",
+    "alt": "Claude Code"
+  }
+]

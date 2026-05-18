@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Epoch · Maximilien Delaporte</title>
+  <link rel="icon" href="/logo3.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:         #041610;
+      --surface:    #061814;
+      --surface-2:  #061b15;
+      --border:     #174032;
+      --border-2:   #1e5549;
+      --accent:     #02AD8A;
+      --accent-dim: rgba(2,173,138,0.11);
+      --green:      #10b981;
+      --amber:      #f59e0b;
+      --red:        #ef4444;
+      --text:       #e2e8f0;
+      --text-dim:   #94a3b8;
+      --text-muted: #4d8078;
+      --font:       'Inter', system-ui, -apple-system, sans-serif;
+      --mono:       'JetBrains Mono', 'Fira Code', monospace;
+      --radius:     10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── NAV ─────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(6, 29, 21, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1120px; margin: 0 auto;
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 54px;
+    }
+    .nav-brand {
+      font-size: 12px; font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      font-size: 12px; color: var(--text-muted);
+      text-decoration: none;
+      transition: color .18s;
+    }
+    .nav-links a:hover { color: var(--text-dim); }
+    .nav-links a.active { color: var(--text); }
+
+    /* ─── CONTAINER ───────────────────────────────────── */
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 2rem; }
+
+    /* ─── HERO ────────────────────────────────────────── */
+    #hero {
+      padding: 7rem 2rem 5.5rem;
+      position: relative; overflow: hidden;
+    }
+    #hero::before {
+      content: '';
+      position: absolute; top: -280px; left: -180px;
+      width: 640px; height: 640px;
+      background: radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 68%);
+      pointer-events: none;
+    }
+    #hero::after {
+      content: '';
+      position: absolute; bottom: -100px; right: -100px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-inner { max-width: 1120px; margin: 0 auto; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(2,173,138,0.22);
+      color: #02AD8A;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 4px 14px; border-radius: 100px;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: clamp(2.6rem, 5.5vw, 3.75rem);
+      font-weight: 700; line-height: 1.06;
+      letter-spacing: -0.025em;
+      color: #f0f6ff;
+      margin-bottom: 1.25rem;
+    }
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--text-dim);
+      max-width: 580px;
+      line-height: 1.75;
+      margin-bottom: 3rem;
+    }
+    .hero-stats {
+      display: flex; flex-wrap: wrap;
+      gap: 0; align-items: stretch;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      width: fit-content;
+      overflow: hidden;
+    }
+    .stat-item {
+      padding: 1.1rem 1.75rem;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-val {
+      font-size: 1.6rem; font-weight: 700;
+      color: #f0f6ff; line-height: 1; margin-bottom: 4px;
+    }
+    .stat-val span { color: var(--accent); }
+    .stat-lbl {
+      font-size: 10px; font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    /* ─── SECTION ─────────────────────────────────────── */
+    section { padding: 5.5rem 2rem; }
+    section:not(#hero) { border-top: 1px solid var(--border); }
+    .section-label {
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    h2 {
+      font-size: clamp(1.55rem, 3vw, 2.1rem);
+      font-weight: 700; line-height: 1.15;
+      letter-spacing: -0.018em; color: #f0f6ff;
+      margin-bottom: 0.9rem;
+    }
+    h3 { font-size: 1rem; font-weight: 600; color: #f0f6ff; margin-bottom: 0.45rem; }
+    p   { color: var(--text-dim); line-height: 1.75; }
+
+    /* ─── FEATURE CARDS ───────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem; margin-top: 2.5rem;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+      transition: border-color .2s, transform .2s;
+    }
+    .feature-card:hover {
+      border-color: var(--border-2);
+      transform: translateY(-2px);
+    }
+    .feature-badge {
+      display: inline-block;
+      background: var(--accent-dim);
+      color: #02AD8A;
+      font-family: var(--mono);
+      font-size: 10.5px; font-weight: 600;
+      padding: 3px 10px; border-radius: 6px;
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.04em;
+    }
+    .feature-card p { font-size: 12.5px; color: var(--text-muted); margin-top: 0.35rem; }
+
+    /* ─── WORKFLOW ────────────────────────────────────── */
+    .workflow-steps { display: flex; flex-direction: column; gap: 5rem; margin-top: 3.5rem; }
+    .step {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 4rem; align-items: center;
+    }
+    .step:nth-child(even) .step-content { order: 2; }
+    .step:nth-child(even) .step-visual  { order: 1; }
+
+    .step-num {
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 0.5rem;
+    }
+    .step-content p { font-size: 13.5px; margin-top: 0.7rem; }
+    .step-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 1.1rem; }
+    .tag {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      padding: 3px 10px; border-radius: 6px;
+    }
+
+    /* ─── SCREENSHOT SLOTS ────────────────────────────── */
+    .screenshot-slot {
+      background: var(--surface);
+      border: 1.5px dashed var(--border-2);
+      border-radius: var(--radius);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 0.6rem;
+      padding: 3.5rem 2rem;
+      min-height: 300px;
+      text-align: center;
+      aspect-ratio: 16/10;
+    }
+    .slot-icon { font-size: 2rem; opacity: 0.2; line-height: 1; }
+    .slot-title {
+      font-size: 11px; font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .slot-hint { font-size: 11px; color: var(--text-muted); opacity: 0.55; }
+
+    /* ─── TECH SECTION ───────────────────────────────── */
+    .tech-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1.25rem; margin-top: 2.5rem;
+    }
+    .tech-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.6rem;
+    }
+    .tech-card h3 { font-size: 13.5px; font-weight: 600; color: #f0f6ff; margin-bottom: 0.35rem; }
+    .tech-card .tech-sub { font-size: 12px; color: var(--accent); margin-bottom: 1rem; font-weight: 500; }
+    .tech-card p { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+    .tech-card p + p { margin-top: 0.7rem; }
+    .code-block {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem 1.25rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: #a5e8d7;
+      line-height: 1.65;
+    }
+    .param-list { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .param-item { display: flex; gap: 0.75rem; align-items: baseline; }
+    .param-sym {
+      font-family: var(--mono); font-size: 11.5px;
+      color: #02AD8A; min-width: 80px;
+      flex-shrink: 0;
+    }
+    .param-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+    /* ─── STACK PILLS ─────────────────────────────────── */
+    .stack-row {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      margin-top: 2.5rem;
+    }
+    .stack-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--text-dim);
+    }
+
+    /* ─── DOWNLOAD ────────────────────────────────────── */
+    #download { text-align: center; }
+    .dl-card {
+      max-width: 500px; margin: 2.5rem auto 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 2.5rem;
+    }
+    .dl-card p { font-size: 13.5px; margin: 0.7rem 0 2rem; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13.5px; font-weight: 600;
+      padding: 0.75rem 1.75rem;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background .18s, transform .15s;
+      cursor: pointer; border: none;
+    }
+    .btn-primary:hover { background: #018f72; transform: translateY(-1px); }
+    .dl-note { font-size: 11.5px; color: var(--text-muted); margin-top: 1rem; }
+
+    /* ─── FOOTER ──────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.75rem 2rem;
+      text-align: center;
+    }
+    footer p { font-size: 11.5px; color: var(--text-muted); }
+
+    /* ─── RESPONSIVE ──────────────────────────────────── */
+    @media (max-width: 900px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .tech-grid      { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 720px) {
+      .step { grid-template-columns: 1fr; gap: 2rem; }
+      .step:nth-child(even) .step-content { order: 1; }
+      .step:nth-child(even) .step-visual  { order: 2; }
+      .nav-links    { display: none; }
+      .hero-stats   { flex-direction: column; width: auto; }
+      .stat-item    { border-right: none; border-bottom: 1px solid var(--border); }
+      .stat-item:last-child { border-bottom: none; }
+    }
+    @media (max-width: 480px) {
+      .features-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="#">Epoch</a>
+    <ul class="nav-links">
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#workflow">How It Works</a></li>
+      <li><a href="#technical">Stack</a></li>
+      <li><a href="#download">Download</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section id="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">▸&nbsp; Personal Project</div>
+    <h1>Epoch</h1>
+    <p class="hero-sub">
+      A FRED-inspired Electron desktop app for visualising, transforming, storing, and managing
+      time-series data. Built with React, TypeScript, and SQLite for financial data
+      analysis — with support for multiple databases, custom transforms, and full
+      session persistence.
+    </p>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-val">v<span>1.1.7</span></div>
+        <div class="stat-lbl">Current Release</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">4</div>
+        <div class="stat-lbl">Views</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val"><span>SQL</span>ite</div>
+        <div class="stat-lbl">Storage</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">4</div>
+        <div class="stat-lbl">Transforms</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ OVERVIEW ═══════════ -->
+<section id="overview">
+  <div class="container">
+    <p class="section-label">Overview</p>
+    <h2>Four views, one<br>coherent workspace</h2>
+    <p style="max-width:580px;">
+      Epoch organises everything into 3 tabs. Each one solves a distinct part of
+      the workflow — from importing raw data to browsing a multi-source database
+      library — without getting in the way of the others.
+    </p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-badge">Graphs</span>
+        <h3>Interactive Chart</h3>
+        <p>Multi-series charts with zoom, pan, crosshair, drag-select range, and a range of transformations applicable to time series data.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-badge">Upload</span>
+        <h3>Flexible Import</h3>
+        <p>Drop a CSV or Excel file, or paste tabular data directly. The app parses the data and auto-detects date formats, data types, etc. You can then review and commit the data to the database or simply add it to a graph.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-badge">DB MANAGEMENT</span>
+        <h3>Local & External Database Storage</h3>
+        <p>Browse, edit, and delete series across internal and external SQLite databases.</p>
+      </div>
+  </div>
+</section>
+
+<!-- ═══════════ WORKFLOW ═══════════ -->
+<section id="workflow">
+  <div class="container">
+    <p class="section-label">Workflow</p>
+    <h2>From raw file<br>to analysed chart</h2>
+
+    <div class="workflow-steps">
+
+      <!-- STEP 1 -->
+      <div class="step">
+        <div class="step-content">
+          <p class="step-num">Step 01 — Import</p>
+          <h3>Bring in your data</h3>
+          <p>Drop a CSV or Excel file onto the Upload tab, or paste directly from a spreadsheet. Epoch parses multiple columns in one go, auto-detects date formats, deduplicates column codes, and strips trailing blank columns from Excel exports.</p>
+          <div class="step-tags">
+            <span class="tag">CSV / TSV</span>
+            <span class="tag">Excel (.xlsx)</span>
+            <span class="tag">Clipboard paste</span>
+            <span class="tag">DD/MM auto-detect</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          <!--
+            SCREENSHOT: Upload tab with a file loaded
+            Replace this slot with:
+            <img src="screenshots/upload1.png" alt="Upload tab" style="width:100%;border-radius:10px;display:block;">
+          -->
+          
+            <img src="screenshots/upload1.png" alt="Upload tab" style="width:100%;border-radius:10px;display:block;">
+          
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step">
+        <div class="step-content">
+          <p class="step-num">Step 02 — Review</p>
+          <h3>Confirm before committing</h3>
+          <p>Before any series lands in the database or one of your graphs, a review panel lets you edit the name, unique code, description, detected frequency, and data type.</p>
+          <div class="step-tags">
+            <span class="tag">Name / Code edit</span>
+            <span class="tag">Frequency detect</span>
+            <span class="tag">Preview pending series</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          
+            <img src="screenshots/review.png" alt="Series review panel" style="width:100%;border-radius:10px;display:block;">
+          
+          
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step">
+        <div class="step-content">
+          <p class="step-num">Step 03 — Visualise</p>
+          <h3>Explore the chart</h3>
+          <p>Add any saved series to the Graph tab. Scroll to zoom the Y-axis, scroll horizontally to pan the time range, or drag-select a window. Double-click resets to full range. Once your chart looks how you want it to, you can save it for later use, or even export it to share with other Epoch users as a <code style="font-family:var(--mono);font-size:12px;">.tsv-graph</code> file.</p>
+          <div class="step-tags">
+            <span class="tag">Multi-series overlay</span>
+            <span class="tag">Zoom &amp; pan</span>
+            <span class="tag">Drag-select range</span>
+            <span class="tag">Crosshair tooltip</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          
+            <img src="screenshots/graph.png" alt="Graph tab" style="width:100%;border-radius:10px;display:block;">
+          
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step">
+        <div class="step-content">
+          <p class="step-num">Step 04 — Transform</p>
+          <h3>Reframe the data</h3>
+          <p>Apply transformations to your time series data at the click of a button. Add Moving Averages, Time-shifts, Multipliers, and more.</p>
+          <div class="step-tags">
+            <span class="tag">Cumulative Return</span>
+            <span class="tag">Normalise (base 100)</span>
+            <span class="tag">% Change</span>
+            <span class="tag">Geometric Index</span>
+          </div>
+        </div>
+        <div class="step-visual">
+
+          <img src="screenshots/transforms.png" alt="Transforms panel" style="width:100%;border-radius:10px;display:block;">
+          
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="step">
+        <div class="step-content">
+          <p class="step-num">Step 05 — Persist</p>
+          <h3>Save and reconnect</h3>
+          <p>Series are stored in a local SQLite database. The entire graph state — zoom range, active series, transforms, moving averages, colors — is auto-saved every 1.5 seconds and fully restored on the next launch. External <code style="font-family:var(--mono);font-size:12px;">.db</code> files on network shares can be added as read/write data sources. They are fully modifyable within the app and shareable.</p>
+          <div class="step-tags">
+            <span class="tag">SQLite persistence</span>
+            <span class="tag">Session restore</span>
+            <span class="tag">External DB support</span>
+            <span class="tag">Network share paths</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          
+            <img src="screenshots/db.png" alt="Database browser" style="width:100%;border-radius:10px;display:block;">
+          
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ STACK ═══════════ -->
+<section id="technical">
+  <div class="container">
+    <p class="section-label">Stack</p>
+    <h2>Built with</h2>
+    <div class="stack-row">
+      <span class="stack-pill">Electron 33</span>
+      <span class="stack-pill">React 18</span>
+      <span class="stack-pill">TypeScript 5.5</span>
+      <span class="stack-pill">better-sqlite3</span>
+      <span class="stack-pill">Tailwind CSS v4</span>
+      <span class="stack-pill">Framer Motion 12</span>
+      <span class="stack-pill">electron-vite</span>
+      <span class="stack-pill">Vitest 4</span>
+      <span class="stack-pill">PapaParse</span>
+      <span class="stack-pill">SheetJS (xlsx)</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ DOWNLOAD ═══════════ -->
+<section id="download">
+  <div class="container">
+    <p class="section-label">Download</p>
+    <h2>Get Epoch</h2>
+    <div class="dl-card">
+      <h3>Windows Installer (v1.1.7)</h3>
+      <p>Installs Epoch with a desktop shortcut. I don't have a developper license yet so you'll have to manually approve the installer by left clicking the file > Properties > Unblock. After that, the app will download updates automatically.</p>
+      <a class="btn-primary" href="https://github.com/maxdlpt/Epoch/releases/latest" target="_blank" rel="noopener noreferrer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download (.exe)
+      </a>
+      <p class="dl-note">Windows · ~80 MB · GitHub Releases</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Epoch &middot; Maximilien Delaporte</p>
+</footer>
+
+</body>
+</html>

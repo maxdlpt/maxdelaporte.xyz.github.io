@@ -17,3 +17,5 @@
 [13273025ms] Identifier 'idx' has already been declared
 [13274021ms] Identifier 'idx' has already been declared
 [13274583ms] Identifier 'idx' has already been declared
+[15012651ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://localhost:8765/projects/Epoch/screenshots/thumbnail.png:0
+[17853716ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://localhost:8765/projects/Epoch/screenshots/thumbnail.png:0

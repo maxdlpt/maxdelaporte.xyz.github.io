@@ -78,9 +78,24 @@
     }, { passive: false });
 
     let touchStartY = 0;
+    let touchDir    = 0; // direction determined early so touchmove can gate iOS scroll
+
     window.addEventListener('touchstart', (e) => {
         touchStartY = e.touches[0].clientY;
+        touchDir    = 0;
     }, { passive: true });
+
+    // Non-passive so we can preventDefault — this is the key iOS fix.
+    // iOS starts its momentum scroll during touchmove; blocking it here lets
+    // our custom snapToY animation be the only scroll that runs.
+    window.addEventListener('touchmove', (e) => {
+        const delta = touchStartY - e.touches[0].clientY;
+        if (Math.abs(delta) < 5) return; // ignore jitter
+        touchDir = delta > 0 ? 1 : -1;
+        if (isLocked(getCurrentIdx(), touchDir)) {
+            e.preventDefault(); // stop iOS native scroll in locked sections
+        }
+    }, { passive: false });
 
     window.addEventListener('touchend', (e) => {
         if (isSnapping) return;
@@ -88,7 +103,7 @@
         if (Math.abs(delta) < 30) return;
         const dir = delta > 0 ? 1 : -1;
         if (!isLocked(getCurrentIdx(), dir)) return;
-        triggerSnap(dir, delta * 2);
+        triggerSnap(dir, Math.abs(delta) * 2);
     }, { passive: true });
 })();
 

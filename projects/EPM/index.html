@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equity Pricing Model · Maximilien Delaporte</title>
+  <link rel="icon" href="/logo3.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.getElementById('technical'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+  <style>
+    :root {
+      --bg:         #111315;
+      --surface:    #191b1e;
+      --surface-2:  #202225;
+      --border:     #2a2d31;
+      --border-2:   #3a3e43;
+      --accent:     #1abc9c;
+      --accent-dim: rgba(26,188,156,0.12);
+      --green:      #10b981;
+      --amber:      #f5c518;
+      --red:        #ef4444;
+      --text:       #e2e4e8;
+      --text-dim:   #94989e;
+      --text-muted: #555960;
+      --font:       'Inter', system-ui, -apple-system, sans-serif;
+      --mono:       'JetBrains Mono', 'Fira Code', monospace;
+      --radius:     10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── NAV ─────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(17,19,21,0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1120px; margin: 0 auto;
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 54px;
+    }
+    .nav-brand {
+      font-size: 12px; font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      font-size: 12px; color: var(--text-muted);
+      text-decoration: none;
+      transition: color .18s;
+    }
+    .nav-links a:hover { color: var(--text-dim); }
+    .nav-links a.active { color: var(--text); }
+
+    /* ─── CONTAINER ───────────────────────────────────── */
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 2rem; }
+
+    /* ─── HERO ────────────────────────────────────────── */
+    #hero {
+      padding: 7rem 2rem 5.5rem;
+      position: relative; overflow: hidden;
+    }
+    #hero::before {
+      content: '';
+      position: absolute; top: -280px; left: -180px;
+      width: 640px; height: 640px;
+      background: radial-gradient(circle, rgba(26,188,156,0.07) 0%, transparent 68%);
+      pointer-events: none;
+    }
+    #hero::after {
+      content: '';
+      position: absolute; bottom: -100px; right: -100px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-inner { max-width: 1120px; margin: 0 auto; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(26,188,156,0.22);
+      color: #5edece;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 4px 14px; border-radius: 100px;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: clamp(2.6rem, 5.5vw, 3.75rem);
+      font-weight: 700; line-height: 1.06;
+      letter-spacing: -0.025em;
+      color: #f0f6ff;
+      margin-bottom: 1.25rem;
+    }
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--text-dim);
+      max-width: 560px;
+      line-height: 1.75;
+      margin-bottom: 3rem;
+    }
+    .hero-stats {
+      display: flex; flex-wrap: wrap;
+      gap: 0; align-items: stretch;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      width: fit-content;
+      overflow: hidden;
+    }
+    .stat-item {
+      padding: 1.1rem 1.75rem;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-val {
+      font-size: 1.6rem; font-weight: 700;
+      color: #f0f6ff; line-height: 1; margin-bottom: 4px;
+    }
+    .stat-val span { color: var(--accent); }
+    .stat-lbl {
+      font-size: 10px; font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    /* ─── SECTION ─────────────────────────────────────── */
+    section { padding: 5.5rem 2rem; }
+    section:not(#hero) { border-top: 1px solid var(--border); }
+    .section-label {
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    h2 {
+      font-size: clamp(1.55rem, 3vw, 2.1rem);
+      font-weight: 700; line-height: 1.15;
+      letter-spacing: -0.018em; color: #f0f6ff;
+      margin-bottom: 0.9rem;
+    }
+    h3 { font-size: 1rem; font-weight: 600; color: #f0f6ff; margin-bottom: 0.45rem; }
+    p   { color: var(--text-dim); line-height: 1.75; }
+
+    /* ─── METHODS ─────────────────────────────────────── */
+    .methods-layout { margin-top: 2.5rem; }
+    .methods-top {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    .methods-arrows {
+      display: flex; justify-content: center;
+      gap: 0; padding: 1.25rem 0 0.25rem;
+    }
+    .methods-arrows svg { width: 100%; height: 56px; }
+    .methods-bottom {
+      display: flex; justify-content: center;
+    }
+    .methods-bottom .method-card {
+      max-width: 420px; width: 100%;
+    }
+    .method-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+      transition: border-color .2s, transform .2s;
+    }
+    .method-card:hover {
+      border-color: var(--border-2);
+      transform: translateY(-2px);
+    }
+    .method-badge {
+      display: inline-block;
+      background: var(--accent-dim);
+      color: #5edece;
+      font-family: var(--mono);
+      font-size: 10.5px; font-weight: 600;
+      padding: 3px 10px; border-radius: 6px;
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.04em;
+    }
+    /* Per-method badge colours */
+    .method-card--dcf  .method-badge { background: rgba(26,188,156,0.12); color: #5edece; }
+    .method-card--rv   .method-badge { background: rgba(180,30,30,0.15); color: #e04040; }
+    .method-card--sotp .method-badge { background: rgba(80,180,40,0.12); color: #6abf40; }
+    .method-card--final .method-badge { background: rgba(160,160,160,0.12); color: #a0a0a0; }
+    .method-card p { font-size: 12.5px; color: var(--text-muted); margin-top: 0.35rem; }
+
+    /* ─── WORKFLOW ────────────────────────────────────── */
+    .workflow-steps { display: flex; flex-direction: column; gap: 5rem; margin-top: 3.5rem; }
+    .step {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 4rem; align-items: center;
+    }
+    .step:nth-child(even) .step-content { order: 2; }
+    .step:nth-child(even) .step-visual  { order: 1; }
+
+    .step-num {
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 0.5rem;
+    }
+    .step--pnl   .step-num { color: #b07cc8; }
+    .step--dcf   .step-num { color: #5edece; }
+    .step--rv    .step-num { color: #e04040; }
+    .step--sotp  .step-num { color: #6abf40; }
+    .step--final .step-num { color: #a0a0a0; }
+    .step-content p { font-size: 13.5px; margin-top: 0.7rem; }
+    .step-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 1.1rem; }
+    .tag {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      padding: 3px 10px; border-radius: 6px;
+    }
+
+    /* ─── SCREENSHOT SLOTS ────────────────────────────── */
+    .screenshot-slot {
+      background: var(--surface);
+      border: 1.5px dashed var(--border-2);
+      border-radius: var(--radius);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 0.6rem;
+      padding: 3.5rem 2rem;
+      min-height: 300px;
+      text-align: center;
+      aspect-ratio: 16/10;
+    }
+    .slot-icon { font-size: 2rem; opacity: 0.2; line-height: 1; }
+    .slot-title {
+      font-size: 11px; font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .slot-hint { font-size: 11px; color: var(--text-muted); opacity: 0.55; }
+
+    /* ─── MATH SECTION ───────────────────────────────── */
+    .math-grid {
+      columns: 2;
+      column-gap: 1.25rem;
+      margin-top: 2.5rem;
+    }
+    .math-grid .math-card {
+      break-inside: avoid;
+      margin-bottom: 1.25rem;
+    }
+    .math-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.6rem;
+    }
+    .math-card h3 { font-size: 13.5px; font-weight: 600; color: #f0f6ff; margin-bottom: 0.35rem; }
+    .math-card .math-sub { font-size: 12px; color: var(--accent); margin-bottom: 1rem; font-weight: 500; }
+    .math-card p { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+    .math-card p + p { margin-top: 0.7rem; }
+    .eq-block {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem 1.25rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+    .eq-block .katex { color: #c7ece4; font-size: 1.05em; }
+    .eq-block .katex-display { margin: 0; }
+    .param-list { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .param-item { display: flex; gap: 0.75rem; align-items: baseline; }
+    .param-sym {
+      font-family: var(--mono); font-size: 11.5px;
+      color: #5edece; min-width: 48px;
+      flex-shrink: 0;
+    }
+    .param-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+    /* ─── PER-CARD COLOUR VARIANTS ────────────────────── */
+    /* DCF card — teal (default, no override needed) */
+
+    /* RV card — red */
+    .math-card--rv { border-color: rgba(180,30,30,0.35); }
+    .math-card--rv .math-sub { color: #e04040; }
+    .math-card--rv .eq-block { background: rgba(180,30,30,0.08); border-color: rgba(180,30,30,0.25); }
+    .math-card--rv .eq-block .katex { color: #f0c8c8; }
+    .math-card--rv .param-sym { color: #e04040; }
+
+    /* SOTP card — green/lime */
+    .math-card--sotp { border-color: rgba(80,180,40,0.35); }
+    .math-card--sotp .math-sub { color: #6abf40; }
+    .math-card--sotp .eq-block { background: rgba(80,180,40,0.08); border-color: rgba(80,180,40,0.25); }
+    .math-card--sotp .eq-block .katex { color: #d0f0c0; }
+    .math-card--sotp .param-sym { color: #6abf40; }
+
+    /* Final card — neutral silver */
+    .math-card--final { border-color: rgba(160,160,160,0.25); }
+    .math-card--final .math-sub { color: #a0a0a0; }
+    .math-card--final .eq-block { background: rgba(160,160,160,0.06); border-color: rgba(160,160,160,0.2); }
+    .math-card--final .eq-block .katex { color: #d8d8d8; }
+    .math-card--final .param-sym { color: #a0a0a0; }
+
+    /* ─── DATA & AUTOMATION ───────────────────────────── */
+    #data { text-align: center; }
+    #data .section-label, #data h2 { text-align: center; }
+    .data-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin: 2.5rem auto 0;
+      max-width: 700px;
+      text-align: left;
+    }
+    .data-card p { font-size: 13.5px; margin-top: 0.7rem; }
+    .data-card .step-tags { justify-content: center; }
+
+    /* ─── DOWNLOAD ────────────────────────────────────── */
+    #download { text-align: center; }
+    .dl-card {
+      max-width: 500px; margin: 2.5rem auto 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 2.5rem;
+    }
+    .dl-card p { font-size: 13.5px; margin: 0.7rem 0 2rem; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13.5px; font-weight: 600;
+      padding: 0.75rem 1.75rem;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background .18s, transform .15s;
+      cursor: pointer; border: none;
+    }
+    .btn-primary:hover { background: #15967d; transform: translateY(-1px); }
+    .dl-note { font-size: 11.5px; color: var(--text-muted); margin-top: 1rem; }
+
+    /* ─── FOOTER ──────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.75rem 2rem;
+      text-align: center;
+    }
+    footer p { font-size: 11.5px; color: var(--text-muted); }
+
+    /* ─── RESPONSIVE ──────────────────────────────────── */
+    @media (max-width: 900px) {
+      .methods-top { grid-template-columns: 1fr; }
+      .methods-arrows { display: none; }
+      .math-grid { columns: 1; }
+    }
+    @media (max-width: 720px) {
+      .step { grid-template-columns: 1fr; gap: 2rem; }
+      .step:nth-child(even) .step-content { order: 1; }
+      .step:nth-child(even) .step-visual  { order: 2; }
+      .nav-links    { display: none; }
+      .hero-stats   { flex-direction: column; width: auto; }
+      .stat-item    { border-right: none; border-bottom: 1px solid var(--border); }
+      .stat-item:last-child { border-bottom: none; }
+    }
+    @media (max-width: 480px) {
+      .methods-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="#">Equity Pricing Model</a>
+    <ul class="nav-links">
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#workflow">How It Works</a></li>
+      <li><a href="#technical">The Math</a></li>
+      <li><a href="#download">Download</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section id="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">&#9656;&nbsp; Personal Project</div>
+    <h1>Equity<br>Pricing Model</h1>
+    <p class="hero-sub">
+      A self-directed equity research tool built from scratch in Excel and VBA, wired to
+      Bloomberg for market data. It values any public company three independent ways &mdash;
+      intrinsic, relative, and break-up &mdash; then blends them into a single price target with
+      explicit upside.
+    </p>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-val">3</div>
+        <div class="stat-lbl">Valuation Methods</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">7<span>yr</span></div>
+        <div class="stat-lbl">P&amp;L History</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">Bloomberg</div>
+        <div class="stat-lbl">Live Market Data</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">1</div>
+        <div class="stat-lbl">Blended Target</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ OVERVIEW ═══════════ -->
+<section id="overview">
+  <div class="container">
+    <p class="section-label">Overview</p>
+    <h2>Three lenses on<br>one price</h2>
+    <p style="max-width:580px;">
+      No single valuation method is right. Each makes different assumptions and breaks in
+      different ways. The model runs three in parallel off a shared financial spine, shows
+      where they agree and disagree, and weights them into one defensible target.
+    </p>
+    <div class="methods-layout">
+      <div class="methods-top">
+        <div class="method-card method-card--dcf">
+          <span class="method-badge">DCF</span>
+          <h3>Discounted Cash Flow</h3>
+          <p>Intrinsic value. Projects free cash flow off the P&amp;L, discounts it at a WACC built from the company's own capital structure, and adds a perpetuity-growth terminal value. Answers what the business is worth on its own fundamentals, independent of where the market is pricing it today.</p>
+        </div>
+        <div class="method-card method-card--rv">
+          <span class="method-badge">RV</span>
+          <h3>Relative Value</h3>
+          <p>Market-implied value. Benchmarks the company against a hand-picked peer set on EV/Sales, EV/EBITDA, and EV/EBIT across current and forward years. Upside is the gap between the target's multiples and the peer average and median.</p>
+        </div>
+        <div class="method-card method-card--sotp">
+          <span class="method-badge">SOTP</span>
+          <h3>Sum of the Parts</h3>
+          <p>Break-up value. Values each operating segment and minority stake separately, nets out debt and other liabilities, and applies a holdco discount. Built for conglomerates where the consolidated multiple hides the value of the pieces.</p>
+        </div>
+      </div>
+      <div class="methods-arrows">
+        <svg viewBox="0 0 900 64" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <!-- Left: diagonal then vertical with arrowhead -->
+          <polyline points="150,2 150,20 350,48 350,56" stroke="var(--border-2)" stroke-width="1.5" fill="none"/>
+          <polygon points="345,50 350,60 355,50" fill="var(--border-2)"/>
+          <!-- Center: straight down with arrowhead -->
+          <line x1="450" y1="2" x2="450" y2="56" stroke="var(--border-2)" stroke-width="1.5"/>
+          <polygon points="445,50 450,60 455,50" fill="var(--border-2)"/>
+          <!-- Right: diagonal then vertical with arrowhead -->
+          <polyline points="750,2 750,20 550,48 550,56" stroke="var(--border-2)" stroke-width="1.5" fill="none"/>
+          <polygon points="545,50 550,60 555,50" fill="var(--border-2)"/>
+        </svg>
+      </div>
+      <div class="methods-bottom">
+        <div class="method-card method-card--final">
+          <span class="method-badge">FINAL</span>
+          <h3>Blended Target</h3>
+          <p>The three methods are combined on a configurable weighting (default 75 / 15 / 10 toward DCF) into one equity value per share and a single upside/downside figure against the live market price.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ WORKFLOW ═══════════ -->
+<section id="workflow">
+  <div class="container">
+    <p class="section-label">Workflow</p>
+    <h2>From one company<br>to a price target</h2>
+
+    <div class="workflow-steps">
+
+      <!-- STEP 1 -->
+      <div class="step step--pnl">
+        <div class="step-content">
+          <p class="step-num">Step 01 &mdash; P&amp;L Engine</p>
+          <h3>Build the financial spine</h3>
+          <p>Enter the company's income statement by hand &mdash; seven years of history from revenue through diluted EPS, split into annual and quarterly columns with automatic period headers, margin lines, and YoY growth. Only the forward/estimate columns are wired to Bloomberg consensus; everything historical is manual input. Every downstream method reads from this sheet.</p>
+          <div class="step-tags">
+            <span class="tag">Manual P&amp;L entry</span>
+            <span class="tag">7yr history</span>
+            <span class="tag">Bloomberg consensus on forecasts only</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          <img src="screenshots/P&L_tab.png" alt="P&L Engine worksheet" style="width:100%;border-radius:10px;display:block;">
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step step--dcf">
+        <div class="step-content">
+          <p class="step-num">Step 02 &mdash; DCF</p>
+          <h3>Value the cash flows</h3>
+          <p>FCF is projected from forecast revenue growth, operating margin, tax, D&amp;A, capex, and working capital. The discount rate is a full WACC &mdash; cost of equity via CAPM (risk-free, equity risk premium, Bloomberg beta) and after-tax cost of debt, weighted by capital structure. Terminal value uses the Gordon growth approach. Output is intrinsic equity value per share and upside to market.</p>
+          <div class="step-tags">
+            <span class="tag">FCF projection</span>
+            <span class="tag">Bottom-up WACC</span>
+            <span class="tag">Gordon terminal value</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          <img src="screenshots/DCF_tab.png" alt="DCF worksheet" style="width:100%;border-radius:10px;display:block;">
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step step--rv">
+        <div class="step-content">
+          <p class="step-num">Step 03 &mdash; Relative Value</p>
+          <h3>Benchmark the peers</h3>
+          <p>Build a comparable set by ticker. Bloomberg populates names, prices, market caps, and EV multiples (EV/Sales, EV/EBITDA, EV/EBIT) on current and forward years. The model computes peer average and median, then the target's implied upside or downside to each.</p>
+          <div class="step-tags">
+            <span class="tag">Custom peer set</span>
+            <span class="tag">Fwd &amp; trailing multiples</span>
+            <span class="tag">Mean / median delta</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          <img src="screenshots/RV_tab.png" alt="Relative Value worksheet" style="width:100%;border-radius:10px;display:block;">
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step step--sotp">
+        <div class="step-content">
+          <p class="step-num">Step 04 &mdash; Sum of the Parts</p>
+          <h3>Break it up</h3>
+          <p>Value each operating division (EV/Sales, EV/EBITDA, or EV/NOPAT) and each minority stake on a DCF or NAV basis. Net debt and other liabilities are subtracted, a holdco discount applied, and the result divided by shares outstanding for an SOTP value per share.</p>
+          <div class="step-tags">
+            <span class="tag">Per-segment EVs</span>
+            <span class="tag">Stake valuation</span>
+            <span class="tag">Holdco discount</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          <img src="screenshots/SOTP_tab.png" alt="Sum of the Parts worksheet" style="width:100%;border-radius:10px;display:block;">
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="step step--final">
+        <div class="step-content">
+          <p class="step-num">Step 05 &mdash; Final Blend</p>
+          <h3>One number</h3>
+          <p>The three methods feed a weighting table &mdash; set any split across DCF, RV, and SOTP. The sheet returns the blended equity value per share and total upside against the live price.</p>
+          <div class="step-tags">
+            <span class="tag">Configurable weights</span>
+            <span class="tag">Blended target</span>
+            <span class="tag">Upside vs. market</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          <img src="screenshots/FinalValuation_tab.png" alt="Final Valuation worksheet" style="width:100%;border-radius:10px;display:block;">
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ TECHNICAL ═══════════ -->
+<section id="technical">
+  <div class="container">
+    <p class="section-label">The Math</p>
+    <h2>Under the hood</h2>
+    <p style="max-width:580px;">
+      Each valuation method rests on a different idea about where value comes from. One block
+      per method below, plus the rule that blends them.
+    </p>
+    <div class="math-grid">
+
+      <!-- DCF -->
+      <div class="math-card">
+        <h3>DCF &mdash; intrinsic value</h3>
+        <div class="math-sub">Discount rate &amp; free cash flow</div>
+        <p>
+          Two ideas carry the DCF: a discount rate built from the company's own risk, and a free
+          cash flow stream projected from its operating economics.
+        </p>
+        <p>
+          The discount rate should reflect the specific company's risk and how it is financed.
+          WACC blends the return equity holders demand with the after-tax cost of debt, weighted
+          by how much of each sits in the capital structure. The cost of equity comes from CAPM:
+          a risk-free base plus a market risk premium scaled by the stock's beta.
+        </p>
+        <div class="eq-block">
+          $$\text{WACC} = w_e \cdot r_e + w_d \cdot r_d$$
+        </div>
+        <div class="eq-block">
+          $$r_e = r_f + \beta\,(\text{ERP})$$
+        </div>
+        <div class="param-list">
+          <div class="param-item">
+            <span class="param-sym">$w_e, w_d$</span>
+            <span class="param-desc">Weight of equity and debt in capital employed (E/V, D/V)</span>
+          </div>
+          <div class="param-item">
+            <span class="param-sym">$r_f$</span>
+            <span class="param-desc">Risk-free rate (10Y US Treasury)</span>
+          </div>
+          <div class="param-item">
+            <span class="param-sym">$\beta$</span>
+            <span class="param-desc">Equity beta, pulled live from Bloomberg</span>
+          </div>
+          <div class="param-item">
+            <span class="param-sym">ERP</span>
+            <span class="param-desc">Equity risk premium</span>
+          </div>
+          <div class="param-item">
+            <span class="param-sym">$r_d$</span>
+            <span class="param-desc">Pre-tax cost of debt</span>
+          </div>
+        </div>
+        <p style="margin-top:1rem;">
+          The model carries both a Bloomberg-fed and a manual-input column, so every WACC
+          component can be overridden and the live feed frozen to a static value.
+        </p>
+        <p>
+          Most of a growth company's value sits beyond the explicit forecast horizon. The model
+          projects free cash flow year by year, discounts each back at the WACC, and caps the
+          stream with a terminal value that assumes cash flows grow at a constant long-run rate
+          forever.
+        </p>
+        <div class="eq-block">
+          $$\text{FCF} = \text{NOPAT} + D\&amp;A - \text{CapEx} - \Delta\text{NWC}$$
+        </div>
+        <div class="eq-block">
+          $$\text{TV} = \dfrac{\text{FCF}_{T}\,(1+g)}{\text{WACC} - g}$$
+        </div>
+        <div class="eq-block">
+          $$\text{EV} = \sum_{t=1}^{T}\dfrac{\text{FCF}_t}{(1+\text{WACC})^t} + \dfrac{\text{TV}}{(1+\text{WACC})^T}$$
+        </div>
+        <p style="margin-top:1rem;">
+          Equity value is EV less net debt, pension provisions, and minority interests, divided by
+          diluted shares. The sheet flags what share of EV comes from the terminal value &mdash; a
+          sanity check on how forecast-dependent the result is.
+        </p>
+      </div>
+
+      <!-- RV -->
+      <div class="math-card math-card--rv">
+        <h3>RV &mdash; relative value</h3>
+        <div class="math-sub">Peer multiples</div>
+        <p>
+          A company should trade in line with comparable businesses. The model benchmarks the
+          target against a peer set on EV/Sales, EV/EBITDA, and EV/EBIT, and reads upside as the
+          gap between peer multiples and the target's own.
+        </p>
+        <div class="eq-block">
+          $$\text{Upside}_{\text{RV}} = \dfrac{\overline{M}_{\text{peers}}}{M_{\text{target}}} - 1$$
+        </div>
+        <p>
+          Computed on both mean and median across the peer set, for each multiple and year, to
+          limit the pull of any single outlier comp.
+        </p>
+      </div>
+
+      <!-- SOTP -->
+      <div class="math-card math-card--sotp">
+        <h3>SOTP &mdash; sum of the parts</h3>
+        <div class="math-sub">Break-up valuation</div>
+        <p>
+          For a conglomerate, the consolidated multiple hides the value of the pieces. Each
+          operating segment is valued on its own multiple, each minority stake on a DCF or NAV
+          basis, and the parts are summed into a gross enterprise value. Net debt and other
+          liabilities are subtracted, and a holdco discount is applied to reflect the conglomerate
+          structure before dividing by shares outstanding.
+        </p>
+        <div class="eq-block">
+          $$\text{EV}_{\text{SOTP}} = \sum_{j} \text{EV}_j + \sum_{k} \text{Stake}_k$$
+        </div>
+        <div class="eq-block">
+          $$\text{Equity} = \big(\text{EV}_{\text{SOTP}} - \text{Net Debt} - \text{Other Liab.}\big)\,(1 - d)$$
+        </div>
+        <div class="eq-block">
+          $$P_{\text{SOTP}} = \dfrac{\text{Equity}}{\text{Shares}}$$
+        </div>
+        <div class="param-list">
+          <div class="param-item">
+            <span class="param-sym">$\text{EV}_j$</span>
+            <span class="param-desc">Enterprise value of operating segment j (EV/Sales, EV/EBITDA, or EV/NOPAT)</span>
+          </div>
+          <div class="param-item">
+            <span class="param-sym">$\text{Stake}_k$</span>
+            <span class="param-desc">Value of minority stake k, on a DCF or NAV basis</span>
+          </div>
+          <div class="param-item">
+            <span class="param-sym">$d$</span>
+            <span class="param-desc">Holdco discount</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Blended -->
+      <div class="math-card math-card--final">
+        <h3>Blended target</h3>
+        <div class="math-sub">Three methods, one weighted price</div>
+        <p>
+          The three methods feed one weighted price.
+        </p>
+        <div class="eq-block">
+          $$P^* = \sum_i w_i \, P_i, \quad i \in \{\text{DCF, RV, SOTP}\}, \quad \sum_i w_i = 1$$
+        </div>
+        <p>
+          Default weighting leans on DCF (75%) with RV and SOTP as cross-checks, but the split is
+          fully configurable.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ DATA & AUTOMATION ═══════════ -->
+<section id="data">
+  <div class="container">
+    <p class="section-label">Data &amp; Automation</p>
+    <h2>Live, then frozen</h2>
+    <div class="data-card">
+      <p>
+        The P&amp;L is built by hand &mdash; historical financials are entered manually, with Bloomberg
+        BDH feeding only the forward estimate columns. Market data for the valuation sheets is
+        where the live feed does the heavy lifting: BDP and BDH array formulas pull security
+        names, prices, market caps, betas, and consensus EV multiples into the DCF and Relative
+        Value sheets.
+      </p>
+      <p>
+        A set of VBA macros then does two jobs: <strong>Reset</strong> clears all inputs back to a
+        blank template for the next company, and <strong>Save Bloom Data</strong> pastes the live feed as static
+        values, so a finished valuation is portable and stops moving when the terminal disconnects.
+      </p>
+      <div class="step-tags" style="margin-top:1.1rem;">
+        <span class="tag">Manual historicals</span>
+        <span class="tag">BDP / BDH on market data</span>
+        <span class="tag">VBA reset &amp; freeze macros</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ DOWNLOAD ═══════════ -->
+<section id="download">
+  <div class="container">
+    <p class="section-label">Download</p>
+    <h2>Try the model</h2>
+    <div class="dl-card">
+      <h3>Workbook (.xlsm)</h3>
+      <p>The full macro-enabled Excel workbook: P&amp;L engine, DCF, Relative Value, SOTP, and the blended Final sheet. Requires Microsoft Excel with macros enabled; a Bloomberg Terminal is needed for live data, but the included worked example (a European media-sector valuation) is saved as static values and opens without one.</p>
+      <a class="btn-primary" href="Equity_Pricing_Model_Demo.xlsm" download>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download (.xlsm)
+      </a>
+      <p class="dl-note">Macro-enabled &middot; example data frozen for offline viewing</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Equity Pricing Model &middot; Maximilien Delaporte</p>
+</footer>
+
+</body>
+</html>

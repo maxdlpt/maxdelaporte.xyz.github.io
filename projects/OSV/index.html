@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Options Strategy Visualiser · Maximilien Delaporte</title>
+  <link rel="icon" href="/logo3.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.getElementById('technical'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+  <style>
+    :root {
+      --bg:         #0B1220;
+      --surface:    #111A2E;
+      --surface-2:  #1A2740;
+      --border:     #243149;
+      --border-2:   #2e3f5a;
+      --accent:     #FF3E11;
+      --accent-hover:#FF5C36;
+      --accent-dim: rgba(255,62,17,0.12);
+      --amber:      #FFC000;
+      --green:      #2FBF71;
+      --text:       #EAF0FB;
+      --text-dim:   #93A2BE;
+      --text-muted: #5C6B86;
+      --font:       'Inter', system-ui, -apple-system, sans-serif;
+      --mono:       'JetBrains Mono', 'Fira Code', monospace;
+      --radius:     10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── NAV ─────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(11,18,32,0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1120px; margin: 0 auto;
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 54px;
+    }
+    .nav-brand {
+      font-size: 12px; font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      font-size: 12px; color: var(--text-muted);
+      text-decoration: none;
+      transition: color .18s;
+    }
+    .nav-links a:hover { color: var(--text-dim); }
+    .nav-links a.active { color: var(--text); }
+
+    /* ─── CONTAINER ───────────────────────────────────── */
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 2rem; }
+
+    /* ─── HERO ────────────────────────────────────────── */
+    #hero {
+      padding: 7rem 2rem 5.5rem;
+      position: relative; overflow: hidden;
+    }
+    #hero::before {
+      content: '';
+      position: absolute; top: -280px; left: -180px;
+      width: 640px; height: 640px;
+      background: radial-gradient(circle, rgba(255,62,17,0.06) 0%, transparent 68%);
+      pointer-events: none;
+    }
+    #hero::after {
+      content: '';
+      position: absolute; bottom: -100px; right: -100px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(255,192,0,0.04) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-inner { max-width: 1120px; margin: 0 auto; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(255,62,17,0.22);
+      color: var(--accent);
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 4px 14px; border-radius: 100px;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: clamp(2.6rem, 5.5vw, 3.75rem);
+      font-weight: 700; line-height: 1.06;
+      letter-spacing: -0.025em;
+      color: #f0f6ff;
+      margin-bottom: 1.25rem;
+    }
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--text-dim);
+      max-width: 560px;
+      line-height: 1.75;
+      margin-bottom: 3rem;
+    }
+    .hero-stats {
+      display: flex; flex-wrap: wrap;
+      gap: 0; align-items: stretch;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      width: fit-content;
+      overflow: hidden;
+    }
+    .stat-item {
+      padding: 1.1rem 1.75rem;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-val {
+      font-size: 1.6rem; font-weight: 700;
+      color: var(--amber); line-height: 1; margin-bottom: 4px;
+    }
+    .stat-lbl {
+      font-size: 10px; font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    /* ─── SECTION ─────────────────────────────────────── */
+    section { padding: 5.5rem 2rem; }
+    section:not(#hero) { border-top: 1px solid var(--border); }
+    .section-label {
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    h2 {
+      font-size: clamp(1.55rem, 3vw, 2.1rem);
+      font-weight: 700; line-height: 1.15;
+      letter-spacing: -0.018em; color: #f0f6ff;
+      margin-bottom: 0.9rem;
+    }
+    h3 { font-size: 1rem; font-weight: 600; color: #f0f6ff; margin-bottom: 0.45rem; }
+    p  { color: var(--text-dim); line-height: 1.75; }
+
+    /* ─── FEATURES ────────────────────────────────────── */
+    .features-list {
+      display: flex; flex-direction: column;
+      gap: 1rem; margin-top: 2rem;
+      max-width: 620px;
+    }
+    .feature-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem 1.4rem;
+    }
+    .feature-item h3 { font-size: 13.5px; margin-bottom: 0.3rem; }
+    .feature-item p { font-size: 12.5px; color: var(--text-muted); margin-top: 0; }
+
+    /* ─── WORKFLOW ────────────────────────────────────── */
+    .workflow-steps { display: flex; flex-direction: column; gap: 5rem; margin-top: 3.5rem; }
+    .step {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 4rem; align-items: center;
+    }
+    .step:nth-child(even) .step-content { order: 2; }
+    .step:nth-child(even) .step-visual  { order: 1; }
+    .step-num {
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 0.5rem;
+    }
+    .step-content p { font-size: 13.5px; margin-top: 0.7rem; }
+    .step-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 1.1rem; }
+    .tag {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      padding: 3px 10px; border-radius: 6px;
+    }
+
+    /* ─── SCREENSHOT SLOTS ────────────────────────────── */
+    .screenshot-slot {
+      background: var(--surface);
+      border: 1.5px dashed var(--border-2);
+      border-radius: var(--radius);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 0.6rem;
+      padding: 3.5rem 2rem;
+      min-height: 300px;
+      text-align: center;
+      aspect-ratio: 16/10;
+    }
+    .slot-icon { font-size: 2rem; opacity: 0.2; line-height: 1; }
+    .slot-title {
+      font-size: 11px; font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .slot-hint { font-size: 11px; color: var(--text-muted); opacity: 0.55; }
+
+    /* ─── MATH SECTION ───────────────────────────────── */
+    .math-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.6rem;
+      margin-top: 2.5rem;
+      max-width: 700px;
+    }
+    .math-card p { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+    .math-card p + p { margin-top: 0.7rem; }
+    .eq-block {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem 1.25rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+    .eq-block .katex { color: #fde0d6; font-size: 1.05em; }
+    .eq-block .katex-display { margin: 0; }
+
+    /* ─── DOWNLOAD ────────────────────────────────────── */
+    #download { text-align: center; }
+    .dl-card {
+      max-width: 500px; margin: 2.5rem auto 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 2.5rem;
+    }
+    .dl-card p { font-size: 13.5px; margin: 0.7rem 0 2rem; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13.5px; font-weight: 600;
+      padding: 0.75rem 1.75rem;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background .18s, transform .15s;
+      cursor: pointer; border: none;
+    }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .dl-note { font-size: 11.5px; color: var(--text-muted); margin-top: 1rem; }
+
+    /* ─── FOOTER ──────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.75rem 2rem;
+      text-align: center;
+    }
+    footer p { font-size: 11.5px; color: var(--text-muted); }
+
+    /* ─── RESPONSIVE ──────────────────────────────────── */
+    @media (max-width: 720px) {
+      .step { grid-template-columns: 1fr; gap: 2rem; }
+      .step:nth-child(even) .step-content { order: 1; }
+      .step:nth-child(even) .step-visual  { order: 2; }
+      .nav-links    { display: none; }
+      .hero-stats   { flex-direction: column; width: auto; }
+      .stat-item    { border-right: none; border-bottom: 1px solid var(--border); }
+      .stat-item:last-child { border-bottom: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="#">Options Strategy Visualiser</a>
+    <ul class="nav-links">
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#workflow">How It Works</a></li>
+      <li><a href="#download">Download</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section id="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">&#9656;&nbsp; Personal Project</div>
+    <h1>Options Strategy<br>Visualiser</h1>
+    <p class="hero-sub">
+      A single-sheet Excel tool that plots the payoff of any multi-leg options strategy.
+      Enter up to four option legs plus stock and forward positions, and it draws the
+      combined profit-and-loss curve across the full range of underlying prices at expiry.
+    </p>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-val">4</div>
+        <div class="stat-lbl">Option Legs</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">Live</div>
+        <div class="stat-lbl">P/L Chart</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">Bloomberg</div>
+        <div class="stat-lbl">Spot Price</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ OVERVIEW ═══════════ -->
+<section id="overview">
+  <div class="container">
+    <p class="section-label">Overview</p>
+    <h2>See the payoff<br>before you trade</h2>
+    <p style="max-width:580px;">
+      Options strategies are hard to reason about from the leg definitions alone. The tool
+      takes each leg, computes its payoff at expiry across a range of underlying prices, and
+      sums them into one curve &mdash; so the shape of the strategy (the breakevens, the capped
+      upside, the max loss) is visible at a glance.
+    </p>
+    <div class="features-list">
+      <div class="feature-item">
+        <h3>Up to four option legs</h3>
+        <p>Each call or put, long or short, with its own quantity, strike, and premium.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Stock and forward legs</h3>
+        <p>Layer a linear underlying or forward position on top of the options to model covered calls, collars, and hedged structures.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Combined P/L curve</h3>
+        <p>Every leg's payoff is summed and charted live against the underlying price, recentred on the current spot.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ WORKFLOW ═══════════ -->
+<section id="workflow">
+  <div class="container">
+    <p class="section-label">Workflow</p>
+    <h2>Up to 6 inputs,<br>one strategy return profile</h2>
+
+    <div class="workflow-steps">
+
+      <!-- STEP 1 -->
+      <div class="step">
+        <div class="step-content">
+          <p class="step-num">Step 01 &mdash; Define the legs</p>
+          <h3>Build the strategy</h3>
+          <p>Set the underlying ticker, then build the strategy leg by leg. For each option leg pick call or put, set quantity (positive long, negative short), strike, and premium. Stock and forward legs are entered the same way. The underlying's spot price pulls from Bloomberg and centres the payoff range.</p>
+          <div class="step-tags">
+            <span class="tag">Call / put</span>
+            <span class="tag">Long / short</span>
+            <span class="tag">Strike &amp; premium</span>
+            <span class="tag">Bloomberg spot</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          <img src="screenshots/Single Leg.png" alt="Leg inputs" style="width:100%;border-radius:10px;display:block;">
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step">
+        <div class="step-content">
+          <p class="step-num">Step 02 &mdash; Per-leg payoff</p>
+          <h3>Compute each leg</h3>
+          <p>Each leg's value at expiry is computed across a grid of underlying prices centred on spot &mdash; intrinsic payoff net of premium, scaled by quantity and contract size. This is the per-leg calculation block that feeds the chart.</p>
+          <div class="step-tags">
+            <span class="tag">Payoff grid</span>
+            <span class="tag">Net of premium</span>
+            <span class="tag">Per-leg columns</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          <img src="screenshots/Leg-specific return profiles.png" alt="Per-leg payoff calculations" style="width:100%;border-radius:10px;display:block;">
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step">
+        <div class="step-content">
+          <p class="step-num">Step 03 &mdash; Combined payoff chart</p>
+          <h3>The full picture</h3>
+          <p>The per-leg payoffs are summed into one P/L curve and plotted live against the underlying price. Breakevens, max profit, and max loss read straight off the chart.</p>
+          <div class="step-tags">
+            <span class="tag">Summed P/L</span>
+            <span class="tag">Live chart</span>
+            <span class="tag">Breakevens at a glance</span>
+          </div>
+        </div>
+        <div class="step-visual">
+          <img src="screenshots/Payoff chart.png" alt="Combined P/L chart" style="width:100%;border-radius:10px;display:block;">
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ DOWNLOAD ═══════════ -->
+<section id="download">
+  <div class="container">
+    <p class="section-label">Download</p>
+    <h2>Try the tool</h2>
+    <div class="dl-card">
+      <h3>Workbook (.xlsm)</h3>
+      <p>The macro-enabled Excel workbook. A Bloomberg Terminal is only needed to auto-pull the spot price; the underlying price can also be typed in by hand, so the tool works fully offline.</p>
+      <a class="btn-primary" href="OptionsStrategyVisualiser.xlsm" download>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download (.xlsm)
+      </a>
+      <p class="dl-note">Macro-enabled &middot; works offline with manual spot price</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Options Strategy Visualiser &middot; Maximilien Delaporte</p>
+</footer>
+
+</body>
+</html>

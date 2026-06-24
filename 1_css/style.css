@@ -742,6 +742,21 @@ pre.ascii-pre {
     transition: color 0.35s ease, font-size 0.35s ease;
 }
 
+.tab-year {
+    margin-left: auto;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    opacity: 0.4;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    transition: opacity 0.3s ease;
+}
+
+.portfolio-tab.is-active .tab-year {
+    opacity: 0.6;
+}
+
 .portfolio-tab.is-active .tab-title {
     font-size: clamp(22px, 2.8vw, 40px);
     font-weight: 700;

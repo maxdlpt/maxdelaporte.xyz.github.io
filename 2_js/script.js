@@ -7,6 +7,16 @@
 // ====================
 
 (function () {
+    // Expose footer height as a CSS variable so the mobile portfolio section
+    // can subtract it from the viewport height calculation.
+    const footerEl = document.querySelector('.footer');
+    function syncFooterHeight() {
+        if (!footerEl) return;
+        document.documentElement.style.setProperty('--footer-total-h', footerEl.offsetHeight + 'px');
+    }
+    syncFooterHeight();
+    window.addEventListener('resize', syncFooterHeight);
+
     const snapIds = ['home', 'about', 'portfolio'];
     const snapEls = snapIds.map(id => document.getElementById(id)).filter(Boolean);
     if (snapEls.length < 2) return;
@@ -69,7 +79,18 @@
         snapToY(targetY, duration);
     }
 
+    // Check if an event target is inside the scrollable portfolio tab list.
+    // If so, let it scroll natively rather than triggering a section snap.
+    const isInsideScrollableTabs = (el) => {
+        const tabsContainer = document.querySelector('.portfolio-tabs');
+        if (!tabsContainer || window.innerWidth > 768) return false;
+        return tabsContainer.contains(el) && tabsContainer.scrollHeight > tabsContainer.clientHeight;
+    };
+
+    let touchInsideTabs = false;
+
     window.addEventListener('wheel', (e) => {
+        if (isInsideScrollableTabs(e.target)) return; // let the tab list scroll
         const dir = e.deltaY > 0 ? 1 : -1;
         if (!isLocked(getCurrentIdx(), dir)) return;
         e.preventDefault();
@@ -83,12 +104,14 @@
     window.addEventListener('touchstart', (e) => {
         touchStartY = e.touches[0].clientY;
         touchDir    = 0;
+        touchInsideTabs = isInsideScrollableTabs(e.target);
     }, { passive: true });
 
     // Non-passive so we can preventDefault — this is the key iOS fix.
     // iOS starts its momentum scroll during touchmove; blocking it here lets
     // our custom snapToY animation be the only scroll that runs.
     window.addEventListener('touchmove', (e) => {
+        if (touchInsideTabs) return; // let the tab list scroll natively
         const delta = touchStartY - e.touches[0].clientY;
         if (Math.abs(delta) < 5) return; // ignore jitter
         touchDir = delta > 0 ? 1 : -1;
@@ -98,6 +121,7 @@
     }, { passive: false });
 
     window.addEventListener('touchend', (e) => {
+        if (touchInsideTabs) { touchInsideTabs = false; return; }
         if (isSnapping) return;
         const delta = touchStartY - e.changedTouches[0].clientY;
         if (Math.abs(delta) < 30) return;

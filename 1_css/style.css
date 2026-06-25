@@ -754,7 +754,8 @@ pre.ascii-pre {
 }
 
 .portfolio-tab.is-active .tab-year {
-    opacity: 0.6;
+    opacity: 1;
+    color: #fff;
 }
 
 .portfolio-tab.is-active .tab-title {
